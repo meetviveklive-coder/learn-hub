@@ -1,0 +1,174 @@
+---
+title: The agent loop (think → act → observe)
+description: Every agent runs the same cycle. It thinks, takes one action, looks at the result, and repeats until a stop rule says it is done.
+domain: ai-agents
+level: basics
+order: 2
+prerequisites: [what-is-an-ai-agent]
+tags: [agents, loop, react, tools, basics]
+sources:
+  - title: "ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2022)"
+    url: https://arxiv.org/abs/2210.03629
+    type: paper
+  - title: Building effective agents (Anthropic, Dec 2024)
+    url: https://www.anthropic.com/engineering/building-effective-agents
+    type: official
+  - title: How tool use works (Claude Platform Docs)
+    url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works
+    type: official
+  - title: Loop control (AI SDK docs)
+    url: https://ai-sdk.dev/docs/agents/loop-control
+    type: official
+last_verified: 2026-10-20
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** The agent loop is the cycle every agent repeats: think about the next step, act by using a tool, then observe the result.
+- **Why it matters:** The loop is what lets an agent fix its own course. It is also where agents waste money or get stuck, so you need to know when it stops.
+- **Example:** An agent asked "Is the shop open on Sunday?" searches the website, reads the hours page, sees the answer, and stops.
+
+## Think of it like…
+
+<Analogy>
+Think of a cook trying a new soup recipe. They decide what to add, add a pinch of salt, taste it, and decide again. They stop when it tastes right, or when dinner time arrives.
+
+**Where the comparison breaks:** A cook remembers every taste by themselves. A model only "remembers" what the program writes back into its input before each new step.
+</Analogy>
+
+## Real-world example
+
+A support team at an online shoe store uses an agent to answer refund questions. A customer writes: "Can I still return the boots I bought?"
+
+Here is how the loop runs:
+
+- **Think:** "I need the order date. I should look up the order."
+- **Act:** The agent calls the "look up order" tool with the customer's email.
+- **Observe:** The tool returns an order from 12 days ago.
+- **Think:** "Now I need the return window. I should check the policy."
+- **Act:** It calls the "read policy" tool.
+- **Observe:** The policy says returns are open for 30 days.
+- **Think:** "12 is less than 30, so yes. I have enough to answer."
+- **Answer:** "Yes, you can still return them. You have 18 days left."
+
+The agent asks for no more tools, so the loop stops. Notice that it never guessed the order date. Each step used a real result to decide the next one.
+
+## How it works
+
+Quick reminder: the **model** is the large language model, the AI that reads and writes text. A **tool** is an action the model may ask for, like "search the web." A **tool call** is the model's request to use one. Each pass around the loop is one **trip**, also called a step.
+
+Each trip has three moves, then a check:
+
+1. **Think.** The model reads the goal plus the whole conversation so far. It picks the next action, usually one tool call (it can ask for several at once).
+2. **Act.** The model asks for a tool call, such as "look up order." For most tools, your program runs it, not the model.
+3. **Observe.** Your program adds the tool's result to the conversation. This new text is called an **observation**.
+4. **Check: should we stop?** If not, go back to step 1. The model now sees a longer conversation.
+
+```text title="One agent, many trips around the loop"
+ Goal
+  │
+  ▼
+ THINK ──► ACT (tool call) ──► OBSERVE (tool result)
+  ▲                                   │
+  └────────── not done ◄── STOP? ◄────┘
+                             │
+                            yes ──► Final answer
+```
+
+*The diagram shows think, act, observe, then a stop check on every trip.*
+
+### Where the pattern came from
+
+A 2022 research paper called **ReAct** (short for "Reasoning and Acting") described this pattern. The authors had a language model write a short reasoning note before each action. Many agents today skip the written note, but the think-act-observe cycle is the same. In some tests, the actions were searches on a simple Wikipedia tool. The paper reports that mixing the two cut down on made-up facts, often called **hallucinations**, compared with reasoning alone.
+
+Anthropic describes agents the same way: a model using tools in a loop, based on feedback from its environment. The environment is everything outside the model that its tools touch, such as files, websites, or a database. It stresses that the agent should get **ground truth** at each step. Ground truth means real results from the world, like a tool's output or code that actually ran.
+
+### How the loop stops
+
+A loop with no exit is a bug. Real agents use several stop rules at once:
+
+| Stop rule | What it means |
+|---|---|
+| **The model says it is done** | It answers in plain text and asks for no tool. |
+| **Step limit** | The program stops after a set number of trips. |
+| **Hand off to a human** | The agent pauses to ask for approval or missing facts. |
+| **Reply cut off** | The model hit its length limit mid-reply, so the program must handle it. |
+
+Most tool errors do not stop the loop. The program sends the error back as an observation, and the model tries another way.
+
+Two real examples show the first two rules. Anthropic's Claude API is the interface your code uses to talk to Claude. Each reply has a label called `stop_reason`. The value `"tool_use"` means "run my tools and send back the results," so you loop again. The value `"end_turn"` means the model has finished its answer, so you exit. Other values, such as `"max_tokens"` for a cut-off reply, also need handling.
+
+The AI SDK, a code library for building AI apps, gives its tool-loop agent a default cap of 20 steps. That cap guards against runaway loops, meaning loops that keep going and keep costing money.
+
+## Common mistakes
+
+- **Trusting "done" with no check** — the model may say the job is finished when it is not. Add a real check, like opening the saved file or re-running the code.
+- **No step limit** — a stuck agent keeps calling tools and spending money. Always set a maximum number of trips.
+- **Hiding tool errors** — if a failed tool returns nothing, the model guesses. Send the error message back as the observation so it can try another way.
+- **Letting the history grow forever** — every trip adds text the model must re-read. Long runs get slow and confused. Keep tool results short and to the point.
+
+## Remember this
+
+<Remember>
+- The loop is think, act, observe, then ask "should I stop?"
+- The model asks for actions; the program around it runs them and feeds the results back.
+- Every loop needs a stop rule you control, such as a step limit, not just the model saying "done."
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "What is an 'observation' in the agent loop?",
+      options: [
+        "The model's private plan for the whole task",
+        "The result of a tool call, added back into the conversation",
+        "A human watching the agent work",
+        "The final answer sent to the user"
+      ],
+      answer: 1,
+      why: "An observation is what the tool returned, such as search results or an order record. The plan is the 'think' step, not the observation."
+    },
+    {
+      q: "In the ReAct paper, what does the model write before each action?",
+      options: [
+        "A short reasoning note about what to do next",
+        "The final answer to the task",
+        "A list of every tool it will ever need"
+      ],
+      answer: 0,
+      why: "ReAct mixes reasoning with acting. The note helps the model plan and change course, and the actions bring in real facts."
+    },
+    {
+      q: "Your agent has run 40 trips and keeps searching for the same thing. What should have stopped this?",
+      options: [
+        "A longer prompt",
+        "Removing all tools",
+        "A step limit set by your program",
+        "Asking the model to try harder"
+      ],
+      answer: 2,
+      why: "A step limit is a stop rule you control. Asking the model to try harder doesn't help if it is stuck in a pattern."
+    },
+    {
+      q: "With the Claude API, your loop gets a reply whose stop_reason is \"end_turn\". What should your code do?",
+      options: [
+        "Run the tool again",
+        "Exit the loop and use the model's answer",
+        "Start a new conversation"
+      ],
+      answer: 1,
+      why: "\"end_turn\" means the model finished its answer. Only \"tool_use\" means 'run my tools and keep going'."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is an AI agent?](/docs/ai-agents/foundations/what-is-an-ai-agent)
+- Read next: **Tools and function calling**, coming soon.
+- Sources are listed below with the date they were last checked.
