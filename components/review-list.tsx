@@ -22,7 +22,7 @@ export function ReviewList() {
 
   if (total === 0) {
     return (
-      <div className="rounded-xl border bg-fd-card p-6 text-sm">
+      <div className="rounded-2xl border border-dashed bg-fd-card p-8 text-sm">
         <p className="font-medium">Nothing to review yet.</p>
         <p className="mt-1 text-fd-muted-foreground">
           Open a lesson and press <b>Mark as learned</b> at the bottom. It will show up here in 1, 3, 7, 16 and 35
@@ -41,9 +41,9 @@ export function ReviewList() {
         ) : (
           <ul className="flex flex-col gap-3">
             {due.map((i) => (
-              <li key={i.url} className="flex flex-col gap-3 rounded-xl border bg-fd-card p-4 sm:flex-row sm:items-center">
+              <li key={i.url} className="flex flex-col gap-3 rounded-xl border bg-fd-card p-4 shadow-sm sm:flex-row sm:items-center">
                 <div className="flex-1">
-                  <Link href={i.url} className="font-medium underline">
+                  <Link href={i.url} className="font-semibold hover:text-fd-primary">
                     {i.title}
                   </Link>
                   <p className="text-xs text-fd-muted-foreground">
@@ -51,7 +51,7 @@ export function ReviewList() {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => act(i.url, true)} className="rounded-lg bg-fd-primary px-3 py-2 text-sm font-medium text-fd-primary-foreground">
+                  <button onClick={() => act(i.url, true)} className="rounded-lg bg-fd-primary px-3 py-2 text-sm font-medium text-fd-primary-foreground shadow-sm hover:opacity-90">
                     I remembered
                   </button>
                   <button onClick={() => act(i.url, false)} className="rounded-lg border px-3 py-2 text-sm hover:bg-fd-accent">
@@ -66,10 +66,10 @@ export function ReviewList() {
       {next.length > 0 && (
         <section>
           <h2 className="mb-3 text-lg font-semibold">Coming up</h2>
-          <ul className="divide-y rounded-xl border text-sm">
+          <ul className="divide-y rounded-xl border bg-fd-card text-sm shadow-sm">
             {next.map((i) => (
               <li key={i.url} className="flex justify-between gap-4 p-3">
-                <Link href={i.url} className="underline">
+                <Link href={i.url} className="hover:text-fd-primary">
                   {i.title}
                 </Link>
                 <span className="shrink-0 text-fd-muted-foreground">in {daysUntil(i.due)} day(s)</span>
