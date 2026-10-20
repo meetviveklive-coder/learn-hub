@@ -13,7 +13,7 @@ HARD LIMITS (never break these)
 - Never merge anything. Never push to main.
 - Do not create, update or fire scheduled tasks, reminders, check-ins or follow-ups of any kind.
 - Do not use connectors other than what is needed to attach the repository. Do not touch Google Drive, Shopify or Docs.
-- `gh pr list` / `gh pr view` do NOT work in this environment (GraphQL is blocked). Use the REST API via `gh api`, e.g. `gh api "repos/meetviveklive-coder/learn-hub/pulls?state=all&per_page=50"`. `gh pr create` is fine; if it fails, use `gh api repos/meetviveklive-coder/learn-hub/pulls -f title=... -f head=... -f base=main -f body=...`.
+- `gh pr list` / `gh pr view` do NOT work in this environment (GraphQL is blocked). Use the REST API via `gh api`, e.g. `gh api "repos/meetviveklive-coder/learn-hub/pulls?state=all&per_page=50"`. `gh pr create` is ALSO blocked — open PRs with `gh api repos/meetviveklive-coder/learn-hub/pulls -f title=... -f head=<branch> -f base=main -F body=@pr-body.md`.
 
 SETUP
 0. Attach the repository with push access (use the add_repo tool: owner "meetviveklive-coder", repo "learn-hub", access "push") and clone it as that tool instructs. Then `cd` into the clone and run `npm ci --include=dev`.
