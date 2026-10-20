@@ -1,4 +1,4 @@
 {
   "title": "Foundations",
-  "pages": ["what-is-an-ai-agent", "tools-and-function-calling"]
+  "pages": ["what-is-an-ai-agent", "the-agent-loop", "tools-and-function-calling"]
 }
