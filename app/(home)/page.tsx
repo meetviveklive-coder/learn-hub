@@ -58,13 +58,13 @@ export default function HomePage() {
 
       <section className="mt-16 rounded-xl border p-6">
         <h2 className="font-semibold">How every lesson works</h2>
-        <ol className="mt-3 grid gap-2 text-sm text-fd-muted-foreground sm:grid-cols-2">
-          <li>1. <b className="text-fd-foreground">In 3 lines</b> — the whole idea, fast.</li>
-          <li>2. <b className="text-fd-foreground">Think of it like…</b> — an everyday comparison.</li>
-          <li>3. <b className="text-fd-foreground">Real-world example</b> — where you'd see it.</li>
-          <li>4. <b className="text-fd-foreground">How it works</b> — step by step.</li>
-          <li>5. <b className="text-fd-foreground">Common mistakes</b> — what trips people up.</li>
-          <li>6. <b className="text-fd-foreground">Remember this</b> + <b className="text-fd-foreground">Quiz</b> — lock it in.</li>
+        <ol className="mt-3 grid list-inside list-decimal gap-2 text-sm text-fd-muted-foreground sm:grid-cols-2">
+          <li><b className="text-fd-foreground">In 3 lines</b> — the whole idea, fast.</li>
+          <li><b className="text-fd-foreground">Think of it like…</b> — an everyday comparison.</li>
+          <li><b className="text-fd-foreground">Real-world example</b> — where you'd see it.</li>
+          <li><b className="text-fd-foreground">How it works</b> — step by step.</li>
+          <li><b className="text-fd-foreground">Common mistakes</b> — what trips people up.</li>
+          <li><b className="text-fd-foreground">Remember this</b> + <b className="text-fd-foreground">Quiz</b> — lock it in.</li>
         </ol>
       </section>
     </div>
