@@ -35,7 +35,7 @@ items:
     title: Tools and function calling
     why: How an agent actually does things in the world.
     priority: 1
-    status: in_review
+    status: published
     notes: Seed lesson. Generic example, then one vendor-neutral JSON example.
 
   - id: context-window-and-memory
@@ -44,7 +44,7 @@ items:
     title: Context window, memory, and why agents forget
     why: Explains most agent failures.
     priority: 2
-    status: queued
+    status: in_review
 
   - id: prompt-vs-context-engineering
     domain: ai-agents
