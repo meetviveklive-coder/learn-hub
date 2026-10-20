@@ -1,4 +1,4 @@
 {
   "title": "Foundations",
-  "pages": ["what-is-an-ai-agent", "the-agent-loop", "tools-and-function-calling", "context-window-and-memory"]
+  "pages": ["what-is-an-ai-agent", "the-agent-loop", "tools-and-function-calling", "context-window-and-memory", "prompt-vs-context-engineering"]
 }
