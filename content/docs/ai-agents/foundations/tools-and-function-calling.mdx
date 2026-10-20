@@ -1,0 +1,172 @@
+---
+title: Tools and function calling
+description: A tool is an action your code offers a model. The model asks for it by name with inputs, your code runs it, and the result goes back.
+domain: ai-agents
+level: basics
+order: 3
+prerequisites: [what-is-an-ai-agent]
+tags: [agents, tools, function-calling, json, basics]
+sources:
+  - title: Function calling (OpenAI API docs)
+    url: https://developers.openai.com/api/docs/guides/function-calling
+    type: official
+  - title: Define tools (Claude Platform Docs)
+    url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools
+    type: official
+  - title: How tool use works (Claude Platform Docs)
+    url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works
+    type: official
+  - title: Creating your first schema (JSON Schema docs)
+    url: https://json-schema.org/learn/getting-started-step-by-step
+    type: official
+last_verified: 2026-10-20
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** Function calling, also called tool calling, lets a language model ask your code to run an action, such as "check the weather."
+- **Why it matters:** A model on its own can only write text. Tools are how an agent reads live data and changes things in the world.
+- **Example:** You ask, "Is there a room free on Friday?" The model asks your code to run `check_rooms` with the date, and then answers from the real result.
+
+## Think of it like…
+
+<Analogy>
+Think of a restaurant waiter who is not allowed to cook. The waiter reads the menu, writes an order on a slip, and passes it to the kitchen. The kitchen cooks the dish and sends the plate back.
+
+The model is the waiter. The menu is the list of tools, and the order slip is the tool call. The kitchen is your code.
+
+**Where the comparison breaks:** A real waiter can peek into the kitchen and use common sense. A model knows only what the menu says and what comes back, so a vague menu leads to wrong orders.
+</Analogy>
+
+## Real-world example
+
+A small hotel adds a chat assistant to its website. Guests ask things like, "Do you have a double room free this Friday?"
+
+A language model, the AI that reads and writes text, can't know which rooms are free on Friday. That data lives in the hotel's booking system. So the hotel's developer gives the model one tool, called `check_rooms`. The tool takes a date and a room type.
+
+When a guest asks, the model writes a tool call: "run `check_rooms` with date 2026-11-06 and type double." The hotel's code checks the booking system and finds two free rooms. It sends that result back to the model. The model then replies, "Yes, we have two double rooms free on Friday." The model never touched the booking system itself.
+
+## How it works
+
+A few words first. A **provider** is a company that offers a model, like OpenAI or Anthropic. **JSON** is a simple text format for data, made of names and values in curly braces. A **schema** is a description of what valid data must look like. **JSON Schema** is a standard way to write that description.
+
+The flow has five steps:
+
+1. **Describe the tools.** Your code sends the model a list of tools, along with the user's message. Each tool has a name, a plain description, and a schema for its inputs.
+2. **The model asks.** If a tool would help, the model replies with a tool call. The call is the tool's name plus the inputs it chose.
+3. **Your code runs it.** For tools you define yourself, the model does not run anything. Your code reads the call and runs the real function. (Some providers also offer built-in tools, like web search, that run on their own servers.)
+4. **Send the result back.** Your code adds the result to the conversation and calls the model again.
+5. **The model answers**, or asks for another tool. Repeating steps 2 to 5 until the job is done is called the agent loop.
+
+Here is a tool definition in Claude's style. OpenAI's version looks almost the same, but names the schema field `parameters`.
+
+```json title="1. The tool definition your code sends"
+{
+  "name": "check_rooms",
+  "description": "Check which hotel rooms are free on one night. Use it when a guest asks about availability. It does not make a booking. Returns free room numbers.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "date": { "type": "string", "description": "Night of stay, as year-month-day, e.g. 2026-11-06" },
+      "room_type": { "type": "string", "enum": ["single", "double", "suite"] }
+    },
+    "required": ["date"]
+  }
+}
+```
+
+In the schema, `type` says what kind of value is allowed. An `object` is a group of named values, and a `string` is text. `properties` lists the inputs, and `required` says which ones the model must always fill in. The `enum` list tells the model the only allowed room types. Your code should still check it.
+
+The next two examples are simplified. Each provider wraps them in its own extra fields.
+
+```json title="2. The tool call the model sends back (simplified)"
+{ "id": "call_1", "name": "check_rooms", "input": { "date": "2026-11-06", "room_type": "double" } }
+```
+
+```json title="3. The result your code returns (simplified)"
+{ "call_id": "call_1", "output": { "free_rooms": ["204", "311"] } }
+```
+
+Two big providers use different names for the same ideas:
+
+| Idea | OpenAI | Anthropic (Claude) |
+|---|---|---|
+| Input schema field | `parameters` | `input_schema` |
+| Model asks for a tool | a `function_call` item | a `tool_use` block |
+| You return the result | a `function_call_output` item | a `tool_result` block |
+
+Notice the ID in examples 2 and 3. A model can ask for several tools in one reply. OpenAI's guide shows each call with a `call_id`, and your result quotes it. That way the model knows which result answers which call.
+
+## Common mistakes
+
+- **Short, vague descriptions** — the model picks tools mostly by reading their names and descriptions. Anthropic's docs call the description "by far the most important factor" and suggest at least 3–4 sentences. Say what the tool does, when to use it, and what it returns.
+- **Thinking the model runs the code** — it only writes a request. Your code must run the tool, check the inputs, and handle errors.
+- **Trusting the inputs blindly** — the model can pass a wrong date or a made-up ID. Check every input before you act, just as you would with a web form.
+- **Too many tools at once** — a long menu makes the wrong pick more likely. OpenAI's guide gives a soft target of fewer than 20 tools per turn, meaning per request to the model.
+- **Asking the model for data you already have** — if your code knows the guest's ID, fill it in yourself. Don't make it a tool input the model could get wrong.
+
+## Remember this
+
+<Remember>
+- A tool is a name, a description, and an input schema that your code offers the model.
+- The model only asks for a tool call; your code runs it and sends the result back.
+- Clear descriptions matter most, because the model picks tools by reading them.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "In function calling, who actually runs the function?",
+      options: [
+        "The language model, inside its own memory",
+        "Your application code, after the model asks for it",
+        "The user, by clicking a button",
+        "The JSON Schema"
+      ],
+      answer: 1,
+      why: "The model only writes a request with a name and inputs. Your code runs the real function and returns the result."
+    },
+    {
+      q: "What does the 'required' list in a tool's input schema do?",
+      options: [
+        "It names the inputs the model must always fill in",
+        "It lists the tools the model must call first",
+        "It makes the tool run faster"
+      ],
+      answer: 0,
+      why: "'required' is part of JSON Schema. It says which inputs must be present. Other inputs in 'properties' are optional."
+    },
+    {
+      q: "Your model keeps picking the wrong tool. What should you try first?",
+      options: [
+        "Add twenty more tools",
+        "Remove the descriptions to save space",
+        "Write clearer descriptions that say when to use each tool",
+        "Ask the user to name the tool"
+      ],
+      answer: 2,
+      why: "The model chooses tools by reading their descriptions. Adding more tools usually makes picking harder, not easier."
+    },
+    {
+      q: "Why does each tool call carry an ID?",
+      options: [
+        "To charge the user per call",
+        "So your result can say which call it answers",
+        "Because JSON can't work without one"
+      ],
+      answer: 1,
+      why: "A model can ask for several tools at once. The ID matches each result to the right request."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is an AI agent?](/docs/ai-agents/foundations/what-is-an-ai-agent)
+- Related: [The agent loop (think → act → observe)](/docs/ai-agents/foundations/the-agent-loop)
+- Sources are listed below with the date they were last checked.
