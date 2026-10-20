@@ -1,0 +1,220 @@
+# Learning queue — the owner controls this file.
+# Agents take the first `status: queued` item, ordered by domain_order, then priority, then file order.
+# status: queued | in_review | published | blocked
+
+domain_order:
+  - ai-agents
+  - martech
+  - jev                 # Jev AI model by TypeSafe AI (confirmed by owner 2026-10-20)
+  - loop-engineering    # NOTE: depends on harness-engineering concepts — consider swapping order.
+  - harness-engineering
+
+items:
+  # ── AI Agents ─────────────────────────────────────────────
+  - id: what-is-an-ai-agent
+    domain: ai-agents
+    topic: foundations
+    title: What is an AI agent?
+    why: The base definition everything else builds on. Model + tools + loop.
+    priority: 1
+    status: published
+    notes: Seed lesson — owner reviews closely. Contrast chatbot vs agent.
+
+  - id: the-agent-loop
+    domain: ai-agents
+    topic: foundations
+    title: The agent loop (think → act → observe)
+    why: Prerequisite for Loop Engineering later.
+    priority: 1
+    status: queued
+    notes: Seed lesson. Cover ReAct as the origin; stop conditions.
+
+  - id: tools-and-function-calling
+    domain: ai-agents
+    topic: foundations
+    title: Tools and function calling
+    why: How an agent actually does things in the world.
+    priority: 1
+    status: queued
+    notes: Seed lesson. Generic example, then one vendor-neutral JSON example.
+
+  - id: context-window-and-memory
+    domain: ai-agents
+    topic: foundations
+    title: Context window, memory, and why agents forget
+    why: Explains most agent failures.
+    priority: 2
+    status: queued
+
+  - id: prompt-vs-context-engineering
+    domain: ai-agents
+    topic: foundations
+    title: Prompt engineering vs context engineering
+    why: The step before harness and loop engineering.
+    priority: 2
+    status: queued
+
+  - id: mcp-basics
+    domain: ai-agents
+    topic: tools
+    title: Model Context Protocol (MCP) in plain words
+    why: Standard way agents connect to apps.
+    priority: 2
+    status: queued
+    notes: Use the official spec site as primary source.
+
+  - id: subagents-maker-checker
+    domain: ai-agents
+    topic: patterns
+    title: Sub-agents and the maker/checker pattern
+    why: Used by this site's own loop.
+    priority: 2
+    status: queued
+
+  - id: evaluating-agents
+    domain: ai-agents
+    topic: patterns
+    title: How to tell if an agent did a good job (evals)
+    why: Verification is the core of reliable loops.
+    priority: 3
+    status: queued
+
+  # ── MarTech ───────────────────────────────────────────────
+  - id: what-is-martech-stack
+    domain: martech
+    topic: foundations
+    title: What is a MarTech stack?
+    why: Map of the territory before individual tools.
+    priority: 1
+    status: queued
+
+  - id: first-party-data-and-identity
+    domain: martech
+    topic: data
+    title: First-party data and identity resolution
+    why: Foundation for CDPs and personalisation.
+    priority: 1
+    status: queued
+
+  - id: what-is-a-cdp
+    domain: martech
+    topic: data
+    title: What is a Customer Data Platform (CDP)?
+    why: Core concept across AEP, Segment, etc.
+    priority: 1
+    status: queued
+
+  - id: event-tracking-basics
+    domain: martech
+    topic: analytics
+    title: Event tracking basics (events, parameters, conversions)
+    why: Applies to GA4, Adobe Analytics, product analytics.
+    priority: 2
+    status: queued
+
+  - id: tag-management-basics
+    domain: martech
+    topic: analytics
+    title: Tag management (what GTM and similar tools do)
+    why: How tracking gets onto websites.
+    priority: 2
+    status: queued
+
+  - id: consent-and-privacy-basics
+    domain: martech
+    topic: privacy
+    title: Consent, cookies, and privacy rules (basics)
+    why: Every martech setup depends on it.
+    priority: 2
+    status: queued
+    notes: Include India's DPDP Act alongside GDPR — verify current status of rules.
+
+  # ── Jev (TypeSafe AI) ────────────────────────────────────
+  # Early-access proprietary model (Sep 2026). No paper or weights published:
+  # every claim must cite TypeSafe's own docs or reputable press, and label
+  # vendor-reported numbers as "TypeSafe says…".
+  - id: what-is-jev
+    domain: jev
+    topic: foundations
+    title: What is Jev? A "System One" model
+    why: New model type; contrast with text-generating LLMs.
+    priority: 1
+    status: queued
+    notes: Sources — Wikipedia "Jev (AI model)" as a map, then TypeSafe's official site/docs as primary.
+
+  - id: discriminative-vs-generative
+    domain: jev
+    topic: foundations
+    title: Discriminative vs generative models (why Jev returns probabilities)
+    why: Core concept to understand Jev and classifiers in general.
+    priority: 1
+    status: queued
+
+  - id: jev-in-an-agent-loop
+    domain: jev
+    topic: patterns
+    title: Using a fast classifier model inside an agent or MarTech workflow
+    why: Connects Jev to agents (routing, guardrails) and MarTech (lead scoring, intent).
+    priority: 2
+    status: queued
+    notes: Mark any cost/speed figures as vendor claims. Only use documented API features.
+
+  # ── Loop Engineering ─────────────────────────────────────
+  - id: what-is-loop-engineering
+    domain: loop-engineering
+    topic: foundations
+    title: What is loop engineering?
+    why: Owner's main learning goal.
+    priority: 1
+    status: queued
+    notes: Primary sources — Addy Osmani's post and Claude Code scheduled tasks docs.
+
+  - id: anatomy-of-a-loop
+    domain: loop-engineering
+    topic: foundations
+    title: Anatomy of a loop (trigger, work, check, state, stop)
+    why: The building blocks.
+    priority: 1
+    status: queued
+
+  - id: loops-in-claude-code
+    domain: loop-engineering
+    topic: tools
+    title: Loops in Claude Code (/loop, Desktop scheduled tasks, cloud scheduled tasks)
+    why: The tools this site itself uses.
+    priority: 2
+    status: queued
+    notes: Compare all three from the official "compare scheduling options" page.
+
+  - id: when-not-to-loop
+    domain: loop-engineering
+    topic: patterns
+    title: When NOT to use a loop (cost, risk, review load)
+    why: Avoid over-automation.
+    priority: 2
+    status: queued
+
+  # ── Harness Engineering ──────────────────────────────────
+  - id: what-is-harness-engineering
+    domain: harness-engineering
+    topic: foundations
+    title: What is harness engineering?
+    why: Owner's main learning goal; the layer under loops.
+    priority: 1
+    status: queued
+
+  - id: instruction-files
+    domain: harness-engineering
+    topic: building-blocks
+    title: Instruction files (CLAUDE.md, AGENTS.md) and skills
+    why: How you give an agent lasting context.
+    priority: 1
+    status: queued
+
+  - id: guardrails-and-hooks
+    domain: harness-engineering
+    topic: building-blocks
+    title: Guardrails, permissions, and hooks
+    why: Making agents safe to leave alone.
+    priority: 2
+    status: queued

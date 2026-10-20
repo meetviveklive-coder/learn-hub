@@ -1,15 +1,23 @@
 import { createGetUrl } from 'fumadocs-core/source';
 
-export const appName = 'My App';
+export const appName = 'Learn Hub';
 export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';
 
-// fill this with your actual GitHub info, for example:
+// TODO(owner): set to your GitHub username and repo once created.
 export const gitConfig = {
-  user: 'fuma-nama',
-  repo: 'fumadocs',
+  user: 'YOUR_GITHUB_USER',
+  repo: 'learn-hub',
   branch: 'main',
+};
+
+export const DOMAIN_LABELS: Record<string, string> = {
+  'ai-agents': 'AI Agents',
+  martech: 'MarTech',
+  jev: 'Jev (AI model)',
+  'loop-engineering': 'Loop Engineering',
+  'harness-engineering': 'Harness Engineering',
 };
 
 const getContentUrl = createGetUrl(docsContentRoute);

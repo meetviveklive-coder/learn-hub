@@ -1,0 +1,143 @@
+---
+title: What is an AI agent?
+description: An AI agent is a language model that uses tools in a loop until a task is done. Here is what that means and how it differs from a chatbot.
+domain: ai-agents
+level: basics
+order: 1
+prerequisites: []
+tags: [agents, llm, tools, basics]
+sources:
+  - title: Building effective agents (Anthropic, Dec 2024)
+    url: https://www.anthropic.com/engineering/building-effective-agents
+    type: official
+  - title: "ReAct: Synergizing Reasoning and Acting in Language Models (Yao et al., 2022)"
+    url: https://arxiv.org/abs/2210.03629
+    type: paper
+last_verified: 2026-10-20
+status: published
+author: agent+owner
+reading_minutes: 6
+---
+
+## In 3 lines
+
+- **What it is:** An AI agent is a language model that can use tools, look at the results, and decide its next step by itself, again and again, until the job is done.
+- **Why it matters:** A chatbot only answers. An agent can actually do work, like searching, editing files, or booking a meeting.
+- **Example:** You ask, "Fix the broken link on my site." The agent finds the page, edits it, checks the result, and tells you when it is fixed.
+
+## Think of it like…
+
+<Analogy>
+A chatbot is like calling a friend for advice. They tell you what to do, and then you do it.
+
+An agent is like hiring a helper with the keys to your house. You give the goal. They walk around, open drawers, try things, and come back when it is done.
+
+**Where the comparison breaks:** A human helper has common sense about your house. An agent only knows what you told it and what its tools show it.
+</Analogy>
+
+## Real-world example
+
+A small online shoe store gets 200 support emails a day. Many ask, "Where is my order?"
+
+With a **chatbot**, a staff member pastes the email in, reads the suggested reply, opens the shipping system, finds the order, and writes back. The model only helped with the wording.
+
+With an **agent**, the model gets the email plus two tools: "look up order" and "send reply." It reads the email and calls the order tool with the order number. Then it reads the tracking status and writes the reply. If the order number is missing, it asks the customer for it instead of guessing. Staff only check the tricky cases.
+
+## How it works
+
+Every agent is built from three parts:
+
+1. **A model** — a large language model (LLM), the AI that reads text and writes text. It does the thinking.
+2. **Tools** — actions the model is allowed to ask for, like "search the web" or "run this code." Your program runs the tool, not the model.
+3. **A loop** — the program keeps going round until the task is finished.
+
+One trip around the loop looks like this:
+
+1. The model reads the goal and everything that has happened so far.
+2. It decides on one next action and asks for a tool.
+3. The program runs the tool and gives the result back to the model.
+4. The model checks the result. Is the job done? If not, go back to step 1.
+
+```text title="The agent loop"
+ Goal ──► Model decides next step ──► Tool runs
+              ▲                            │
+              └──── not done ◄── Result ◄──┘
+                                   │
+                                  done ──► Answer
+```
+
+*The diagram shows the loop: decide, act, see the result, repeat until done.*
+
+This "think, then act, then look" pattern was described in a 2022 research paper called **ReAct**. It showed that mixing reasoning steps with actions works better than doing only one of them.
+
+**Agent or workflow?** Anthropic draws a useful line. In a **workflow**, a programmer fixes the steps in advance in code. In an **agent**, the model chooses its own steps. Workflows are more predictable. Agents are more flexible, but cost more and are harder to control.
+
+## Common mistakes
+
+- **Using an agent when one model call would do.** Agents are slower and cost more. Try a single, well-written request first and add a loop only if you need it.
+- **No stopping rule.** An agent can loop forever or keep making the same mistake. Set a limit, such as a maximum number of steps.
+- **Vague tools.** The model only knows what a tool does from its name and description. Write tool descriptions as clearly as you would for a new coworker.
+- **No human checkpoint for risky actions.** Sending money or deleting data should pause for a person to approve.
+- **Small errors pile up.** One wrong step early can send the whole run in the wrong direction. Test in a safe sandbox before giving real access.
+
+## Remember this
+
+<Remember>
+- Agent = model + tools + loop.
+- The model picks the next step; your program runs the tool and feeds back the result.
+- Use the simplest thing that works: one call, then a workflow, and only then an agent.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "What makes an AI agent different from a plain chatbot?",
+      options: [
+        "It uses a bigger model",
+        "It can use tools and decide its next step in a loop until the task is done",
+        "It always has a human approve every message",
+        "It only works with code"
+      ],
+      answer: 1,
+      why: "Model size doesn't make something an agent. The loop of choosing an action, using a tool, and checking the result is what does."
+    },
+    {
+      q: "In an agent, who actually runs the tool (for example, the web search)?",
+      options: [
+        "The language model runs it inside its own memory",
+        "The user, by copying and pasting",
+        "The program around the model, which then hands the result back to the model"
+      ],
+      answer: 2,
+      why: "The model only asks for a tool call. The surrounding program carries it out and returns the result. That is why tool design matters."
+    },
+    {
+      q: "Your task always follows the same 3 fixed steps. What is usually the better choice?",
+      options: [
+        "A workflow with the steps written in code",
+        "A fully autonomous agent",
+        "Several agents talking to each other",
+        "No AI at all, ever"
+      ],
+      answer: 0,
+      why: "When the steps are known in advance, a workflow is cheaper and more predictable. Agents shine when you can't predict the steps."
+    },
+    {
+      q: "Why should an agent have a stopping rule, like a maximum number of steps?",
+      options: [
+        "Because models can only count to ten",
+        "So it cannot loop forever or keep repeating a mistake",
+        "Because tools stop working after a few uses"
+      ],
+      answer: 1,
+      why: "Without a limit, an agent that is stuck can keep spending time and money. A step limit keeps you in control."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read next: **The agent loop (think → act → observe)** — coming soon.
+- Sources are listed below, with the date they were last checked.
