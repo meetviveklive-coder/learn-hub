@@ -2,6 +2,53 @@
 @import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
 
+/*
+ * Brand theme (see docs/DESIGN_SYSTEM.md §3).
+ * One accent — indigo — on cool slate neutrals. Values checked for WCAG AA text contrast.
+ */
+@theme {
+  --color-fd-background: hsl(220, 33%, 98.5%);
+  --color-fd-foreground: hsl(222, 47%, 11%);
+  --color-fd-muted: hsl(220, 22%, 94%);
+  --color-fd-muted-foreground: hsl(220, 12%, 38%);
+  --color-fd-popover: hsl(0, 0%, 100%);
+  --color-fd-popover-foreground: hsl(222, 47%, 11%);
+  --color-fd-card: hsl(0, 0%, 100%);
+  --color-fd-card-foreground: hsl(222, 47%, 11%);
+  --color-fd-border: hsl(220, 16%, 89%);
+  --color-fd-primary: hsl(243, 75%, 54%);
+  --color-fd-primary-foreground: hsl(0, 0%, 100%);
+  --color-fd-secondary: hsl(220, 22%, 95%);
+  --color-fd-secondary-foreground: hsl(222, 47%, 11%);
+  --color-fd-accent: hsl(235, 60%, 96%);
+  --color-fd-accent-foreground: hsl(243, 60%, 30%);
+  --color-fd-ring: hsl(243, 75%, 60%);
+}
+
+.dark {
+  --color-fd-background: hsl(224, 30%, 7%);
+  --color-fd-foreground: hsl(220, 20%, 94%);
+  --color-fd-muted: hsl(224, 22%, 13%);
+  --color-fd-muted-foreground: hsl(220, 12%, 68%);
+  --color-fd-popover: hsl(224, 26%, 10%);
+  --color-fd-popover-foreground: hsl(220, 20%, 94%);
+  --color-fd-card: hsl(224, 26%, 10%);
+  --color-fd-card-foreground: hsl(220, 20%, 94%);
+  --color-fd-border: hsl(224, 18%, 19%);
+  --color-fd-primary: hsl(234, 89%, 76%);
+  --color-fd-primary-foreground: hsl(243, 50%, 12%);
+  --color-fd-secondary: hsl(224, 22%, 14%);
+  --color-fd-secondary-foreground: hsl(220, 20%, 94%);
+  --color-fd-accent: hsl(235, 30%, 17%);
+  --color-fd-accent-foreground: hsl(234, 89%, 86%);
+  --color-fd-ring: hsl(234, 89%, 76%);
+}
+
+.dark #nd-sidebar {
+  --color-fd-muted: hsl(224, 22%, 14%);
+  --color-fd-secondary: hsl(224, 22%, 16%);
+}
+
 html {
   scrollbar-gutter: stable;
 }
@@ -9,4 +56,22 @@ html {
 html > body[data-scroll-locked] {
   margin-right: 0px !important;
   --removed-body-scroll-bar-size: 0px !important;
+}
+
+/* Lesson reading rhythm: clear breaks between the fixed lesson sections. */
+#nd-page .prose > h2 {
+  margin-top: 2.75rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--color-fd-border);
+  letter-spacing: -0.01em;
+}
+
+#nd-page .prose > h2:first-child {
+  margin-top: 0.5rem;
+  padding-top: 0;
+  border-top: 0;
+}
+
+#nd-page .prose {
+  line-height: 1.75;
 }

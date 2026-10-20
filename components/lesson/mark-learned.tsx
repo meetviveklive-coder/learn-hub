@@ -14,9 +14,13 @@ export function MarkLearned({ url, title }: { url: string; title: string }) {
   const item = state?.[url];
 
   return (
-    <div className="not-prose my-8 flex flex-col gap-2 rounded-xl border bg-fd-card p-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="text-sm">
-        <p className="font-medium">Done reading?</p>
+    <div className="not-prose my-10 flex flex-col gap-4 rounded-2xl border border-fd-primary/25 bg-gradient-to-br from-fd-primary/10 via-fd-card to-fd-card p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex gap-3 text-sm">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-fd-primary/15 text-fd-primary">
+          <GraduationCap className="size-5" aria-hidden />
+        </span>
+        <div>
+        <p className="font-semibold text-fd-foreground">Done reading?</p>
         <p className="text-fd-muted-foreground">
           {item
             ? Number.isFinite(item.due)
@@ -28,6 +32,7 @@ export function MarkLearned({ url, title }: { url: string; title: string }) {
           </Link>
           {!storageOk && ' — your browser blocked storage, so this won’t be saved.'}
         </p>
+        </div>
       </div>
       <button
         type="button"
@@ -38,7 +43,7 @@ export function MarkLearned({ url, title }: { url: string; title: string }) {
           setStorageOk(save(next));
           setState(next);
         }}
-        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-fd-primary px-4 py-2 text-sm font-medium text-fd-primary-foreground disabled:opacity-50"
+        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-fd-primary px-4 py-2.5 text-sm font-medium text-fd-primary-foreground shadow-sm transition hover:opacity-90 disabled:opacity-60"
       >
         {item ? <Check className="size-4" aria-hidden /> : <GraduationCap className="size-4" aria-hidden />}
         {item ? 'Learned' : 'Mark as learned'}

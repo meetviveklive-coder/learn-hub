@@ -1,8 +1,8 @@
 # Design System
 
 ## 1. Design Direction
-Style: Calm editorial — a well-made textbook, not a SaaS dashboard.
-Mood: Quiet, focused, easy on the eyes for 10 minutes of reading.
+Style: Modern course site — clean and professional, like a well-made online learning platform. (Owner-approved 2026-10-20; replaced "calm editorial".)
+Mood: Friendly and organised on overview pages; quiet and focused inside a lesson.
 Design Principles:
 - Reading comes first: comfortable line length (~70 characters), generous line height.
 - The same lesson shape every time, so the eye knows where to look.
@@ -14,8 +14,11 @@ Logo: Text wordmark only in MVP.
 Brand Voice: See CONTENT_STYLE.md.
 
 ## 3. Color Palette
-Start from the Fumadocs UI default theme and its light/dark modes. Override only:
-Primary (links, focus): one accent, set as the Fumadocs primary CSS variable. Pick once; don't change per page.
+Fumadocs `neutral` theme, with brand overrides in `app/global.css` (cool slate neutrals, light + dark).
+Primary (links, buttons, focus): indigo — `hsl(243 75% 54%)` light, `hsl(234 89% 76%)` dark. One accent site-wide.
+Track (domain) accents, used only for icon tiles, card top bars and the domain badge — defined once in `components/domain-meta.tsx`:
+- AI Agents: indigo → violet · MarTech: rose → orange · Jev: amber · Loop Engineering: emerald → teal · Harness Engineering: sky → cyan
+Level pills: basics green, intermediate amber, advanced rose.
 Callouts (semantic):
 - Analogy: info/blue family
 - Remember this: success/green family
@@ -30,7 +33,7 @@ Use Fumadocs defaults (system/Geist stack) in MVP. Body ≥ 16px, line height �
 Use the theme's Tailwind scale. Lesson sections separated by H2 with clear top margin.
 
 ## 6. Border Radius / 7. Shadows
-Theme defaults. No custom shadows.
+Cards `rounded-xl` (track cards `rounded-2xl`). Tailwind `shadow-sm` on cards, `shadow-md` on hover. Nothing heavier.
 
 ## 8. Buttons
 Only used inside `<Quiz>` and `/review`: theme primary for "Check answer"/"Mark learned", secondary for "Next". Disabled while no option selected.
@@ -39,7 +42,9 @@ Only used inside `<Quiz>` and `/review`: theme primary for "Check answer"/"Mark 
 Quiz options are radio-style buttons, full-width, large tap target (≥ 44px tall). Selected, correct, and wrong states must differ by icon + text, not colour only.
 
 ## 10. Cards
-Domain landing pages use Fumadocs `Cards` for topics.
+- Home: hero, stats strip, five track cards (step number, icon tile, lesson count), latest lessons, lesson-shape grid.
+- Domain index pages automatically render `DomainOverview` (`components/catalog.tsx`): summary + "Start with lesson 1", numbered lesson cards per topic (from `meta.json` order), and "Coming next" from `topics.yaml`. Domain `index.mdx` only needs a short intro.
+- Lesson cards (`LessonTile`): title, description, level pill, minutes.
 
 ## 11. Navigation
 Header: site title, search, theme toggle, GitHub link, "Review today".
