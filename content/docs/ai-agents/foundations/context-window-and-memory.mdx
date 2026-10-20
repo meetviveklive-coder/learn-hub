@@ -1,0 +1,158 @@
+---
+title: Context window, memory, and why agents forget
+description: An agent only "remembers" the text sent to the model on each call. Learn what the context window is, why it fills up, and how agents keep memory.
+domain: ai-agents
+level: basics
+order: 4
+prerequisites: [what-is-an-ai-agent]
+tags: [agents, llm, context-window, memory, tokens]
+sources:
+  - title: Context windows (Claude Platform Docs)
+    url: https://platform.claude.com/docs/en/build-with-claude/context-windows
+    type: official
+  - title: Using the Messages API (Claude Platform Docs)
+    url: https://platform.claude.com/docs/en/build-with-claude/working-with-messages
+    type: official
+  - title: Glossary (Claude Platform Docs)
+    url: https://platform.claude.com/docs/en/about-claude/glossary
+    type: official
+  - title: Effective context engineering for AI agents (Anthropic, Sep 2025)
+    url: https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+    type: official
+  - title: "Lost in the Middle: How Language Models Use Long Contexts (Liu et al., 2023)"
+    url: https://arxiv.org/abs/2307.03172
+    type: paper
+last_verified: 2026-10-20
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** The context window is all the text a model can see at once while it writes an answer. It is the model's short-term memory.
+- **Why it matters:** The model keeps nothing between calls. Anything not in the window, the agent has simply "forgotten."
+- **Example:** A support agent forgets the customer's shoe size from an hour ago because that part of the chat was cut to make room.
+
+## Think of it like…
+
+<Analogy>
+Picture a worker at a small desk. They can only use the papers lying on the desk right now. When the desk gets full, old papers go in the bin to make room. Tomorrow they start with an empty desk, unless someone left them a note.
+
+**Where the comparison breaks:** A real worker remembers yesterday on their own. The model remembers nothing at all, unless the text is placed back on the desk.
+</Analogy>
+
+## Real-world example
+
+An online shoe store uses an agent to handle returns. Early in a long chat, the customer says, "I wear size 9, and I want a refund, not store credit." Then they upload photos, ask about shipping, and paste a long order history.
+
+Two hours later, the agent offers store credit and asks for the size again. No code crashed. The early message got lost under a pile of photos and order data. If the chat had grown even longer, the window could fill up, and the program might cut the oldest messages, including that one.
+
+The team fixes it in two ways. First, the agent writes key facts to a small "case notes" record as soon as it learns them. Second, the program puts those notes near the top of every request. The size and refund choice now stay in view, no matter how long the chat gets.
+
+## How it works
+
+**Tokens.** Models read text as **tokens**, small chunks of text that can be a word, part of a word, or a single character. Window sizes and costs are counted in tokens, not words.
+
+**Who does what.** The **model** is the AI that reads and writes text. The **program** is your code around it. A **call** (or request) is one message package your program sends to the model to get one answer. A **session** is one run or chat, from start to finish. The model plus the program together make the agent.
+
+**The window holds everything.** The context window is the full set of tokens the model can look at for one answer. Claude's docs say it includes the system prompt (the standing instructions), every message, tool results (what a tool sent back), tool definitions (the list of tools the model may use), and the answer being written. Claude's docs list window sizes from 200,000 to 1 million tokens, depending on the model.
+
+**The model is stateless.** "Stateless" means it keeps nothing between calls. Claude's docs say you must send the full chat history with every request. So the "memory" is really your program pasting the past back in each time.
+
+That gives three ways an agent forgets:
+
+| Way it forgets | What happens | Common fix |
+|---|---|---|
+| **New session** | A fresh call starts with an empty window. | Save notes outside the model and load them back. |
+| **Window full** | Old text must be cut or shrunk to fit. | Summarize old parts (compaction). |
+| **Lost in the pile** | The fact is in the window, but the model misses it. | Keep the window small and focused. |
+
+The third one surprises people. A 2023 study, "Lost in the Middle," found models often did best when the useful fact sat at the start or end of a long input. They did worse when it sat in the middle. Anthropic calls the wider problem **context rot**: as the window fills, the model gets worse at recalling what is in it.
+
+```text title="One agent call"
+ Saved notes ──┐
+ Instructions ─┤
+ Chat history ─┼──► [ context window ] ──► Model ──► Answer
+ Tool results ─┘     (limited space)
+```
+
+*The diagram shows that the program builds the window fresh on every call. Only what goes in can be "remembered."*
+
+**How agents keep memory anyway.** Anthropic's guide on context engineering describes three main tricks:
+
+1. **Compaction** — when the window is nearly full, summarize the chat so far and continue from the summary.
+2. **Note-taking** — the agent writes notes to a file or database outside the window, then reads them back later. This gives the agent memory that lasts beyond the window.
+3. **Sub-agents** — helper agents do big jobs in their own clean windows and return only a short summary.
+
+The same guide suggests **just-in-time loading**: keep short pointers, like file names or links, and fetch the full content only when it is needed.
+
+## Common mistakes
+
+- **Assuming the model remembers.** It keeps nothing between calls, so facts vanish in a new session. Store important facts in notes and load them back.
+- **Stuffing the window "just in case."** Extra text tends to make recall worse, not better. Include only what this step needs, and fetch the rest on demand.
+- **Burying key facts in the middle.** The 2023 study found models missed middle facts more often. Putting goals and key facts near the start or end can help.
+- **Letting tool results pile up.** Big search results and file dumps fill the window fast. Clear or summarize old tool output once it has been used.
+- **Trusting a summary blindly.** Compaction can drop a small but vital detail. Save must-keep facts in notes, not only in the summary.
+
+## Remember this
+
+<Remember>
+- The context window is the model's only short-term memory, and it is measured in tokens.
+- The model is stateless: your program resends the history, so anything left out is forgotten.
+- Agents keep lasting memory with notes outside the window, plus compaction and focused context.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "You start a brand-new session with the same agent. Why doesn't it know what you told it yesterday?",
+      options: [
+        "The model deletes old chats to save money",
+        "The model keeps nothing between calls, and nobody loaded yesterday's notes into the new window",
+        "Yesterday's facts were too long for the model",
+        "The agent was trained before yesterday"
+      ],
+      answer: 1,
+      why: "The model is stateless. It only sees what is sent on each call. Training data is a different thing from the context window, so the training date is not the reason."
+    },
+    {
+      q: "A fact is still inside a very long context window, but the agent ignores it. What is the most likely cause?",
+      options: [
+        "The fact is buried in a crowded window, so the model misses it",
+        "Facts inside the window are always used, so this cannot happen",
+        "The model ran out of tokens to write the answer"
+      ],
+      answer: 0,
+      why: "Being in the window does not guarantee recall. Research found models miss facts in the middle of long inputs more often, and recall gets worse as the window fills."
+    },
+    {
+      q: "Your agent runs for hours and keeps hitting the window limit. Which fix keeps it working AND protects key details?",
+      options: [
+        "Buy a model with a bigger window and send everything",
+        "Cut the newest messages so old ones stay",
+        "Summarize old parts of the chat, and save must-keep facts in notes outside the window",
+        "Turn off tool results"
+      ],
+      answer: 2,
+      why: "Compaction frees space, and notes protect details a summary might drop. A bigger window still suffers from context rot, so sending everything is not the answer."
+    },
+    {
+      q: "What does 'just-in-time loading' mean for an agent?",
+      options: [
+        "Loading every file into the window at the start",
+        "Keeping short pointers, like file names, and fetching full content only when needed",
+        "Running the agent only at night"
+      ],
+      answer: 1,
+      why: "Just-in-time loading keeps the window small and focused. Loading everything up front wastes space and hurts recall."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is an AI agent?](/docs/ai-agents/foundations/what-is-an-ai-agent)
+- Sources are listed below with the date they were last checked.

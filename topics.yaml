@@ -44,7 +44,7 @@ items:
     title: Context window, memory, and why agents forget
     why: Explains most agent failures.
     priority: 2
-    status: queued
+    status: in_review
 
   - id: prompt-vs-context-engineering
     domain: ai-agents
