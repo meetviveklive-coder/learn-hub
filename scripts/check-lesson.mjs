@@ -3,6 +3,7 @@
 // Usage: node scripts/check-lesson.mjs [files...]   (no args = all lessons)
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 
 const REQUIRED_H2 = [
@@ -160,7 +161,8 @@ export function checkLesson(file, today = new Date()) {
 }
 
 // CLI
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL makes this work on Windows too (D:\… → file:///D:/…).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2).filter((a) => a.endsWith('.mdx'));
   const files = args.length ? args : walk('content/docs');
   let failed = 0;

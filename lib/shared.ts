@@ -7,7 +7,7 @@ export const docsContentRoute = '/llms.mdx/docs';
 
 // TODO(owner): set to your GitHub username and repo once created.
 export const gitConfig = {
-  user: 'YOUR_GITHUB_USER',
+  user: 'meetviveklive-coder',
   repo: 'learn-hub',
   branch: 'main',
 };
