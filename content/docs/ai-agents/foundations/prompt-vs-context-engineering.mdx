@@ -1,0 +1,154 @@
+---
+title: Prompt engineering vs context engineering
+description: Prompt engineering is writing good instructions. Context engineering is choosing everything the model sees on each call. Learn how they differ.
+domain: ai-agents
+level: basics
+order: 5
+prerequisites: [context-window-and-memory]
+tags: [agents, llm, prompt-engineering, context-engineering, context-window]
+sources:
+  - title: Effective context engineering for AI agents (Anthropic, Sep 2025)
+    url: https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+    type: official
+  - title: Prompt engineering overview (Claude Platform Docs)
+    url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview
+    type: official
+  - title: Prompting best practices (Claude Platform Docs)
+    url: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
+    type: official
+last_verified: 2026-10-20
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** Prompt engineering is writing clear instructions for a model. Context engineering is picking everything the model sees on each call, and the prompt is only one part of that.
+- **Why it matters:** Agents run for many steps, so what fills the window keeps changing. A great prompt cannot save a window full of junk.
+- **Example:** A travel agent bot has perfect instructions but still books the wrong date, because an old search result from the customer's earlier plan was left in its window.
+
+## Think of it like…
+
+<Analogy>
+Prompt engineering is writing a good brief for a new chef: what dish, for how many people, and what to avoid. Context engineering is also stocking the kitchen. You choose which ingredients, tools and recipe cards sit on the counter right now, and you clear away the ones from the last order.
+
+**Where the comparison breaks:** A chef remembers the last order on their own. The model sees only what is on the counter for this one call.
+</Analogy>
+
+## Real-world example
+
+A small travel company builds an agent that books trips. The team spends a week polishing the **system prompt**, the standing instructions sent with every call. It is clear, polite and full of good examples. Early tests look great.
+
+Then real customers arrive. One customer first asks about a trip to Rome in May, then changes plans to Lisbon in June. The agent books Lisbon for May. The prompt was fine. The problem was the window: old search results about May flights were still in it, and the model mixed them up with the new request.
+
+The team fixes it with context engineering, not more prompt words. They save the customer's *current* plan as short notes and load them on every call. They clear old search results once they are used. They also cut the tool list from twelve tools to five, so the model has fewer confusing choices.
+
+## How it works
+
+**Prompt engineering** is the craft of writing and organizing the instructions you give a model. Claude's docs say that before you tune a prompt, you need **success criteria** (a clear, testable definition of a good answer), a way to test against them, and a first draft. Common moves:
+
+1. **Be clear and direct.** Say exactly what you want, including the format. Claude's docs suggest a test: if a colleague with no background would be confused by your prompt, the model probably will be too.
+2. **Explain why.** "Never use ellipses, because a voice engine will read this aloud" works better than a bare rule. The reason helps the model handle cases you did not list.
+3. **Show examples.** A few varied examples (called **few-shot** examples) steer format and tone well. Claude's docs suggest 3–5.
+
+Claude's docs also note that prompt changes are not the fix for every problem. Slow or costly answers, for example, are sometimes easier to fix by choosing a different model.
+
+**Context engineering** is wider. Anthropic's engineering team calls it the natural next step after prompt engineering. It means choosing and maintaining the best set of tokens in the window on every call. Recall that **tokens** are the small chunks of text a model reads, and the **context window** is everything it can see at once. Context includes:
+
+| Part of the window | Prompt engineering? | Context engineering? |
+|---|---|---|
+| System prompt (instructions) | Yes | Yes |
+| Examples | Yes | Yes |
+| Tool definitions (the list of tools and how to use them) | Partly: writing each tool's description | Yes: choosing which tools to load |
+| Message history | — | Yes |
+| Tool results and outside data | — | Yes |
+| Saved notes from earlier work | — | Yes |
+
+The key difference is timing. You write and refine a prompt ahead of time, then reuse it on every call. Context engineering happens on **every** call, because an agent's window grows with each tool result. Someone, usually your program, must decide what stays, what gets summarized, and what gets fetched fresh.
+
+```text title="Prompt vs context engineering"
+ Prompt engineering:   write + refine instructions ──► reuse them every call
+
+ Context engineering:  each call ──► pick: instructions + tools + notes
+                                     + only the useful history/results
+                                  ──► [ context window ] ──► model
+```
+
+*The prompt mostly stays the same. The rest of the window is rebuilt and trimmed on every call.*
+
+**Why less is more.** Anthropic says a model has a limited "attention budget," a fixed amount of focus it spreads across all tokens. Every extra token uses some of it. As the window fills, the model gets worse at finding and using facts in it, which Anthropic calls **context rot**. So the goal is the smallest set of high-signal tokens (tokens that actually help with the current task) that still gets the job done.
+
+**The "right altitude" for instructions.** Here, altitude means how detailed your instructions are. Anthropic describes two ways a system prompt fails. Too low (too detailed): long, rigid if-this-then-that rules that break on new cases. Too high (too vague): vague advice that assumes the model knows your business. The sweet spot gives clear guidance but lets the model use judgment. Anthropic suggests starting with a minimal prompt, testing it, and adding instructions only when you see a real failure.
+
+## Common mistakes
+
+- **Fixing every failure with more prompt text.** The real cause is often stale or missing context, so a longer prompt changes nothing. Check what was actually in the window when it failed.
+- **Writing a giant list of edge-case rules.** Edge cases are rare or unusual situations. Rigid rules break on cases you did not foresee. Give a few clear, varied examples and explain the reason behind each rule.
+- **Giving the agent too many tools.** Overlapping tools make the model unsure which to pick. Keep a small set where each tool has one clear job.
+- **Keeping every old tool result.** Used results crowd out what matters now. Summarize or clear them, and keep key facts in short notes.
+- **Skipping success criteria.** Without a clear test, you cannot tell if a prompt change helped. Define what "good" looks like before you tune anything.
+
+## Remember this
+
+<Remember>
+- Prompt engineering is writing the instructions; context engineering is choosing everything in the window on every call.
+- The prompt is one part of the context, so a good prompt cannot fix a window full of stale or useless tokens.
+- Aim for the smallest set of high-signal tokens: clear instructions, few tools, short notes, and only the results you need now.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Which statement best describes how prompt engineering and context engineering relate?",
+      options: [
+        "They are two names for the same thing",
+        "Prompt engineering is one part of context engineering, which covers everything in the window",
+        "Context engineering is only about making the window bigger",
+        "Context engineering just means writing longer prompts"
+      ],
+      answer: 1,
+      why: "The prompt is one piece of the window. Context engineering also covers tools, history, tool results and notes. It is about choosing well, not making the window bigger."
+    },
+    {
+      q: "An agent has a clear, tested system prompt but gives wrong answers late in long tasks. What should you check first?",
+      options: [
+        "What was actually in the context window at that step",
+        "Whether the prompt needs more capital letters",
+        "Whether the model was trained recently enough"
+      ],
+      answer: 0,
+      why: "Late failures in long tasks often come from stale or crowded context, like old tool results. Louder wording in the prompt does not remove that clutter."
+    },
+    {
+      q: "Why does context engineering happen on every call, while the system prompt mostly stays the same between calls?",
+      options: [
+        "Because the model rewrites its own prompt",
+        "Because tokens get cheaper over time",
+        "Because the agent's window keeps changing as tool results and messages pile up",
+        "Because the system prompt is deleted after each call"
+      ],
+      answer: 2,
+      why: "Each step adds new results and messages. Someone must decide again what stays, what gets summarized, and what gets fetched."
+    },
+    {
+      q: "Your system prompt has 80 strict if-then rules and still fails on new cases. What does Anthropic's advice suggest?",
+      options: [
+        "Add 80 more rules",
+        "Remove all instructions and let the model guess",
+        "Aim for clear guidance at the 'right altitude', with a few good examples and reasons"
+      ],
+      answer: 2,
+      why: "Rigid rules break on new cases, and vague advice leaves the model guessing. The middle path gives clear direction plus room for judgment."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Context window, memory, and why agents forget](/docs/ai-agents/foundations/context-window-and-memory)
+- Related: [Tools and function calling](/docs/ai-agents/foundations/tools-and-function-calling)
+- Related: [The agent loop (think → act → observe)](/docs/ai-agents/foundations/the-agent-loop)
+- Sources are listed below with the date they were last checked.

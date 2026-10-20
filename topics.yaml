@@ -44,7 +44,7 @@ items:
     title: Context window, memory, and why agents forget
     why: Explains most agent failures.
     priority: 2
-    status: in_review
+    status: published
 
   - id: prompt-vs-context-engineering
     domain: ai-agents
@@ -52,7 +52,7 @@ items:
     title: Prompt engineering vs context engineering
     why: The step before harness and loop engineering.
     priority: 2
-    status: queued
+    status: in_review
 
   - id: mcp-basics
     domain: ai-agents
