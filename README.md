@@ -9,11 +9,13 @@ Personal learning site. Lessons are researched and written by Claude Code schedu
 - What to learn next → `topics.yaml`
 - Agent prompts → `routines/`
 
-Status: v0.1 — site scaffolded, 1 seed lesson, CI, quiz and review page. Not yet deployed.
+Live: https://learn-hub-rosy-nine.vercel.app/
+
+Status: v0.1 — 1 seed lesson, CI, quiz, review page. `new-lesson` scheduled task runs 07:52 and 18:52 IST.
 
 ## Run locally
 ```bash
-npm ci
+npm ci --include=dev   # --include=dev needed if NODE_ENV=production is set
 npm run dev        # http://localhost:3000
 npm run check:lesson
 npm test

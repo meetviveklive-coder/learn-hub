@@ -26,7 +26,7 @@ items:
     title: The agent loop (think → act → observe)
     why: Prerequisite for Loop Engineering later.
     priority: 1
-    status: queued
+    status: published
     notes: Seed lesson. Cover ReAct as the origin; stop conditions.
 
   - id: tools-and-function-calling
@@ -35,7 +35,7 @@ items:
     title: Tools and function calling
     why: How an agent actually does things in the world.
     priority: 1
-    status: queued
+    status: published
     notes: Seed lesson. Generic example, then one vendor-neutral JSON example.
 
   - id: context-window-and-memory
