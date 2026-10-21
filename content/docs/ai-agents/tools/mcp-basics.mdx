@@ -1,0 +1,170 @@
+---
+title: Model Context Protocol (MCP) in plain words
+description: MCP is an open standard that lets any AI app plug into any tool or data source through one shared set of rules, instead of custom code for each pair.
+domain: ai-agents
+level: basics
+order: 1
+prerequisites: [tools-and-function-calling]
+tags: [agents, mcp, tools, protocol, basics]
+sources:
+  - title: Specification, version 2026-07-28 (Model Context Protocol)
+    url: https://modelcontextprotocol.io/specification/2026-07-28
+    type: official
+  - title: Architecture overview (Model Context Protocol docs)
+    url: https://modelcontextprotocol.io/docs/learn/architecture
+    type: official
+  - title: Versioning (Model Context Protocol docs)
+    url: https://modelcontextprotocol.io/docs/learn/versioning
+    type: official
+  - title: Introducing the Model Context Protocol (Anthropic)
+    url: https://www.anthropic.com/news/model-context-protocol
+    type: official
+  - title: Donating MCP to the Agentic AI Foundation (Anthropic)
+    url: https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation
+    type: official
+last_verified: 2026-10-21
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** The Model Context Protocol (MCP) is an open standard, a public set of rules anyone can use for free. It sets how AI apps connect to outside tools and data.
+- **Why it matters:** Build a connector once as an MCP server, a small program that opens one system to AI apps. Then every app that speaks MCP can use it.
+- **Example:** One "help desk" MCP server can give its tools to a chat app, a code editor, and your own agent, all at the same time.
+
+## Think of it like…
+
+<Analogy>
+Think of the power plugs in your home. Any lamp, phone charger, or toaster works in any wall socket, because everyone agreed on one plug shape. Nobody rewires the house for a new toaster.
+
+MCP is that agreed plug shape for AI. The AI app is the house, each MCP client is a socket, and each MCP server is an appliance you plug in.
+
+**Where the comparison breaks:** A plug just delivers power and never talks back. An MCP connection carries messages both ways: the app asks the server what it offers, and the server replies.
+</Analogy>
+
+## Real-world example
+
+A support team uses three AI apps: a chat assistant, a code editor, and a small in-house agent. They want all three to reach four systems: the help desk, the docs site, the bug tracker, and the customer database.
+
+Without a standard, each app needs its own connector to each system. That is 3 × 4 = 12 pieces of custom code to build and fix. Anthropic's launch post names the core problem: every new data source needs its own custom build.
+
+With MCP, the team writes four MCP servers, one per system. Each app only needs to speak MCP once. Now any of the three apps can use any of the four systems. When a fifth app arrives, it gets all four systems with no new connector code, as long as it speaks MCP.
+
+## How it works
+
+First, a few terms. A **protocol** is an agreed set of rules for how two programs talk. **JSON** is a common text format for data, written as names and values in curly braces. **JSON-RPC** is a simple message format where one side sends a request in JSON, with a method name and inputs, and the other side sends back a result. MCP uses JSON-RPC 2.0 for every message.
+
+MCP has three roles:
+
+| Role | What it is | Example |
+|---|---|---|
+| **Host** | The AI app the user works in | A chat app or code editor |
+| **Client** | A connector inside the host. The host makes one client per server. | The editor's link to the bug tracker |
+| **Server** | A program that offers tools and data | A bug-tracker MCP server |
+
+A server can offer three kinds of things, called **primitives**:
+
+- **Tools** — actions the model can ask to run, like "create a ticket."
+- **Resources** — data the app can read for context, like a file or a list of a database's tables.
+- **Prompts** — ready-made message templates, like a "summarize this ticket" starter.
+
+Here is a typical flow, step by step:
+
+1. **Connect.** The host starts one client for each server it is set up to use.
+2. **Discover.** The client asks the server what it offers. It may first send an optional `server/discover` request to learn the server's versions and features. For tools, it sends `tools/list`. Method names follow a "thing/action" pattern. The server replies with each tool's name, title, description, and input schema, which describes the inputs the tool needs.
+3. **Offer to the model.** The host gathers tools from all its servers into one list for the model.
+4. **Call.** When the model asks for a tool, the host sends `tools/call` to the right server.
+5. **Return.** The server runs the action and sends back the result. The host adds it to the conversation.
+
+Steps 4 and 5 are the same function calling you already know from the lesson on tools. MCP just standardizes where the tools come from and how the call travels.
+
+```text
+User ─▶ Host (AI app)
+          ├─ Client A ─▶ Server: help desk    (remote, over HTTP)
+          ├─ Client B ─▶ Server: docs site    (local, over stdio)
+          └─ Client C ─▶ Server: bug tracker  (remote, over HTTP)
+```
+
+Any server can be local or remote; the transports are explained below.
+
+Here is a tool call, simplified. The real message also carries a required `_meta` field with the protocol version and the client's features.
+
+```json title="tools/call request (simplified)"
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "create_ticket",
+    "arguments": { "title": "Login button broken", "priority": "high" }
+  }
+}
+```
+
+The `id` lets the client match the server's reply to this request.
+
+**How messages travel.** The way messages move between client and server is called the **transport**. MCP defines two. With **stdio**, short for standard input and output, the server runs on your own machine. The two programs talk through the basic text channel every program has, like typing into a terminal. This is a "local" server. With **Streamable HTTP**, the server runs on the web and messages go over HTTP, the protocol web browsers use. This is a "remote" server, and the docs recommend OAuth, a standard login-and-permission system, for it.
+
+**Versions.** Each MCP version is named by the date of its last breaking change. As of this lesson, the current version is 2026-07-28. It is **stateless**: each request repeats the version and capabilities, meaning the features each side supports. It works like a letter that always includes your return address, so the server needn't remember earlier messages. Older versions, up to 2025-11-25, began with a handshake instead. A handshake is an opening exchange where both sides agree on version and features first.
+
+**Who runs it.** Anthropic released MCP in November 2024. In December 2025, it gave MCP to the Agentic AI Foundation. Anthropic, Block, and OpenAI co-founded this group under the Linux Foundation, a nonprofit that looks after major open-source projects.
+
+## Common mistakes
+
+- **Thinking MCP is a model or an agent** — it is only the wiring. The docs say MCP does not decide how apps use a model. You still design the agent loop, the think, act, observe cycle, yourself.
+- **Trusting any server you find** — the spec warns that tools can run any code, and that tool descriptions from unknown servers are untrusted. Install servers only from sources you trust, and read what each tool does.
+- **Skipping user consent** — the spec says hosts must get the user's clear consent before calling a tool or sharing user data. The protocol can't enforce this, so build an approve step into your app.
+- **Plugging in every server at once** — each server adds tools to the model's list, and the tools lesson explains why long lists cause wrong picks. Connect only what the task needs. The MCP docs also suggest loading tools step by step for clients with many servers.
+- **Copying old tutorials blindly** — guides written before July 2026 show the older handshake-style versions. Check which protocol version your software development kit (SDK), the code library you build with, supports.
+
+## Remember this
+
+<Remember>
+- MCP is an open standard plug: build a connector once as a server, and any MCP app can use it.
+- The host is the AI app, it makes one client per server, and servers offer tools, resources, and prompts.
+- Clients discover tools with tools/list and run them with tools/call; stdio is local, Streamable HTTP is remote.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Five AI apps each need to reach six data systems. Compared with custom code for each pair, why does MCP cut the work?",
+      options: [
+        "It makes the models smart enough to reach systems alone",
+        "Each system gets one server that every MCP app can share",
+        "It merges the six systems into one shared database",
+        "It removes the need for tools and tool calls"
+      ],
+      answer: 1,
+      why: "Without a standard you need one connector per pair (5 × 6 = 30). With MCP, each system gets one server that every MCP app can use. MCP does not change the model itself."
+    },
+    {
+      q: "A code editor connects to three MCP servers. How many MCP clients does it create?",
+      options: ["One, shared by all servers", "Three, one per server", "None, the servers connect to each other"],
+      answer: 1,
+      why: "The MCP docs say the host creates one client for each server, and each client keeps its own connection. A single shared client is the tempting wrong answer."
+    },
+    {
+      q: "Which server primitive is an action the model can ask to run?",
+      options: ["A resource", "A prompt", "A tool", "A transport"],
+      answer: 2,
+      why: "Tools are actions, like creating a ticket. Resources are data to read, prompts are templates, and a transport is how messages travel, not something a server offers."
+    },
+    {
+      q: "Your MCP server runs on your laptop and talks to the app through standard input and output. Which transport is that?",
+      options: ["Streamable HTTP", "stdio", "OAuth"],
+      answer: 1,
+      why: "stdio is for local servers on the same machine. Streamable HTTP is for remote servers on the web. OAuth is a login system, not a transport."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Tools and function calling](/docs/ai-agents/foundations/tools-and-function-calling)
+- Related: [The agent loop (think → act → observe)](/docs/ai-agents/foundations/the-agent-loop)
+- Sources are listed below with the date they were last checked.
