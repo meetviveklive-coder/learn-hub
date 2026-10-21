@@ -60,7 +60,7 @@ items:
     title: Model Context Protocol (MCP) in plain words
     why: Standard way agents connect to apps.
     priority: 2
-    status: in_review
+    status: published
     notes: Use the official spec site as primary source.
 
   - id: subagents-maker-checker
@@ -69,7 +69,7 @@ items:
     title: Sub-agents and the maker/checker pattern
     why: Used by this site's own loop.
     priority: 2
-    status: queued
+    status: in_review
 
   - id: evaluating-agents
     domain: ai-agents
