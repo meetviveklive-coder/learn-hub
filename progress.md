@@ -8,3 +8,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-10-20 | new-lesson | tools-and-function-calling written, checks + build pass, PR opened | https://github.com/meetviveklive-coder/learn-hub/pull/2
 2026-10-20 | new-lesson | context-window-and-memory written, checks + build pass, PR opened | https://github.com/meetviveklive-coder/learn-hub/pull/4
 2026-10-20 | new-lesson | prompt-vs-context-engineering written, reviewer fixes applied, checks + build pass, PR opened; context-window-and-memory marked published | claude/lesson-prompt-vs-context-engineering
+2026-10-21 | new-lesson | mcp-basics written, reviewer fixes applied, checks + build pass, PR opened; prompt-vs-context-engineering marked published | claude/lesson-mcp-basics

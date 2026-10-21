@@ -52,7 +52,7 @@ items:
     title: Prompt engineering vs context engineering
     why: The step before harness and loop engineering.
     priority: 2
-    status: in_review
+    status: published
 
   - id: mcp-basics
     domain: ai-agents
@@ -60,7 +60,7 @@ items:
     title: Model Context Protocol (MCP) in plain words
     why: Standard way agents connect to apps.
     priority: 2
-    status: queued
+    status: in_review
     notes: Use the official spec site as primary source.
 
   - id: subagents-maker-checker
