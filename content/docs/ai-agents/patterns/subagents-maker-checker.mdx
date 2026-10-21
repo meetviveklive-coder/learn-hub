@@ -1,0 +1,166 @@
+---
+title: Sub-agents and the maker/checker pattern
+description: A sub-agent is a helper agent with its own fresh context. Maker/checker means one agent does the work and a separate one checks it.
+domain: ai-agents
+level: intermediate
+order: 1
+prerequisites: [the-agent-loop, context-window-and-memory]
+tags: [agents, sub-agents, multi-agent, review, patterns]
+sources:
+  - title: Create custom subagents (Claude Code docs)
+    url: https://code.claude.com/docs/en/sub-agents
+    type: official
+  - title: Building effective agents (Anthropic, Dec 2024)
+    url: https://www.anthropic.com/engineering/building-effective-agents
+    type: official
+  - title: How we built our multi-agent research system (Anthropic, Jun 2025)
+    url: https://www.anthropic.com/engineering/multi-agent-research-system
+    type: official
+  - title: Harness design for long-running application development (Anthropic, Mar 2026)
+    url: https://www.anthropic.com/engineering/harness-design-long-running-apps
+    type: official
+  - title: Maker–checker (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Maker-checker
+    type: article
+last_verified: 2026-10-21
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** A sub-agent is a helper agent that a main agent starts for one job. It works in its own fresh memory and hands back a short result. Maker/checker is a way to use sub-agents: one agent makes the work, and a different agent checks it.
+- **Why it matters:** Agents tend to praise their own work. A separate checker, with fresh eyes and a strict brief (its written instructions), catches more of the mistakes the maker misses.
+- **Example:** A writing agent drafts a lesson. A reviewer sub-agent sees only the draft and its sources, and lists every claim the sources don't back up.
+
+## Think of it like…
+
+<Analogy>
+Think of a bank. One clerk types in a large payment, and a second clerk must approve it before the money moves. Banks call this "maker-checker", also known as the four-eyes principle. Splitting the duties between two people means no single person can push a mistake through alone.
+
+**Where the comparison breaks:** Two bank clerks are different people. Two AI agents may run on the same model, so the checker may miss the same things the maker misses unless you brief it differently.
+</Analogy>
+
+## Real-world example
+
+A small marketing team uses an agent to write product pages for an online shoe store. At first, one agent writes a page and then asks itself, "Is this correct?" It almost always says yes, even when a shoe's price or size range is wrong.
+
+So they split the job. The **maker** agent writes the page. Then a **checker** sub-agent gets only the finished page and the product data sheet. Its brief says: "List every fact that does not match the sheet. Do not fix anything." The maker fixes what the checker lists, and the checker looks again. Wrong facts now get caught before a human sees the page.
+
+This learning site works the same way. One agent writes each lesson. A fresh reviewer sub-agent checks it before a pull request, a request to add the change, goes to the owner.
+
+## How it works
+
+First, some terms. A **model** is the AI system that reads text and writes a reply, and a **model call** is one request to it. A **context window** is the text a model can see at once, its short-term memory. An **orchestrator** is the main agent that plans the work and hands out pieces of it.
+
+**Part 1: What a sub-agent is.** In Claude Code, the docs describe a sub-agent this way:
+
+1. It runs in **its own context window**, with its own instructions, called a system prompt, and its own allowed tools.
+2. By default, it does **not** see the main conversation. It gets its instructions, a few details about its setup, and the task message the main agent writes for it. (Claude Code also has "forks", sub-agents that do get the whole conversation.)
+3. It does the work, then returns **only a summary**. All the messy steps stay out of the main agent's memory.
+
+You can define one as a Markdown file, a plain text file with light formatting, in a project's `.claude/agents/` folder. The settings go in a block between two `---` lines at the top, called frontmatter. Only a `name` and a `description` are required. A `tools` list can limit what it may use. In the example below, `Read` opens files and `Grep` searches them, so this reviewer can look but not change anything.
+
+```markdown title=".claude/agents/fact-checker.md"
+---
+name: fact-checker
+description: Checks a draft against its sources. Never edits files.
+tools: Read, Grep
+---
+You are a strict fact-checker. List each claim the sources do not
+support, with the line it is on. Do not fix anything.
+```
+
+**Part 2: The maker/checker loop.** Anthropic's guide calls this the evaluator-optimizer workflow. One model call makes an answer, and another judges it and gives feedback, in a loop.
+
+```text
+Orchestrator
+   │  task
+   ▼
+Maker ──draft──▶ Checker ──"pass"──▶ done
+  ▲                │
+  └──── feedback ◀─┘   (repeat until pass or a round limit)
+```
+
+The maker drafts, the checker judges, and the loop repeats until the checker passes the work or you hit a set number of rounds.
+
+**Why a separate checker helps.** In a March 2026 post, an Anthropic engineer reports that agents grading their own work "reliably skew positive." Splitting the doer from the judge was a strong fix. The checker was still too lenient at first, though. It would spot real problems, then talk itself into approving the work anyway. Tuning one stand-alone checker to be skeptical was far easier than making the maker doubt itself.
+
+**When it fits.** The guide gives two signs. First, the result clearly gets better when a human explains what to fix. Second, a model can give that same kind of feedback. Clear rules to check against, like "every fact must match a source," make it work best.
+
+**What it costs.** Anthropic's research system uses a main agent plus sub-agents working in parallel, meaning at the same time. It used about 15 times more tokens than a normal chat. **Tokens** are the small chunks of text that models read and write, and you pay per token.
+
+In return, it scored 90.2% higher than a single Claude Opus 4 agent on Anthropic's internal research test. The same post warns that this setup fits poorly when every agent must share the same context. It also fits most coding tasks less well than research.
+
+## Common mistakes
+
+- **Letting the maker check itself** — agents tend to approve their own work. Use a separate checker with a fresh context and a strict brief.
+- **Giving the checker the maker's whole history** — it may then reason the same way the maker did and miss the same errors. Give it only the output and what it must check against, like the sources.
+- **Vague task messages** — Anthropic found sub-agents with vague briefs repeated each other's work. Give each one a goal, an output format, the tools to use, and clear limits.
+- **No stop rule** — maker and checker can loop forever. Set a round limit, and hand the work to a human if it still fails.
+- **Adding agents by default** — each one costs tokens and time. Anthropic's guide advises starting with the simplest setup and adding complexity only when it clearly improves results.
+
+## Remember this
+
+<Remember>
+- A sub-agent runs in its own fresh context, gets only the task you give it, and returns just a summary.
+- Maker/checker: one agent makes, a separate agent with fresh eyes checks, and they loop until pass or a round limit.
+- Agents go easy on their own work, so the checker needs a separate context and a strict, skeptical brief.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Why does a separate checker usually catch more mistakes than asking the maker to review its own work?",
+      options: [
+        "The checker always uses a bigger, smarter model",
+        "Agents tend to judge their own work too kindly, and a separate checker starts fresh",
+        "The checker can see more of the maker's thinking",
+        "Checkers never make mistakes"
+      ],
+      answer: 1,
+      why: "Anthropic reports that agents skew positive when grading their own work. A separate checker starts fresh. It may use the same model, and it can still be too lenient, so it also needs a strict brief."
+    },
+    {
+      q: "By default, what does a Claude Code sub-agent receive when the main agent starts it?",
+      options: [
+        "The full main conversation so far",
+        "Its own instructions and the task message the main agent writes",
+        "Nothing; it has to guess the task"
+      ],
+      answer: 1,
+      why: "The docs say a default sub-agent does not see the main conversation history. It gets its own system prompt and the task message, which is why a clear brief matters. Only a special 'fork' gets the full conversation."
+    },
+    {
+      q: "A maker and a checker keep disagreeing and the loop has run 10 rounds. What should a good design do?",
+      options: [
+        "Keep looping until they agree, however long it takes",
+        "Let the maker approve its own work to end the loop",
+        "Stop at a set round limit and hand the work to a human",
+        "Delete the checker"
+      ],
+      answer: 2,
+      why: "Every loop needs a stop rule. A round limit plus a hand-off to a human stops wasted tokens. Self-approval would remove the whole point of the checker."
+    },
+    {
+      q: "Which task is the weakest fit for many sub-agents working in parallel?",
+      options: [
+        "Searching many separate websites on one research question",
+        "A change where every step depends on the step before and all agents need the same context",
+        "Checking 20 separate product pages against their data sheets"
+      ],
+      answer: 1,
+      why: "Anthropic says multi-agent setups fit poorly when all agents must share the same context or depend heavily on each other. Separate, independent pieces of work fit well."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [The agent loop (think → act → observe)](/docs/ai-agents/foundations/the-agent-loop)
+- Read first: [Context window, memory, and why agents forget](/docs/ai-agents/foundations/context-window-and-memory)
+- Related: [Prompt engineering vs context engineering](/docs/ai-agents/foundations/prompt-vs-context-engineering)
+- Sources are listed below with the date they were last checked.
