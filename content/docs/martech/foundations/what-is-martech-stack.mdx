@@ -1,0 +1,162 @@
+---
+title: What is a MarTech stack?
+description: A MarTech stack is the set of marketing tools a business uses, connected so customer data can flow between them.
+domain: martech
+level: basics
+order: 1
+prerequisites: []
+tags: [martech, stack, crm, cms, analytics, integration]
+sources:
+  - title: 2025 Marketing Technology Landscape Supergraphic (chiefmartec)
+    url: https://chiefmartec.com/2025/05/2025-marketing-technology-landscape/
+    type: article
+  - title: What is a martech stack? (Shopify blog)
+    url: https://www.shopify.com/blog/martech-stack
+    type: article
+  - title: What is martech? (Amazon Ads guide)
+    url: https://advertising.amazon.com/library/guides/what-is-martech
+    type: article
+last_verified: 2026-10-22
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** Marketing technology (MarTech) is software that helps marketers plan, run, and measure campaigns. A **campaign** is a planned set of messages with one goal, like a spring sale. A MarTech **stack** is the full set of these tools one business uses, working together.
+- **Why it matters:** Each tool does one job. The stack only works well when the tools share data, so you must think about the whole set, not one tool at a time.
+- **Example:** A small online store uses a website builder, a customer list, an email tool, and a tool that tracks visits. A sale on the website adds the buyer to the email list, so the next email can follow up on that sale.
+
+## Think of it like…
+
+<Analogy>
+Think of a restaurant kitchen. There is a fridge, a stove, an oven, and a dishwasher. Each one does one job. The kitchen works only if food moves smoothly from one station to the next, in the right order.
+
+**Where the comparison breaks:** Food moves once, in one direction. In a MarTech stack, the same customer data flows back and forth between tools again and again, and every copy must stay in sync.
+</Analogy>
+
+## Real-world example
+
+A small online plant shop wants more repeat buyers. It already has a website where people buy plants. It also has a **customer relationship management (CRM)** system, which is a database of every customer and every contact with them.
+
+The shop adds an email tool. Now, when someone buys a fern, the website sends their name and order to the CRM. The CRM passes them to the email tool. Two weeks later, the email tool sends a "how to care for your fern" email with a discount on plant food.
+
+The shop also uses web **analytics**, a tool that records what visitors do on the site. Because the email link carries a small tracking label, analytics can see that people who clicked the care email bought plant food more often. So the team keeps the email and tries the same idea for cacti. No single tool did this. The result came from four tools passing data along a chain.
+
+## How it works
+
+**Part 1: The layers.** Shopify's guide sorts stack tools into three groups: foundational, function-specific, and advanced. It suggests starting with the foundation. A **channel** is a route to reach customers, like email, social media, or search. Here are the groups in plain words.
+
+| Layer | Plain meaning | Examples |
+|---|---|---|
+| **Foundational** | Core systems that the other tools depend on. | A **content management system (CMS)**, the tool that runs your website. A CRM. |
+| **Function-specific** | Tools for one marketing job or channel. | Email, social media, search engine optimization (**SEO**, getting found on search engines), web analytics, ad tools. |
+| **Advanced** | Tools that work across many channels at once. | Automation, CDP, attribution, tag management, business reports. |
+
+Here are the advanced terms in plain words.
+
+- **Marketing automation** sends messages by rules, like "email two weeks after a purchase."
+- A **customer data platform (CDP)** gathers what you know about each customer from many tools into one profile.
+- **Attribution** means working out which marketing step deserves credit for a sale.
+- **Tag management** is a way to add tracking code to a website from one place.
+
+Later lessons cover CDPs and tag management in detail.
+
+**Part 2: Data flows through the stack.** The basic path looks like this:
+
+```text
+ Customer acts            Tools record it          Tools use it
+ ─────────────            ───────────────          ────────────
+ visits website  ──▶  analytics + CMS  ──▶
+ buys something  ──▶  CRM (who they are) ──▶  email / ads / site
+ opens an email  ──▶  email tool        ──▶   choose next message
+          ▲                                          │
+          └──────────── measure results ◀────────────┘
+```
+
+A customer does something, a tool records it, other tools use that record to decide what to show next, and you measure what happened.
+
+**Part 3: MarTech vs AdTech.** Amazon Ads' guide draws a line here. **Advertising technology (AdTech)** is software for buying and delivering paid ads, which aim to change what buyers do. MarTech is the software you use to create, run, and manage campaigns, like CRM, email, and social tools. The two often connect, which is why the table above lists ad tools too.
+
+**Part 4: The market is huge.** The chiefmartec 2025 landscape, a well-known yearly map of the industry, counted 15,384 MarTech products in 49 categories. That was 9% more than the year before. The map says the market has grown about 100 times since 2011. You will never use most of them. The skill is picking a few that fit your goals and connect well.
+
+**Part 5: How to choose tools.** Combining the Shopify and Amazon Ads guides gives these steps:
+
+1. Start from your goals, not from a list of popular tools.
+2. Check what you already own, so you don't buy two tools that do the same job.
+3. Build the foundational tools first, then function-specific tools, then advanced tools.
+4. Check **integrations**, meaning ready-made links that let two tools share data. A tool with no link to your CRM creates extra manual work.
+5. Keep managing the stack over time, so the tools stay in sync. Amazon Ads calls this an ongoing process.
+
+## Common mistakes
+
+- **Buying tools before setting goals** — you pay for features you never use. Write down the goal first, then pick the tool for it.
+- **Ignoring integrations** — data gets stuck in one tool, and people copy it by hand. Check that a new tool connects to your CRM and website before buying.
+- **Two tools for one job** — two email tools means two customer lists that disagree. Check what you already own first.
+- **Starting with advanced tools** — tools that join data have little to join if the foundation is missing or messy. Shopify's guide advises building the foundation first.
+- **Setting it up once and walking away** — tools drift out of sync and old copies of customer data pile up. Treat the stack as something you keep managing.
+
+## Remember this
+
+<Remember>
+- A MarTech stack is the set of marketing tools one business uses, and its value comes from how well the tools share data.
+- Build in layers: foundational tools (CMS, CRM) first, then function-specific tools (email, social, analytics), then advanced tools (automation, CDP).
+- Choose tools from your goals, check what you already own, and check integrations before buying.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A shop's email tool has no link to its CRM, so staff export and upload customer lists by hand each week. What is the core problem?",
+      options: [
+        "The email tool has too few features",
+        "The tools don't integrate, so data doesn't flow through the stack",
+        "The shop needs an AdTech platform",
+        "The CRM is the wrong layer"
+      ],
+      answer: 1,
+      why: "A stack's value comes from tools sharing data. Without an integration, people do the data transfer by hand, which is slow and goes out of date. More features or ad tools would not fix the missing link."
+    },
+    {
+      q: "A new shop has no website and no customer list yet, but wants to buy a customer data platform (CDP) first. What is the problem?",
+      options: [
+        "A CDP is AdTech, not MarTech",
+        "A CDP joins data from other tools, so with no foundation it has almost nothing to join",
+        "CDPs only work for large companies",
+        "Nothing; a CDP is the best first tool"
+      ],
+      answer: 1,
+      why: "A CDP is an advanced tool that gathers customer data from other tools. Without foundational tools like a website (CMS) and a CRM, there is little data to gather. That is why the guide says to build the foundation first."
+    },
+    {
+      q: "Which statement best matches the MarTech vs AdTech split in this lesson?",
+      options: [
+        "They are two names for the same thing",
+        "AdTech buys and delivers paid ads to change what buyers do; MarTech creates, runs, and manages campaigns",
+        "MarTech is only for email; AdTech is everything else",
+        "AdTech is free and MarTech is paid"
+      ],
+      answer: 1,
+      why: "AdTech focuses on paid ads aimed at buyer behavior. MarTech covers tools like CRM, email, and social that run your campaigns. They often connect, but they do different jobs."
+    },
+    {
+      q: "A team already owns an email tool. A second team buys a different email tool for its own campaigns. What is the most likely result?",
+      options: [
+        "Twice as many sales",
+        "Two customer lists that disagree, and double the cost",
+        "Better attribution, because there is more data"
+      ],
+      answer: 1,
+      why: "Two tools for one job usually means two copies of the customer list that drift apart, plus two bills. That is why you check what you already own before buying."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- This is the first MarTech lesson. Later lessons cover first-party data, CDPs, event tracking, tag management, and privacy.
+- See the [MarTech overview](/docs/martech) for the learning path.
+- Sources are listed below with the date they were last checked.
