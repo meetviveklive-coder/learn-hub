@@ -77,7 +77,7 @@ items:
     title: How to tell if an agent did a good job (evals)
     why: Verification is the core of reliable loops.
     priority: 3
-    status: in_review
+    status: published
 
   # ── MarTech ───────────────────────────────────────────────
   - id: what-is-martech-stack
@@ -86,7 +86,7 @@ items:
     title: What is a MarTech stack?
     why: Map of the territory before individual tools.
     priority: 1
-    status: queued
+    status: in_review
 
   - id: first-party-data-and-identity
     domain: martech

@@ -11,3 +11,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-10-21 | new-lesson | mcp-basics written, reviewer fixes applied, checks + build pass, PR opened; prompt-vs-context-engineering marked published | claude/lesson-mcp-basics
 2026-10-21 | new-lesson | subagents-maker-checker written, reviewer fixes applied, checks + build pass, PR opened; mcp-basics marked published | claude/lesson-subagents-maker-checker
 2026-10-22 | new-lesson | evaluating-agents written, reviewer fixes applied, checks + build pass, PR opened; subagents-maker-checker marked published | claude/lesson-evaluating-agents
+2026-10-22 | new-lesson | what-is-martech-stack written, reviewer fixes applied, checks + build pass, PR opened; evaluating-agents marked published | claude/lesson-what-is-martech-stack
