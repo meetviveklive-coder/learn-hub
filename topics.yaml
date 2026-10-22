@@ -69,7 +69,7 @@ items:
     title: Sub-agents and the maker/checker pattern
     why: Used by this site's own loop.
     priority: 2
-    status: in_review
+    status: published
 
   - id: evaluating-agents
     domain: ai-agents
@@ -77,7 +77,7 @@ items:
     title: How to tell if an agent did a good job (evals)
     why: Verification is the core of reliable loops.
     priority: 3
-    status: queued
+    status: in_review
 
   # ── MarTech ───────────────────────────────────────────────
   - id: what-is-martech-stack

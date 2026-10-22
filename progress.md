@@ -10,3 +10,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-10-20 | new-lesson | prompt-vs-context-engineering written, reviewer fixes applied, checks + build pass, PR opened; context-window-and-memory marked published | claude/lesson-prompt-vs-context-engineering
 2026-10-21 | new-lesson | mcp-basics written, reviewer fixes applied, checks + build pass, PR opened; prompt-vs-context-engineering marked published | claude/lesson-mcp-basics
 2026-10-21 | new-lesson | subagents-maker-checker written, reviewer fixes applied, checks + build pass, PR opened; mcp-basics marked published | claude/lesson-subagents-maker-checker
+2026-10-22 | new-lesson | evaluating-agents written, reviewer fixes applied, checks + build pass, PR opened; subagents-maker-checker marked published | claude/lesson-evaluating-agents

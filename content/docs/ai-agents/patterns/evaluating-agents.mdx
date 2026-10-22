@@ -1,0 +1,167 @@
+---
+title: How to tell if an agent did a good job (evals)
+description: An eval is a repeatable test for an agent. You give it a task, check the result with a grader, and track the score over time.
+domain: ai-agents
+level: intermediate
+order: 2
+prerequisites: [the-agent-loop, subagents-maker-checker]
+tags: [agents, evals, testing, graders, reliability]
+sources:
+  - title: Demystifying evals for AI agents (Anthropic, Jan 2026)
+    url: https://anthropic.com/engineering/demystifying-evals-for-ai-agents
+    type: official
+  - title: Evaluate agent workflows (OpenAI API docs)
+    url: https://developers.openai.com/api/docs/guides/agent-evals
+    type: official
+last_verified: 2026-10-22
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** An eval (short for evaluation) is a repeatable test for an AI agent. You give the agent a task, then a grader checks the result.
+- **Why it matters:** Agents give different answers each time, and what an agent says it did may not match what really happened. Evals turn "it seems fine" into a score you can track.
+- **Example:** You run a support agent on 30 saved refund requests, 3 times each. Then you check whether each refund really exists in the database.
+
+## Think of it like…
+
+<Analogy>
+Think of a driving test. The examiner doesn't ask you if you can drive. They set the same route for everyone, watch what you do, and score you with a fixed checklist. A pass means you met the checklist, not that you said you could.
+
+**Where the comparison breaks:** You take a driving test once. An agent behaves a bit differently on every run, so you test it several times and measure how often it passes.
+</Analogy>
+
+## Real-world example
+
+An online shoe store uses an agent to answer customer emails. A **tool** is a function the agent can call, like "look up order" or "issue refund". The team changes the agent's instructions and wants to know: did it get better or worse?
+
+They save 30 real emails that caused trouble in the past. For each one, they write down what success means. For a refund request, the refund must exist in the system and stay under the store's limit. The reply must also follow the refund policy.
+
+Now, after every change, they run all 30 emails through the agent three times. A script checks the database. A separate AI model (not the agent) scores the tone of each reply against a short checklist. An email counts as passed only if all 3 runs pass. Last month, 24 of 30 passed. If this week's number drops, they read the failed runs before releasing the change to customers.
+
+## How it works
+
+**Part 1: The parts of an eval.** Anthropic's January 2026 guide uses these terms:
+
+| Term | Plain meaning |
+|---|---|
+| **Task** | One test case: the input plus what counts as success. |
+| **Trial** | One attempt at a task. You run several, because results vary. |
+| **Transcript** | The full record of a trial: messages, tool calls, and steps. Also called a **trace**, the word OpenAI's docs use. |
+| **Outcome** | What is really true at the end, like "a booking exists in the database." |
+| **Grader** | The logic that scores a trial. One task can have several graders. |
+| **Eval suite** | A group of tasks that test one area, like refunds. |
+
+The key idea is the outcome. The guide's example: for a flight-booking agent, the outcome is whether a booking exists. The agent's message "I booked your flight" is not the outcome.
+
+**Part 2: Three kinds of graders.**
+
+| Grader | How it works | Good at | Weak at |
+|---|---|---|---|
+| **Code** | A script checks facts: tests pass, a record exists, a value is in range. | Fast, cheap, same result every time. | Brittle, meaning it breaks easily: it may fail a correct answer worded differently. |
+| **Model** | Another AI model scores the work against a rubric, meaning a written checklist. | Open-ended work, like tone or writing. | Can vary between runs; costs more; must be compared with human scores. |
+| **Human** | An expert reviews the work. | The most trusted judgment. | Slow and expensive. |
+
+The guide's advice: use code graders where you can, model graders where you need them, and humans to check that the other graders agree with experts.
+
+**Part 3: Score many trials, two ways.** Here, k is the number of tries. Say the agent passes a task 75% of the time, and you try 3 times.
+
+- **pass@k** is the chance that **at least one** of k tries succeeds. It goes up as k grows. For 3 tries, the chance all 3 fail is 0.25 × 0.25 × 0.25, so pass@3 is about 98%. Use it when one good answer is enough.
+- **pass^k** is the chance that **all** k tries succeed. It goes down as k grows. For 3 tries, 0.75 × 0.75 × 0.75 is about 42%. Use it when every customer must get a good answer.
+
+**Part 4: Two jobs for evals.** A **pass rate** is the share of trials that pass.
+
+- **Capability evals** ask "what can it do?" They should start with a low pass rate, so there is room to improve.
+- **Regression evals** ask "does it still do what it used to?" A **regression** is something that used to work and broke. These should pass close to 100% of the time.
+
+When a capability task passes reliably, you can move it into the regression eval suite.
+
+**Part 5: The loop.** OpenAI's docs suggest a similar order. Look at real traces first, grade them, and adjust prompts, tools, or rules. Then build a fixed test set to compare changes over time.
+
+```text
+Real failures ──▶ Write tasks + success rules
+                        │
+                        ▼
+   Run agent (several trials each) ──▶ Graders score outcomes
+                        │
+                        ▼
+      Read failed transcripts ──▶ Fix agent (or fix the eval)
+                        │
+                        └──────── repeat after every change
+```
+
+Turn real failures into tasks, run and grade them, read what went wrong, fix it, and run again.
+
+## Common mistakes
+
+- **Waiting for a huge test set** — you never start. Anthropic suggests starting with 20 to 50 simple tasks taken from real failures.
+- **Trusting what the agent says** — its final message may not match reality. Grade the outcome, like the database record.
+- **Grading the exact steps** — agents often find other valid paths. Check what the agent produced, not that it followed one fixed order.
+- **Never reading transcripts** — a grader or task can be wrong too. The guide says that with today's top models, a task that fails across many trials (like 100) is most often a broken task.
+- **Testing only one side** — if you tune the agent only on "should search the web" cases, you may end up with one that searches for almost everything. Also test cases where it should not search.
+
+## Remember this
+
+<Remember>
+- An eval is a task plus a grader, run over several trials, and the grader checks the real outcome, not the agent's claim.
+- Use code graders first, model graders for open-ended work, and humans to check the graders.
+- pass@k means at least one of k tries works; pass^k means all k work, which matters when every user must get a good result.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A travel agent replies 'Your flight is booked!' What should a good eval check?",
+      options: [
+        "That the reply sounds confident and polite",
+        "That a booking really exists in the reservation system",
+        "That the agent used exactly five steps",
+        "That the reply mentions the flight number"
+      ],
+      answer: 1,
+      why: "Evals grade the outcome, meaning what is really true at the end. A polite reply or a flight number in the text can appear even when no booking exists, and a fixed step count would punish valid paths."
+    },
+    {
+      q: "An agent passes a task 75% of the time. As you increase the number of tries k, which number gets smaller?",
+      options: [
+        "pass@k, the chance at least one try succeeds",
+        "pass^k, the chance every try succeeds",
+        "Both get smaller",
+        "Neither changes"
+      ],
+      answer: 1,
+      why: "pass^k needs every try to succeed, so each extra try is another chance to fail (about 42% at 3 tries). pass@k rises, because more tries give more chances for one success (about 98% at 3 tries)."
+    },
+    {
+      q: "You want to check whether support replies sound kind and caring. Which grader fits best?",
+      options: [
+        "A code grader that passes any reply containing the word 'sorry'",
+        "A model grader with a clear rubric, compared now and then with human scores",
+        "A code grader that checks the reply is under 200 words"
+      ],
+      answer: 1,
+      why: "Tone is open-ended, which is what model graders handle well. A word match is easy to fool, and length says nothing about kindness. Humans check that the model grader agrees with people."
+    },
+    {
+      q: "Using a top model, a task has failed on all 100 trials. What should you do first?",
+      options: [
+        "Conclude the model can never do this kind of task",
+        "Read the transcripts to check whether the task or grader is broken",
+        "Run 100 more trials and hope some pass"
+      ],
+      answer: 1,
+      why: "Anthropic's guide says that with top models, 0% over many trials most often means a broken task. Reading transcripts shows what went wrong. More trials alone won't tell you why."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [The agent loop (think → act → observe)](/docs/ai-agents/foundations/the-agent-loop)
+- Read first: [Sub-agents and the maker/checker pattern](/docs/ai-agents/patterns/subagents-maker-checker)
+- Related: [Tools and function calling](/docs/ai-agents/foundations/tools-and-function-calling)
+- Sources are listed below with the date they were last checked.
