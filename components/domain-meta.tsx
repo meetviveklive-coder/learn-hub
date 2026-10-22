@@ -1,4 +1,4 @@
-import { Bot, Megaphone, Gauge, Repeat, Wrench, type LucideIcon } from 'lucide-react';
+import { Bot, Megaphone, Gauge, Repeat, Wrench, Network, type LucideIcon } from 'lucide-react';
 import type { Domain } from '@/lib/catalog';
 import { DOMAIN_LABELS } from '@/lib/shared';
 
@@ -60,6 +60,15 @@ export const DOMAIN_STYLES: DomainStyle[] = [
     tile: 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
     bar: 'from-sky-500 to-cyan-400',
     text: 'text-sky-800 dark:text-sky-300',
+  },
+  {
+    slug: 'ai-architect',
+    label: DOMAIN_LABELS['ai-architect'],
+    blurb: 'Designing and running AI systems for a whole company: layers, data, security, cost and governance.',
+    icon: Network,
+    tile: 'bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300',
+    bar: 'from-fuchsia-500 to-pink-400',
+    text: 'text-fuchsia-800 dark:text-fuchsia-300',
   },
 ];
 

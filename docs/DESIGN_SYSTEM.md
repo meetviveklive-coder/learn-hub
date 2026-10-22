@@ -17,7 +17,7 @@ Brand Voice: See CONTENT_STYLE.md.
 Fumadocs `neutral` theme, with brand overrides in `app/global.css` (cool slate neutrals, light + dark).
 Primary (links, buttons, focus): indigo — `hsl(243 75% 54%)` light, `hsl(234 89% 76%)` dark. One accent site-wide.
 Track (domain) accents, used only for icon tiles, card top bars and the domain badge — defined once in `components/domain-meta.tsx`:
-- AI Agents: indigo → violet · MarTech: rose → orange · Jev: amber · Loop Engineering: emerald → teal · Harness Engineering: sky → cyan
+- AI Agents: indigo → violet · MarTech: rose → orange · Jev: amber · Loop Engineering: emerald → teal · Harness Engineering: sky → cyan · AI Architect: fuchsia → pink
 Level pills: basics green, intermediate amber, advanced rose.
 Callouts (semantic):
 - Analogy: info/blue family

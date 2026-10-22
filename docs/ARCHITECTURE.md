@@ -92,7 +92,8 @@ Analytics: None in MVP (Vercel Web Analytics optional later)
 │   ├─ ai-agents/
 │   ├─ martech/
 │   ├─ loop-engineering/
-│   └─ harness-engineering/
+│   ├─ harness-engineering/
+│   └─ ai-architect/
 ├─ app/                   # Next.js routes (Fumadocs)
 ├─ components/            # lesson/ (Quiz, callouts, MarkLearned, lesson-meta), review-list
 └─ .github/workflows/ci.yml
