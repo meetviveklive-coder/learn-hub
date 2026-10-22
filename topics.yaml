@@ -8,6 +8,7 @@ domain_order:
   - jev                 # Jev AI model by TypeSafe AI (confirmed by owner 2026-10-20)
   - loop-engineering    # NOTE: depends on harness-engineering concepts — consider swapping order.
   - harness-engineering
+  - ai-architect        # Path to AI Technical Architect — capstone track (added 2026-10-22). Move it up this list to start it sooner.
 
 items:
   # ── AI Agents ─────────────────────────────────────────────
@@ -218,3 +219,194 @@ items:
     why: Making agents safe to leave alone.
     priority: 2
     status: queued
+
+  # ── Path to AI Technical Architect ──────────────────────
+  # Capstone track. Lessons stay at 12th-grade reading level even though the topic is senior.
+
+  - id: what-does-an-ai-architect-do
+    domain: ai-architect
+    topic: foundations
+    title: "What does an AI technical architect do?"
+    why: "Sets the goal of the track: the role, its decisions, and how it differs from ML engineer and enterprise architect."
+    priority: 1
+    status: queued
+    notes: "Use real job descriptions only as patterns, never quote a company. Show the main decisions the role owns."
+
+  - id: enterprise-ai-reference-architecture
+    domain: ai-architect
+    topic: foundations
+    title: "The layers of an enterprise AI system"
+    why: "The one-page mental map every later lesson hangs on: users, apps, orchestration, models, data, platform, governance."
+    priority: 1
+    status: queued
+    notes: "Vendor-neutral first; name AWS/Azure/Google only as examples, from their official architecture centres. Prefer a layered text diagram."
+
+  - id: build-buy-or-customize
+    domain: ai-architect
+    topic: foundations
+    title: "Build, buy, or customize? Choosing how to use AI"
+    why: "The first big decision on any AI project: SaaS tool vs API vs RAG vs fine-tuning vs own model."
+    priority: 1
+    status: queued
+    notes: "Explain trade-offs (cost, control, speed, risk) in a table. No vendor prices."
+
+  - id: choosing-a-model
+    domain: ai-architect
+    topic: foundations
+    title: "Choosing a model: capability, cost, speed and risk"
+    why: "Model choice is a recurring architect decision; teach the criteria, not a leaderboard."
+    priority: 2
+    status: queued
+    notes: "Do NOT rank current models — they change monthly. Teach the evaluation criteria and link the evals lesson."
+
+  - id: rag-architecture
+    domain: ai-architect
+    topic: building-blocks
+    title: "RAG architecture: giving AI your company's knowledge"
+    why: "Most enterprise AI is retrieval-augmented generation; the core pattern to master."
+    priority: 1
+    status: queued
+    notes: "Cover chunking, embeddings, vector search, re-ranking, citations. Link context-window lesson."
+
+  - id: ai-gateway
+    domain: ai-architect
+    topic: building-blocks
+    title: "The AI gateway: one front door for every model"
+    why: "Central control point for routing, keys, rate limits, logging, cost tracking and fallbacks."
+    priority: 1
+    status: queued
+    notes: "Explain the pattern generically; mention products only as examples from official docs."
+
+  - id: agents-in-the-enterprise
+    domain: ai-architect
+    topic: building-blocks
+    title: "Putting agents to work safely in a company"
+    why: "How agent patterns from earlier tracks change when real systems, identities and approvals are involved."
+    priority: 2
+    status: queued
+    notes: "Link MCP, tools and maker/checker lessons. Cover least privilege and human approval steps."
+
+  - id: integration-patterns
+    domain: ai-architect
+    topic: building-blocks
+    title: "Connecting AI to existing systems (APIs, events, MCP)"
+    why: "Enterprise value comes from integration with CRM, ERP and data platforms."
+    priority: 2
+    status: queued
+    notes: "Sync vs async, event-driven, batch. Keep it concrete with one example."
+
+  - id: data-readiness-for-ai
+    domain: ai-architect
+    topic: data
+    title: "Is your data ready for AI?"
+    why: "Data quality and access are the most common reason AI projects stall."
+    priority: 1
+    status: queued
+    notes: "Cover ownership, quality, freshness, access rights and lineage."
+
+  - id: vector-databases-and-embeddings
+    domain: ai-architect
+    topic: data
+    title: "Embeddings and vector databases in plain words"
+    why: "Needed to design and size RAG systems."
+    priority: 2
+    status: queued
+    notes: "No product rankings. Explain similarity search and the main design choices."
+
+  - id: privacy-and-data-residency
+    domain: ai-architect
+    topic: data
+    title: "Privacy, PII and data residency for AI systems"
+    why: "Where data goes and who can see it decides what is allowed at all."
+    priority: 2
+    status: queued
+    notes: "Include India's DPDP Act alongside GDPR; verify current status of each from official sources."
+
+  - id: ai-security-threats
+    domain: ai-architect
+    topic: security-governance
+    title: "AI-specific security threats (prompt injection and more)"
+    why: "Architects must design against attacks that normal apps don't have."
+    priority: 1
+    status: queued
+    notes: "Use the current OWASP Top 10 for LLM Applications as primary source; verify which edition is current."
+
+  - id: guardrails-architecture
+    domain: ai-architect
+    topic: security-governance
+    title: "Guardrails: input, output and action checks"
+    why: "Where to place safety checks in the architecture and what each catches."
+    priority: 2
+    status: queued
+    notes: "Link the harness-engineering guardrails lesson if published."
+
+  - id: ai-governance-frameworks
+    domain: ai-architect
+    topic: security-governance
+    title: "AI governance frameworks: NIST AI RMF, ISO/IEC 42001 and the EU AI Act"
+    why: "The rules and standards an enterprise architecture must satisfy."
+    priority: 1
+    status: queued
+    notes: "Official sources only (nist.gov, iso.org, EU official texts). Verify current EU AI Act application dates. Not legal advice — say so."
+
+  - id: responsible-ai-in-practice
+    domain: ai-architect
+    topic: security-governance
+    title: "Responsible AI in practice: fairness, transparency, accountability"
+    why: "Turns principles into design requirements and review steps."
+    priority: 3
+    status: queued
+
+  - id: llmops-and-observability
+    domain: ai-architect
+    topic: operations
+    title: "LLMOps: monitoring AI systems in production"
+    why: "You can't run what you can't see: traces, quality, drift, incidents."
+    priority: 1
+    status: queued
+    notes: "Link the evals lesson. Cover tracing, offline vs online evaluation, feedback loops."
+
+  - id: ai-cost-and-finops
+    domain: ai-architect
+    topic: operations
+    title: "Managing AI cost: tokens, caching and budgets"
+    why: "AI cost grows with usage in ways normal software doesn't."
+    priority: 1
+    status: queued
+    notes: "Teach cost drivers and controls; no specific prices (they change)."
+
+  - id: latency-scaling-and-reliability
+    domain: ai-architect
+    topic: operations
+    title: "Latency, scaling and reliability for AI apps"
+    why: "Users leave slow apps; models fail and rate-limit."
+    priority: 2
+    status: queued
+    notes: "Streaming, caching, fallbacks, timeouts, quotas."
+
+  - id: deployment-options
+    domain: ai-architect
+    topic: delivery
+    title: "Where AI runs: cloud APIs, private cloud, on-premise and open-weight models"
+    why: "A core architecture decision driven by data, cost and control."
+    priority: 2
+    status: queued
+    notes: "Vendor-neutral first; name AWS/Azure/Google only as examples, from their official architecture centres."
+
+  - id: ai-architecture-decision-records
+    domain: ai-architect
+    topic: delivery
+    title: "Documenting AI architecture: decision records and design docs"
+    why: "How architects record and defend decisions so others can follow them."
+    priority: 2
+    status: queued
+    notes: "Show a short ADR example for an AI decision."
+
+  - id: from-pilot-to-production
+    domain: ai-architect
+    topic: delivery
+    title: "From pilot to production: scaling AI across a company"
+    why: "Why many AI pilots never ship, and the architecture and process that fixes it."
+    priority: 2
+    status: queued
+    notes: "Cover success metrics, platform reuse, change management."

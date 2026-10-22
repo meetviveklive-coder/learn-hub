@@ -11,6 +11,7 @@ export const DOMAINS = [
   'jev',
   'loop-engineering',
   'harness-engineering',
+  'ai-architect',
 ] as const;
 
 const sourceSchema = z.object({

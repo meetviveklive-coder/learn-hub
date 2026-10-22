@@ -91,7 +91,7 @@ export default function HomePage() {
 
         {/* Learning path */}
         <section className="mt-24">
-          <SectionHeading eyebrow="Learning path" title="Five tracks, one path" text="Each track builds on the one before it. Start at step 1." />
+          <SectionHeading eyebrow="Learning path" title="Six tracks, one path" text="Each track builds on the one before it. Start at step 1." />
           <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {DOMAIN_STYLES.map(({ slug, label, blurb, icon: Icon, tile, bar }, i) => {
               const n = count(slug);

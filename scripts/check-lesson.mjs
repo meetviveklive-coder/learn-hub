@@ -16,7 +16,7 @@ const REQUIRED_H2 = [
   'Quiz',
   'Go deeper',
 ];
-const DOMAINS = ['ai-agents', 'martech', 'jev', 'loop-engineering', 'harness-engineering'];
+const DOMAINS = ['ai-agents', 'martech', 'jev', 'loop-engineering', 'harness-engineering', 'ai-architect'];
 const MAX_GRADE = 12;
 const MAX_WORDS = 1200;
 const MAX_AGE_DAYS = 90;

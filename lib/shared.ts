@@ -18,6 +18,7 @@ export const DOMAIN_LABELS: Record<string, string> = {
   jev: 'Jev (AI model)',
   'loop-engineering': 'Loop Engineering',
   'harness-engineering': 'Harness Engineering',
+  'ai-architect': 'Path to AI Technical Architect',
 };
 
 const getContentUrl = createGetUrl(docsContentRoute);

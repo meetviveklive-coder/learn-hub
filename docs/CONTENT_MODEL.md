@@ -8,7 +8,7 @@ Hosting: GitHub (public repo)
 ## 2. Naming Conventions
 Folders and files: `kebab-case`, lowercase, no dates in names.
 Slugs: stable forever once published (URLs must not break). Rename = add a redirect.
-Domains: `ai-agents`, `martech`, `loop-engineering`, `harness-engineering` (+ future).
+Domains: `ai-agents`, `martech`, `loop-engineering`, `harness-engineering`, `ai-architect` (+ future).
 
 ## 3. Entities
 
