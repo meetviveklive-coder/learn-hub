@@ -1,4 +1,7 @@
 {
   "title": "Data",
-  "pages": ["first-party-data-and-identity"]
+  "pages": [
+    "first-party-data-and-identity",
+    "what-is-a-cdp"
+  ]
 }

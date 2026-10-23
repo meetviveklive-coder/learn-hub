@@ -1,0 +1,167 @@
+---
+title: What is a Customer Data Platform (CDP)?
+description: A CDP collects customer data from many tools, joins it into one profile per person, and shares those profiles with the tools that need them.
+domain: martech
+level: basics
+order: 2
+prerequisites: [what-is-martech-stack, first-party-data-and-identity]
+tags: [martech, cdp, customer-data, profiles, audiences, activation]
+sources:
+  - title: What is a CDP and why do you need one? (Adobe Experience League)
+    url: https://experienceleague.adobe.com/en/docs/project-aim-demo/rtcdp/intro/rtcdp-intro/01-what-is-a-cdp
+    type: official
+  - title: Real-Time Customer Profile overview (Adobe Experience Platform docs)
+    url: https://experienceleague.adobe.com/en/docs/experience-platform/profile/home
+    type: official
+  - title: Audiences overview (Twilio Segment docs)
+    url: https://www.twilio.com/docs/segment/engage/audiences
+    type: official
+  - title: Computed Traits (Twilio Segment docs)
+    url: https://static0.twilio.com/docs/segment/unify/traits/computed-traits
+    type: official
+  - title: Segment conceptual model for partners (Twilio Segment docs)
+    url: https://static1.twilio.com/docs/segment/partners/conceptual-model
+    type: official
+  - title: CDP Institute launches vendor certification program (MarTech, updated 2024)
+    url: https://martech.org/cdp-institute-launches-vendor-certification-program-tools-to-help-cdp-buyers
+    type: article
+  - title: What the composability revolution means for CDPs (MarTech, 2024)
+    url: https://martech.org/what-the-composability-revolution-means-for-cdps/
+    type: article
+  - title: DMP vs CDP vs CRM, what's the difference? (Adobe blog, 2025)
+    url: https://business.adobe.com/blog/basics/dmp-cdp-crm-whats-the-difference-and-what-do-you-need
+    type: article
+last_verified: 2026-10-23
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** A Customer Data Platform (CDP) is software that gathers customer data from many tools. It joins that data into one profile per person and shares those profiles with other tools.
+- **Why it matters:** Your email tool, website, store, and help desk each hold a piece of the customer. A CDP puts the pieces together once, so every tool can use the whole picture.
+- **Example:** A shoe store's CDP sees that a shopper bought running shoes in the shop and browsed socks online. It tells the email tool to send her a sock offer, not another shoe ad.
+
+## Think of it like…
+
+<Analogy>
+Think of a hotel front desk. Housekeeping, the restaurant, and the spa each keep their own notes about a guest. The front desk collects all those notes into one guest card. Any staff member who asks can see that the guest is allergic to nuts and likes a late checkout.
+
+**Where the comparison breaks:** A front desk works with names it knows for sure. A CDP often starts with anonymous visitors. It has to work out who they are from IDs, the codes each tool uses to label a person or device.
+</Analogy>
+
+## Real-world example
+
+A shoe store sells online and in its own shops. It uses five tools. Its website tracks clicks, and its checkout register records in-store sales. An email tool sends newsletters, a help desk logs complaints, and an ad tool runs social ads.
+
+Each tool keeps its own customer list. None of them agree.
+
+The store adds a CDP. The CDP pulls in data from all five tools. It links a shopper's in-store loyalty number to her web login and her email address. Now she has one profile showing a shoe purchase last week, two sock pages viewed yesterday, and one open complaint.
+
+The marketing team builds a group called "bought shoes in the last 30 days, no open complaint." The CDP sends that group to the email tool and the ad tool. The shopper with the complaint is left out, so she does not get a cheerful sale email while she waits for a refund.
+
+## How it works
+
+A CDP does four jobs, in order. The examples below come from the docs of two CDP vendors: Adobe and Twilio Segment ("Segment" for short). A **CRM** (Customer Relationship Management) system, one of the sources shown, is where sales and service teams keep customer records.
+
+```text
+ SOURCES               CDP                          DESTINATIONS
+ website ─┐   ┌───────────────────────────┐    ┌─> email tool
+ app ─────┤   │ 1 collect                 │    │
+ register ┼──>│ 2 unify (one profile)     │────┼─> ad platform
+ CRM ─────┤   │ 3 segment (build groups)  │    │
+ help desk┘   │ 4 activate (send out)     │    └─> website (personalize)
+              └───────────────────────────┘
+```
+
+Data flows in from sources, becomes profiles and groups, and flows out to destinations.
+
+1. **Collect.** The CDP takes in data from **sources**, the places customer data comes from, like websites, apps, and CRMs. An **event** is one recorded action, like a click or a purchase. Data can arrive as a **stream** (each event sent the moment it happens) or in a **batch** (a big file loaded on a schedule). Adobe's profile docs describe both ways.
+2. **Unify.** The CDP links IDs that belong to one person. This is **identity resolution**, covered in the previous lesson. Adobe's docs say one person's data often starts as several **profile fragments**: partial records stored in different datasets (separate collections of data). A **merge policy** is a rule that decides which value wins when fragments disagree, like two different home addresses.
+3. **Group (segment).** You build an **audience**: a group of people who match rules. Twilio Segment's docs describe rules based on events people did, or did not do, and on **traits**. A trait is a fact about a person, like "city" or "loyalty tier." A **computed trait** is one the CDP calculates and keeps updated, such as "orders in the last 30 days" or "lifetime revenue."
+4. **Activate.** The CDP sends audiences and traits to **destinations**, the tools that act on them, like an email or ad platform. Twilio Segment's audiences are real-time by default: people join or leave as new events arrive. Some audience types can only update in batches.
+
+**What makes it a "real" CDP?** The CDP Institute, an industry group, defines a CDP as "packaged software" that builds a lasting, unified customer database other systems can reach. Its RealCDP certification asks for five abilities:
+
+- Accept data from any source.
+- Keep all the detail of that data.
+- Keep the data indefinitely, within privacy limits.
+- Build profiles of identifiable people.
+- Share data with any system that needs it.
+
+**CDP vs CRM vs DMP.** People mix these up. Adobe's 2025 comparison draws the lines roughly like this. **First-party data** is collected by your own business. **Third-party data** comes from companies with no direct link to you or your customers.
+
+| Tool | Main users | Main data | Main job |
+|---|---|---|---|
+| **CRM** | Sales and service teams. | Known contacts, purchase history, and past messages. | Manage relationships one person at a time. |
+| **CDP** | Marketing teams. | First-party data about customers. | Build unified profiles and send them to other tools. |
+| **DMP** (Data Management Platform) | Marketing teams. | Mostly anonymous, third-party data. | Find new audiences for ads. |
+
+**Packaged vs composable.** A **packaged CDP** stores profiles in its own database. A **composable CDP**, also called **warehouse-native**, keeps the data in your company's **data warehouse**, a central database for analytics. It then sends audiences out from there.
+
+Not everyone agrees on the name. In a 2024 MarTech article, David Raab of the CDP Institute says a composable CDP is not a CDP. In his view, it is one part of a CDP.
+
+## Common mistakes
+
+- **Buying a CDP before fixing IDs** — if your tools don't share a login ID or email, the CDP can't join records. You get many half-profiles. Make sure each source sends a clear identifier first.
+- **Treating the CDP as a CRM** — sales and service teams manage one known customer at a time, which is the CRM's job. Keep the CRM for relationships and feed its data into the CDP.
+- **Sending everything everywhere** — pushing every trait to every tool spreads personal data where it isn't needed. Send each destination only the audiences and traits it needs.
+- **Building audiences nobody uses** — a CDP only pays off at the activate step. Start from one campaign you will run, then build the audience for it.
+- **Ignoring consent** — a CDP makes it easy to reuse data in new places. Check that customers agreed to each use before you activate it.
+
+## Remember this
+
+<Remember>
+- A CDP collects customer data from many sources, unifies it into one profile per person, and shares it with other tools.
+- Its four jobs are collect, unify, segment, and activate.
+- A CRM manages known relationships for sales and service; a CDP builds unified profiles for marketing and sends them to other tools.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Which list shows a CDP's four jobs in the right order?",
+      options: [
+        "Segment, collect, activate, unify",
+        "Collect, unify, segment, activate",
+        "Unify, activate, collect, segment",
+        "Activate, segment, unify, collect"
+      ],
+      answer: 1,
+      why: "You must collect data before you can join it into profiles. You need profiles before you can group them, and groups before you can send them out."
+    },
+    {
+      q: "A store's web data says a shopper lives in Pune, but its shop till says Mumbai. What decides which city her profile shows?",
+      options: ["A merge policy", "A destination", "A computed trait", "The DMP"],
+      answer: 0,
+      why: "A merge policy is the rule for picking a value when profile fragments disagree. A computed trait is a calculated value, like order count, not a conflict rule."
+    },
+    {
+      q: "A service team wants to see each known customer's contact details, purchases, and past messages. Which tool fits best?",
+      options: ["A DMP", "A CDP", "A CRM"],
+      answer: 2,
+      why: "A CRM manages known relationships one person at a time, which suits sales and service. A CDP is built to unify profiles and share them with marketing tools."
+    },
+    {
+      q: "What is the main difference between a packaged CDP and a composable CDP?",
+      options: [
+        "Only a composable CDP can send data to email tools",
+        "A packaged CDP keeps profiles in its own database; a composable CDP uses your data warehouse",
+        "A composable CDP never uses customer IDs",
+        "A packaged CDP only works with third-party data"
+      ],
+      answer: 1,
+      why: "The difference is where the data lives. Both kinds send audiences to tools like email, so the first option is wrong."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is a MarTech stack?](/docs/martech/foundations/what-is-martech-stack)
+- Read first: [First-party data and identity resolution](/docs/martech/data/first-party-data-and-identity)
+- Next: event tracking basics, and consent and privacy rules.
+- Sources are listed below with the date they were last checked.
