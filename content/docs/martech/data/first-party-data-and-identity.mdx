@@ -1,0 +1,169 @@
+---
+title: First-party data and identity resolution
+description: First-party data is what customers share with you directly. Identity resolution links their scattered IDs into one customer profile.
+domain: martech
+level: basics
+order: 1
+prerequisites: [what-is-martech-stack]
+tags: [martech, first-party-data, identity, identity-graph, cookies]
+sources:
+  - title: Identity Resolution overview (Twilio Segment docs)
+    url: https://www.twilio.com/docs/segment/unify/identity-resolution
+    type: official
+  - title: Identity Service overview (Adobe Experience Platform docs)
+    url: https://experienceleague.adobe.com/en/docs/experience-platform/identity/home
+    type: official
+  - title: Next steps for Privacy Sandbox and tracking protections in Chrome (Google, 2025-04-22)
+    url: https://privacysandbox.google.com/blog/privacy-sandbox-next-steps
+    type: official
+  - title: Third-party cookies and Firefox tracking protection (Mozilla Support)
+    url: https://support.mozilla.org/en-US/kb/disable-third-party-cookies
+    type: official
+  - title: Safari now blocks all third-party cookies by default (InfoQ, 2020)
+    url: https://www.infoq.com/news/2020/04/safari-third-party-cookies-block/
+    type: article
+  - title: What is identity resolution? (RudderStack Learn)
+    url: https://www.rudderstack.com/learn/customer-data/what-is-identity-resolution
+    type: article
+  - title: Probabilistic and deterministic matching explained (BlueConic)
+    url: https://www.blueconic.com/resources/probabilistic-and-deterministic-matching-explained
+    type: article
+  - title: What is 0, 1st, 2nd and 3rd party data? (Zuora glossary)
+    url: https://www.zuora.com/blog/what-is-0-1st-2nd-and-3rd-party-data
+    type: article
+last_verified: 2026-10-23
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** First-party data is information a business collects directly from its own customers, like orders and sign-ups. Identity resolution is the work of figuring out which records, across tools and devices, belong to the same person.
+- **Why it matters:** One customer often shows up as many strangers: a phone visitor, a laptop visitor, an email subscriber. Until you join them, you can't see or serve the whole person.
+- **Example:** A shopper browses on her phone, then logs in on her laptop and buys. Her login links both visits to one profile, so the store stops showing her ads for the item she already bought. A **profile** is the store's record of everything it knows about one customer.
+
+## Think of it like…
+
+<Analogy>
+Think of a school office with three folders for the same student. The library knows her by library card, the cafeteria by lunch number, and the nurse by her name. Identity resolution is noticing a form that lists both her name and her lunch number, then putting the folders together.
+
+**Where the comparison breaks:** A school knows every student for certain. A website only sees clues, and some clues are shared, like one tablet used by a whole family.
+</Analogy>
+
+## Real-world example
+
+An online bookshop sells to readers on its website and app. Monday, a visitor reads three mystery-novel pages on her phone without logging in. The shop's tools only know her as a random ID stored in her phone's browser.
+
+Wednesday, she logs in on her laptop and buys one of those novels. Her login tells the shop her account number. The shop's identity tool sees that the account number appeared with the laptop's ID. On Friday she logs in on her phone too, which links the phone's ID to the same account.
+
+Now Monday's browsing, Wednesday's purchase, and Friday's visit sit in one profile. The shop can suggest the next book in the series instead of advertising the one she owns. Every piece of this data came straight from the shop's own site, so it is first-party data.
+
+## How it works
+
+**Part 1: Who collected the data?** Marketers sort data by who gathered it. The labels below follow common industry usage, such as Zuora's glossary; vendors draw the lines a little differently.
+
+| Type | Who collects it | Example |
+|---|---|---|
+| **Zero-party** | The customer tells you on purpose. | A quiz answer: "I like mystery novels." |
+| **First-party** | You, from your own site, app, or store. | Orders, sign-ups, pages viewed. |
+| **Second-party** | A trusted partner's own first-party data, which you get from them, often by buying it. | A travel site shares data with a hotel partner. |
+| **Third-party** | A company with no direct relationship with you or the people. | A bought list of age and income ranges. |
+
+Many people group zero-party data under first-party, since both come straight from your customers.
+
+**Part 2: Why first-party data got more important.** A **cookie** is a small file a website stores in your browser to remember you. A **third-party cookie** is one set by a different site than the one you are visiting, like an ad network (a company that places ads on many websites). These cookies let companies follow people across many sites. Safari has blocked all third-party cookies by default since 2020. Firefox blocks cross-site tracking cookies by default. In April 2025, Google said Chrome would keep its current approach, where users choose their cookie settings. So cross-site tracking now fails for many visitors, depending on their browser and settings. Data you collect yourself does not depend on it.
+
+**Part 3: Identifiers.** An **identifier** is any value that points to one person, device, or browser. Adobe's docs pair each value with a **namespace**, the kind of ID it is, like "Email" or "Phone". Common identifiers:
+
+- **Anonymous ID:** a random ID stored in one browser or app, before login.
+- **Device ID:** an ID tied to a phone or tablet.
+- **Account ID:** the number your system gives a customer when they sign up.
+- **Email or phone number.**
+
+**Part 4: Linking them.** Identity tools typically link two identifiers when they show up in the same event. An **event** is one recorded action, like a login or a purchase. Linked identifiers form an **identity graph**: a map of all the IDs that belong to one customer. Adobe's docs show it plainly. A login on a laptop sends the account ID and the laptop's browser ID together. A later login on a phone links the phone's browser ID. Result: one graph, three identifiers.
+
+```text
+ laptop browser ID ──┐
+                     ├── account ID ABC ── email
+ phone browser ID ───┘
+        one customer = one identity graph
+```
+
+Each ID connects through the account ID, so the tool treats them as one person.
+
+**Part 5: Two ways to match.**
+
+- **Deterministic matching** links records only on an exact shared ID, like the same account ID or email. It is accurate but finds fewer matches, because many visitors never log in.
+- **Probabilistic matching** guesses from clues, such as a shared IP address (a network's internet address), similar names, or similar behavior. It links more people but sometimes joins the wrong ones.
+
+RudderStack advises starting with deterministic matching and adding probabilistic matching only where it is justified. BlueConic suggests saving probabilistic matches for low-stakes campaigns, where a wrong match costs little.
+
+**Part 6: Guard against over-merging.** **Over-merging** means joining two different people into one profile. A shared family laptop or a shared email can pull a whole household into one graph. Tools add rules for this. Segment, for example, lets you require some IDs to be unique per profile. It also has "merge protection" that catches problems like non-unique anonymous IDs.
+
+## Common mistakes
+
+- **Treating every cookie ID as a person** — one person on three devices looks like three people, so your counts are wrong. Your frequency caps (limits on how often one person sees an ad) also break. Link IDs through logins and other exact matches.
+- **Trusting probabilistic matches for personal messages** — a wrong guess can show one person's order or name to someone else. Use exact matches for anything personal.
+- **Ignoring shared devices and shared emails** — one family laptop can merge a whole household into one profile. Set limits so a profile can't hold many account IDs.
+- **Inconsistent ID formats** — "ABC@mail.com" and "abc@mail.com" may count as different IDs. Vendors differ: Adobe's matching is case-sensitive, while Segment's is not. Clean and standardize IDs before sending them.
+- **Collecting data without permission** — first-party does not mean "free to use." Privacy laws set rules on consent, which a later lesson covers.
+
+## Remember this
+
+<Remember>
+- First-party data is what you collect directly from your own customers; it does not depend on third-party cookies.
+- Identity resolution links identifiers that appear together in the same event, such as a login, into one identity graph per customer.
+- Deterministic matching (exact IDs) is accurate but finds fewer matches; probabilistic matching (clues) finds more but can merge the wrong people.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A shoe store records which product pages visitors view on its own website. What kind of data is this?",
+      options: ["Zero-party", "First-party", "Second-party", "Third-party"],
+      answer: 1,
+      why: "The store collected it directly from its own site, so it is first-party. Zero-party would be something the visitor told the store on purpose, like a quiz answer."
+    },
+    {
+      q: "A visitor browses on her phone without logging in, then logs in on her laptop. What lets the tool link the phone browsing to her account?",
+      options: [
+        "Nothing ever can; anonymous visits stay separate",
+        "Her IP address, which proves it is her",
+        "A later event where the phone's ID appears with her account ID, such as logging in on the phone",
+        "Buying third-party data about her"
+      ],
+      answer: 2,
+      why: "Identity tools link IDs that appear together in one event. The laptop login only links the laptop's ID. An IP address is only a clue, so matching on it would be a probabilistic guess, not an exact link."
+    },
+    {
+      q: "Why do experts advise using deterministic matches, not probabilistic ones, for a personal email that shows a customer's past orders?",
+      options: [
+        "Deterministic matching finds more people",
+        "Probabilistic matching is illegal",
+        "A wrong probabilistic match could show one person's orders to someone else",
+        "Deterministic matching does not need any identifiers"
+      ],
+      answer: 2,
+      why: "Probabilistic matching guesses from clues and sometimes joins the wrong people. For personal content, a wrong match is costly, so exact matches are safer. Deterministic matching actually finds fewer people, not more."
+    },
+    {
+      q: "A family shares one laptop and logs into four different accounts on it. What is the risk?",
+      options: [
+        "Over-merging four people into one profile",
+        "The accounts will be deleted",
+        "Third-party cookies will be blocked"
+      ],
+      answer: 0,
+      why: "The laptop's ID appears with all four account IDs, so a graph with no limits joins four people. Rules that keep account IDs unique per profile prevent this."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is a MarTech stack?](/docs/martech/foundations/what-is-martech-stack)
+- Next: Customer Data Platforms (CDPs), which build these unified profiles, and consent and privacy rules.
+- Sources are listed below with the date they were last checked.

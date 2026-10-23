@@ -87,7 +87,7 @@ items:
     title: What is a MarTech stack?
     why: Map of the territory before individual tools.
     priority: 1
-    status: in_review
+    status: published
 
   - id: first-party-data-and-identity
     domain: martech
@@ -95,7 +95,7 @@ items:
     title: First-party data and identity resolution
     why: Foundation for CDPs and personalisation.
     priority: 1
-    status: queued
+    status: in_review
 
   - id: what-is-a-cdp
     domain: martech

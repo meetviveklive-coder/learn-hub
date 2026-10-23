@@ -13,3 +13,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-10-22 | new-lesson | evaluating-agents written, reviewer fixes applied, checks + build pass, PR opened; subagents-maker-checker marked published | claude/lesson-evaluating-agents
 2026-10-22 | new-lesson | what-is-martech-stack written, reviewer fixes applied, checks + build pass, PR opened; evaluating-agents marked published | claude/lesson-what-is-martech-stack
 2026-10-22 | setup | Added track ai-architect (Path to AI Technical Architect) with 21 queued topics | feat/ai-architect-track
+2026-10-23 | new-lesson | first-party-data-and-identity written, reviewer fixes applied, checks + build pass, PR opened; what-is-martech-stack marked published | claude/lesson-first-party-data-and-identity
