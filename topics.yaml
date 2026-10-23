@@ -95,7 +95,7 @@ items:
     title: First-party data and identity resolution
     why: Foundation for CDPs and personalisation.
     priority: 1
-    status: in_review
+    status: published
 
   - id: what-is-a-cdp
     domain: martech
@@ -103,7 +103,7 @@ items:
     title: What is a Customer Data Platform (CDP)?
     why: Core concept across AEP, Segment, etc.
     priority: 1
-    status: queued
+    status: in_review
 
   - id: event-tracking-basics
     domain: martech
