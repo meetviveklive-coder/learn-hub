@@ -1,0 +1,192 @@
+---
+title: Tag management (what GTM and similar tools do)
+description: A tag manager lets your team add, test, and change tracking code on a website from one place, without editing the site's code each time.
+domain: martech
+level: basics
+order: 2
+prerequisites: [event-tracking-basics]
+tags: [martech, analytics, tag-management, gtm, adobe-tags, data-layer, triggers]
+sources:
+  - title: Introduction to Tag Manager (Tag Manager Help)
+    url: https://support.google.com/tagmanager/answer/6102821?hl=en
+    type: official
+  - title: Components of Google Tag Manager (Tag Manager Help)
+    url: https://support.google.com/tagmanager/answer/6103657?hl=en
+    type: official
+  - title: About triggers (Tag Manager Help)
+    url: https://support.google.com/tagmanager/answer/7679316?hl=en
+    type: official
+  - title: The data layer (Google Tag Platform developer docs)
+    url: https://developers.google.com/tag-platform/tag-manager/datalayer
+    type: official
+  - title: Preview and debug containers (Tag Manager Help)
+    url: https://support.google.com/tagmanager/answer/6107056?hl=en
+    type: official
+  - title: Publishing, versions, and approvals (Tag Manager Help)
+    url: https://support.google.com/tagmanager/answer/6107163?hl=en
+    type: official
+  - title: Updates to Google tag and Google Tag Manager (Tag Manager Help)
+    url: https://support.google.com/tagmanager/answer/17079602
+    type: official
+  - title: Tags overview (Adobe Experience Platform docs)
+    url: https://experienceleague.adobe.com/en/docs/experience-platform/tags/home
+    type: official
+  - title: Companies and properties (Adobe Experience Platform Tags docs)
+    url: https://experienceleague.adobe.com/en/docs/experience-platform/tags/admin/companies-and-properties
+    type: official
+  - title: Rules (Adobe Experience Platform Tags docs)
+    url: https://experienceleague.adobe.com/en/docs/experience-platform/tags/ui/rules
+    type: official
+  - title: Data elements (Adobe Experience Platform Tags docs)
+    url: https://experienceleague.adobe.com/en/docs/experience-platform/tags/ui/data-elements
+    type: official
+last_verified: 2026-10-24
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** A **tag manager** is a tool that holds all of a website's tracking code in one place. A **tag** is a small piece of code that sends data to another tool, like Google Analytics. When a tag runs and sends its data, people say it **fires**.
+- **Why it matters:** Without one, every new tracking need means a developer edits and releases the site. With one, the marketing team adds and tests tags itself, and the site code rarely changes.
+- **Example:** A shop wants to tell its ad platform about each sale. Instead of a code release, someone adds a tag in the tag manager, tests it, and publishes it the same day.
+
+## Think of it like…
+
+<Analogy>
+Think of a power strip behind your desk. You plug the strip into the wall once. After that, you plug lamps, chargers, and speakers into the strip, and you can switch each one on or off without touching the wall.
+
+**Where the comparison breaks:** A power strip doesn't decide when each device turns on. A tag manager does: you give each tag rules for when it should run.
+</Analogy>
+
+## Real-world example
+
+An online shoe store uses three tools: an analytics tool, an ad platform, and an email tool. Each tool's setup guide says "paste this code into your site." Over a year, the site gathers a dozen of these **snippets** (short blocks of pasted code) that nobody fully understands. Each change waits weeks for the next site release.
+
+The team installs a tag manager instead. A developer adds its code to every page once. The developer also makes the site report key facts, like the order total, in a standard way. From then on, the marketing team sets up each tool's tag inside the tag manager.
+
+When the store adds a new ad platform, a marketer creates the tag and tests it in preview mode, a private test view. Then they publish it. When a tag breaks the checkout page, they **roll back**: they switch to the last working version in minutes.
+
+## How it works
+
+Google Tag Manager (GTM) is Google's tag manager, and we'll use it as the main example. You add two small snippets of GTM code to every page once. After that, you manage everything in GTM's web interface. A **container** holds all the tags, triggers, and variables for one site or app.
+
+```text
+ page loads / person clicks / site pushes data
+                 │
+                 ▼
+   ┌───────── container (GTM) ──────────┐
+   │ trigger: "is this the right        │
+   │           moment?"                 │
+   │              │ yes                 │
+   │              ▼                     │
+   │  variables ──> tag fires ────────────> analytics, ads, email tools
+   │  (order total,                     │
+   │   page URL)                        │
+   └────────────────────────────────────┘
+```
+
+A trigger decides when, variables supply the details, and the tag sends the data.
+
+1. **Tags — what to send.** A tag is code that sends data to a system such as Google Analytics. One container can replace the hand-pasted tags from many tools.
+2. **Triggers — when to send it.** A **trigger** listens for an event, like a page load, a click, or a form submission. When the event happens, it tells its tags to fire. Every tag needs at least one trigger.
+3. **Variables — the details.** A **variable** is a named placeholder for a value that changes, like the page URL. GTM has built-in variables, and you can add your own.
+4. **Filters — which ones count.** By default, a trigger fires on every event of its type. A filter narrows it. Each filter compares a variable to a value, like "Page URL contains /products/."
+5. **The data layer — facts from the site.** The **data layer** is a list (a JavaScript array) in the browser where the site writes facts for the tag manager to read. Google recommends it over pulling values off the page directly.
+
+Here is how a site adds facts to the data layer. To **push** means to add a new item to the end of the list. This follows Google's documented pattern:
+
+```js
+// Create the data layer before the GTM snippet loads
+window.dataLayer = window.dataLayer || [];
+
+// Later, when an order completes:
+dataLayer.push({
+  event: "purchase_complete", // a Custom Event trigger can listen for this name
+  orderTotal: 89.5            // a variable can read this value
+});
+```
+
+Each item is a set of labels and values. The `event` label tells GTM that something happened. A **Custom Event trigger** that listens for `purchase_complete` can then fire your sale tags. One more thing: the site must push these facts on every page that needs them, because the data layer does not carry over between page loads.
+
+**Test, publish, roll back.** Your changes stay in a draft until you publish. **Preview mode** lets you browse your own site as if the draft were live. A panel called Tag Assistant shows which tags fired, in what order, and why others didn't. Regular visitors don't see the preview. Each publish saves a **version**, a snapshot of the whole container. If something breaks, you can publish an earlier version again.
+
+**Recent change.** In August 2026, Google announced a simpler GTM home screen. Triggers, variables, templates, and folders move into a folded "Advanced" section. Google says no features are removed, so the ideas above still apply.
+
+**Same idea, other names.** Adobe's tag manager is called Tags in Adobe Experience Platform (it used to be called Launch). The parts roughly map to GTM:
+
+- **Container** in GTM is a **property** in Adobe: it holds the whole setup for a site.
+- **Trigger plus tag** in GTM is a **rule** in Adobe: it says when to run and what to do.
+- **Variable** in GTM is a **data element** in Adobe: a reusable value, like a page URL.
+
+An Adobe **rule** works as "if this happens and these conditions are true, then do these actions." A rule can also have **exceptions**, conditions that stop the actions from running.
+
+## Common mistakes
+
+- **Treating the tag manager as a free-for-all** — anyone can add tags, so containers fill with old, unknown tags nobody can explain. Name tags clearly, write down who owns each one, and remove the ones nobody uses.
+- **Scraping values off the page** — reading the order total from on-screen text breaks the moment a designer changes the layout. Ask developers to push key facts into the data layer instead.
+- **Publishing without previewing** — a broken trigger can fire a tag on every page, or never. Test every change in preview mode first.
+- **Leaving old hand-pasted tags in place** — tags added in the site code still run next to the ones in the tag manager. If both send the same sale, your reports can count it twice. Remove the old code when you move a tag over, and check reports for doubled numbers.
+- **Writing vague version notes** — "update" tells nobody what changed when you need to roll back. Give each version a short name and description.
+
+## Remember this
+
+<Remember>
+- A tag manager holds all tracking code in one container, so you add code to the site once and manage tags from there.
+- A trigger decides when a tag fires, variables fill in the details, and the tag sends the data.
+- The data layer is how the site hands facts to the tag manager; always preview before you publish.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A marketer wants a tag to fire only on the order-confirmation page, whose URL contains /thank-you. What should they change?",
+      options: [
+        "The tag's code",
+        "The trigger, by adding a filter such as Page URL contains /thank-you",
+        "The data layer name",
+        "The container snippet on every page"
+      ],
+      answer: 1,
+      why: "Triggers decide when a tag fires, and filters narrow a trigger to certain pages or events. Editing the tag's code changes what it sends, not when."
+    },
+    {
+      q: "Why does Google recommend a data layer instead of reading values from the page's text?",
+      options: [
+        "The data layer makes pages load faster",
+        "It gives tags facts the site sets on purpose, so a page redesign doesn't break them",
+        "Tags can't read page text at all",
+        "It stores data permanently across visits"
+      ],
+      answer: 1,
+      why: "The site writes facts into the data layer on purpose, so they stay stable when the design changes. The data layer does not persist across page loads."
+    },
+    {
+      q: "A new tag breaks the checkout page right after publishing. What is the fastest safe fix?",
+      options: [
+        "Delete the whole container",
+        "Ask a developer to edit the site code",
+        "Publish the previous container version again",
+        "Turn on preview mode for all visitors"
+      ],
+      answer: 2,
+      why: "Each publish saves a version, so you can republish the last working one. Preview mode only shows a draft to you, not to visitors."
+    },
+    {
+      q: "In Adobe Tags, which part plays the role of a GTM trigger plus tag?",
+      options: ["A data element", "An extension", "A rule", "A property"],
+      answer: 2,
+      why: "An Adobe rule combines events and conditions (the when) with actions (the what). A data element is closer to a GTM variable."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Event tracking basics](/docs/martech/analytics/event-tracking-basics)
+- Related: [What is a MarTech stack?](/docs/martech/foundations/what-is-martech-stack)
+- Next: consent and privacy, which decide which tags are allowed to fire at all.
+- Sources are listed below with the date they were last checked.
