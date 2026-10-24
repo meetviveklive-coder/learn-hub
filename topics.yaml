@@ -103,7 +103,7 @@ items:
     title: What is a Customer Data Platform (CDP)?
     why: Core concept across AEP, Segment, etc.
     priority: 1
-    status: in_review
+    status: published
 
   - id: event-tracking-basics
     domain: martech
@@ -111,7 +111,7 @@ items:
     title: Event tracking basics (events, parameters, conversions)
     why: Applies to GA4, Adobe Analytics, product analytics.
     priority: 2
-    status: queued
+    status: in_review
 
   - id: tag-management-basics
     domain: martech
