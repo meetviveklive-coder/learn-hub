@@ -1,0 +1,184 @@
+---
+title: Event tracking basics (events, parameters, conversions)
+description: An event records one thing a person did, parameters add the details, and a conversion is an event you mark as important to the business.
+domain: martech
+level: basics
+order: 1
+prerequisites: [what-is-martech-stack, what-is-a-cdp]
+tags: [martech, analytics, events, parameters, conversions, ga4, adobe-analytics, tracking-plan]
+sources:
+  - title: About events (Google Analytics Help)
+    url: https://support.google.com/analytics/answer/9322688
+    type: official
+  - title: Event parameters (Google Analytics Help)
+    url: https://support.google.com/analytics/answer/13675006
+    type: official
+  - title: Events and key events (Google Analytics Help)
+    url: https://support.google.com/analytics/answer/13965727
+    type: official
+  - title: Set up a purchase event (Google Analytics developer docs)
+    url: https://developers.google.com/analytics/devguides/collection/ga4/set-up-ecommerce
+    type: official
+  - title: Create event-scoped custom dimensions (Google Analytics Help)
+    url: https://support.google.com/analytics/answer/14239696
+    type: official
+  - title: events overview (Adobe Analytics implementation docs)
+    url: https://experienceleague.adobe.com/en/docs/analytics/implementation/vars/page-vars/events/events-overview
+    type: official
+  - title: eVar dimension (Adobe Analytics components docs)
+    url: https://experienceleague.adobe.com/en/docs/analytics/components/dimensions/evar
+    type: official
+  - title: Spec - Track (Twilio Segment docs)
+    url: https://www.twilio.com/docs/segment/connections/spec/track
+    type: official
+  - title: Tracking plan best practices (Twilio Segment docs)
+    url: https://www.twilio.com/docs/segment/protocols/tracking-plan/best-practices
+    type: official
+last_verified: 2026-10-24
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Event tracking records each action a person takes on a site or app as an **event**. Each event has a name, plus details called **parameters**.
+- **Why it matters:** Events are the raw facts behind most marketing reports and **audiences** (groups of people to target). If the events are wrong, everything built on them is wrong too.
+- **Example:** A shopper buys a jacket. The site sends an event named `purchase` with the order ID, the amount, and the currency. The business counts that event as a **conversion**.
+
+## Think of it like…
+
+<Analogy>
+Think of a ship's logbook. Each line records one thing that happened, like "10:42 — sighted land." The time and place are filled in. Extra notes, like "north-east, about 20 km," add the details. Later, the captain reads the log to see what happened and in what order.
+
+**Where the comparison breaks:** A sailor writes the log by hand as things happen. On a website, code you add ahead of time writes each line. If nobody planned an event, it is never recorded, and you can't add it later for past visits.
+</Analogy>
+
+## Real-world example
+
+An online bookshop wants to know why few visitors buy. Today it only counts page views, so it can see where people go but not what they do.
+
+The team writes a short **tracking plan**: a shared list of which events to record, where in the code they are sent, and why each one matters. It lists four events: `view_item`, `add_to_cart`, `begin_checkout`, and `purchase`. Each one carries the book's ID and price as parameters.
+
+After a week, the numbers show many people add books to the cart but stop at checkout. The team spots a surprise shipping fee on the checkout page. They show the fee earlier, and more carts turn into orders. They could only see where people stopped because each step was tracked.
+
+## How it works
+
+Every event answers four questions: **who** did it, **what** they did, **when**, and **with what details**.
+
+```text
+ person clicks "Buy"
+        │
+        ▼
+ tracking code builds an event
+   name:       purchase                 ← what
+   parameters: transaction_id, value,   ← details
+               currency, items
+   + user/device ID, timestamp          ← who, when
+        │
+        ▼
+ analytics tool stores it ──> reports, audiences, ad tools
+```
+
+The code on the page sends one event per action. The analytics tool stores it and turns it into reports.
+
+1. **Name the action.** An event name says what happened. Google Analytics 4 (GA4), Google's analytics tool, names its own events in lowercase words joined by underscores, like `page_view` or `purchase`. Twilio Segment, a customer data tool, suggests an object plus a past-tense verb, like "Order Completed." Follow the style of the tool you use.
+2. **Add parameters.** A **parameter** is one extra fact about the event. GA4's docs show a `level_end` event in a game with two parameters: `level_name` (which level) and `success` (finished or not). Segment calls the same idea **properties**.
+3. **Send it.** Tracking code in the page or app sends the event to the tool. In Segment's example, the event also carries an ID for the person or device and a **timestamp**, the exact time it happened.
+4. **Mark what matters.** Most events are just behavior. A few are the actions the business exists for, like a sale or a sign-up. These become conversions.
+
+Here is a shortened version of GA4's purchase example. `gtag` is Google's tracking function. The fields hold the order ID, the order total, the currency, and a list of the products bought. Here, 3 shirts at 10.01 each make a total of 30.03.
+
+```js
+gtag("event", "purchase", {
+  transaction_id: "T_12345_1", // unique order ID
+  value: 30.03,                // order total
+  currency: "USD",            // US dollars
+  items: [{ item_id: "SKU_12345", item_name: "Stan and Friends Tee", price: 10.01, quantity: 3 }]
+});
+```
+
+**Event types in GA4.** Google sorts events into four groups:
+
+- **Automatically collected:** GA4 records these by default, like `page_view` and `session_start` (the start of a visit).
+- **Enhanced measurement:** GA4 records these too, but only if you switch the feature on.
+- **Recommended:** You send these, using names and parameters Google has already defined, like `purchase`.
+- **Custom:** You send these with names you invent, like `newsletter_signup`.
+
+Google advises creating custom events only when no other event fits. Its docs say recommended events unlock existing and future reporting features. Custom events don't show in most standard reports. To report on your own custom parameter, you create a **custom dimension** for it. A dimension is a label you can group results by, like "city" or "book genre."
+
+**Conversions have different names in each tool.**
+
+- **GA4:** You mark an event as a **key event**, one that measures an action important to your business. If you link a Google Ads account, you can create a conversion from a key event. Google Ads, Google's ad platform, uses conversions to measure how ads perform.
+- **Adobe Analytics:** The `events` setting counts actions like `purchase` or `scAdd` (cart addition). You can also define numbered custom events, like `event1`, in the "Success events" settings before you use them.
+
+**Remembering what led to a sale.** Adobe Analytics calls each bundle of data a page sends it a **hit**. An **eVar** is a custom dimension whose value lasts beyond the hit that set it, by default until the visit ends. That lets Adobe link a later purchase to an earlier value, like the search term that led to it. A **prop** is a simpler dimension that, by default, applies only to its own hit.
+
+## Common mistakes
+
+- **Tracking everything with no plan** — you get hundreds of events nobody understands or trusts. Write a tracking plan first, and give each event a reason.
+- **Putting details in the event name** — names like "Clicked Red Shoes Size 9" create endless events you can't add up. Use one general name and put the details in parameters, as Segment's best-practice guide advises.
+- **Mixing naming styles** — `AddToCart`, `add_to_cart`, and "Added to Cart" look like three different actions. Pick one style and use it everywhere.
+- **Reusing an order ID** — GA4's examples give each purchase its own `transaction_id` so the tool does not merge two orders into one. Always send a real, unique order ID.
+- **Making every event a conversion** — if a page scroll counts the same as a sale, the number stops meaning anything. Keep conversions for the few actions that pay the bills.
+
+## Remember this
+
+<Remember>
+- An event records one action: who did it, what they did, when, and with what details.
+- Parameters (or properties) carry the details, so keep event names general and put specifics in parameters.
+- A conversion is an event the business marks as important; GA4 calls it a key event, and Adobe calls it a success event.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A store wants to know which product color people add to their cart most. What is the best setup?",
+      options: [
+        "One event per color, like add_red_to_cart and add_blue_to_cart",
+        "One add_to_cart event with a color parameter",
+        "Mark every add_to_cart as a key event",
+        "Count page views on each product page"
+      ],
+      answer: 1,
+      why: "One general event with a parameter lets you add up all carts and still split them by color. Separate events per color multiply fast and are hard to total."
+    },
+    {
+      q: "In GA4, what is a key event?",
+      options: [
+        "Any event that GA4 collects automatically",
+        "An event you mark because it measures an action important to your business",
+        "An event with more than five parameters",
+        "An event sent only from mobile apps"
+      ],
+      answer: 1,
+      why: "Key events are the events you choose to mark as important, like a purchase or a lead form."
+    },
+    {
+      q: "Why does a tracking plan matter before you add tracking code?",
+      options: [
+        "The analytics tool will not install without one",
+        "It makes pages load faster",
+        "It lists which events to record, where, and why, so the data is consistent and useful",
+        "It replaces the need for parameters"
+      ],
+      answer: 2,
+      why: "A tracking plan is a shared agreement on what to track and why. Without it, teams add events with clashing names and no clear purpose."
+    },
+    {
+      q: "An Adobe Analytics team wants a search term to get credit for a purchase later in the same visit. Which feature helps?",
+      options: ["A prop", "An eVar", "A page view", "A timestamp"],
+      answer: 1,
+      why: "An eVar keeps its value after the hit it was set on, by default until the visit ends, so a later purchase can be credited to it. A prop does not persist by default."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is a MarTech stack?](/docs/martech/foundations/what-is-martech-stack)
+- Read first: [What is a Customer Data Platform (CDP)?](/docs/martech/data/what-is-a-cdp)
+- Next: tag management, the way tracking code gets onto a website.
+- Sources are listed below with the date they were last checked.
