@@ -111,7 +111,7 @@ items:
     title: Event tracking basics (events, parameters, conversions)
     why: Applies to GA4, Adobe Analytics, product analytics.
     priority: 2
-    status: in_review
+    status: published
 
   - id: tag-management-basics
     domain: martech
@@ -119,7 +119,7 @@ items:
     title: Tag management (what GTM and similar tools do)
     why: How tracking gets onto websites.
     priority: 2
-    status: queued
+    status: in_review
 
   - id: consent-and-privacy-basics
     domain: martech

@@ -1,6 +1,7 @@
 {
   "title": "Analytics",
   "pages": [
-    "event-tracking-basics"
+    "event-tracking-basics",
+    "tag-management-basics"
   ]
 }
