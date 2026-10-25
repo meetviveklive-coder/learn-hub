@@ -119,7 +119,7 @@ items:
     title: Tag management (what GTM and similar tools do)
     why: How tracking gets onto websites.
     priority: 2
-    status: in_review
+    status: published
 
   - id: consent-and-privacy-basics
     domain: martech
@@ -127,7 +127,7 @@ items:
     title: Consent, cookies, and privacy rules (basics)
     why: Every martech setup depends on it.
     priority: 2
-    status: queued
+    status: in_review
     notes: Include India's DPDP Act alongside GDPR — verify current status of rules.
 
   # ── Jev (TypeSafe AI) ────────────────────────────────────

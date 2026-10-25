@@ -1,0 +1,201 @@
+---
+title: Consent, cookies, and privacy rules (basics)
+description: Why websites ask before they track you, what makes consent valid under GDPR and India's DPDP Act, and how consent controls your tags.
+domain: martech
+level: basics
+order: 1
+prerequisites: [first-party-data-and-identity, tag-management-basics]
+tags: [martech, privacy, consent, cookies, gdpr, dpdp, consent-mode, cmp]
+sources:
+  - title: "Consent under GDPR: When to act and what to do (EDPB summary, April 2026)"
+    url: https://www.edpb.europa.eu/system/files/2026-04/edpb-summary-consent_en.pdf
+    type: official
+  - title: "Guidelines 05/2020 on consent under Regulation 2016/679 (EDPB)"
+    url: https://www.edpb.europa.eu/system/files/documents/files/file1/edpb_guidelines_202005_consent_en.pdf
+    type: official
+  - title: "Online privacy: How to use cookies on your website (Your Europe)"
+    url: https://europa.eu/youreurope/business/dealing-with-customers/data-protection/online-privacy/index_en.htm
+    type: official
+  - title: "Digital rulebook: Council agrees position to simplify data protection, privacy and cyber reporting rules (Council of the EU, 21 Oct 2026)"
+    url: https://www.consilium.europa.eu/en/press/press-releases/2026/10/21/digital-rulebook-council-agrees-position-to-simplify-data-protection-privacy-and-cyber-reporting-rules/
+    type: official
+  - title: "Government notifies DPDP Rules to empower citizens and protect privacy (PIB)"
+    url: https://www.pib.gov.in/PressReleseDetailm.aspx?PRID=2190014
+    type: official
+  - title: "DPDP Rules, 2025 Notified (PIB explainer)"
+    url: https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/nov/doc20251117695301.pdf
+    type: official
+  - title: "International Data Privacy Day backgrounder (PIB, Jan 2026)"
+    url: https://www.pib.gov.in/PressReleasePage.aspx?PRID=2219070&reg=3&lang=1
+    type: official
+  - title: "MeitY notified Digital Personal Data Protection Rules 2025 (SCC Online)"
+    url: https://www.scconline.com/blog/post/2025/11/14/meity-notified-digital-personal-data-protection-rules-2025/
+    type: article
+  - title: "Consent mode overview (Google Tag Platform)"
+    url: https://developers.google.com/tag-platform/security/concepts/consent-mode
+    type: official
+  - title: "Set up consent mode on websites (Google Tag Platform)"
+    url: https://developers.google.com/tag-platform/security/guides/consent
+    type: official
+last_verified: 2026-10-25
+status: published
+author: agent
+reading_minutes: 8
+---
+
+> **Note:** This lesson is not legal advice. Laws differ by country and change often, so check with a lawyer before you launch.
+
+## In 3 lines
+
+- **What it is:** **Consent** is a person's clear "yes" to a specific use of their data. Privacy laws say when you need it and what a valid "yes" looks like.
+- **Why it matters:** Most marketing **tags** (small pieces of tracking code on a web page) collect personal data. If they run before a visitor agrees, the company may be breaking the law, and its data becomes risky to use.
+- **Example:** A visitor clicks "Reject" on a cookie banner. The site's ad tags must not set ad cookies for that visitor. The analytics tag is either blocked or runs in a limited mode without cookies.
+
+## Think of it like…
+
+<Analogy>
+Think of a guest book at a party. Before you post a guest's photo, you ask, and you note what they agreed to: "photo on the site" is not "photo in an ad." If someone later says "take mine down," you do it.
+
+**Where the comparison breaks:** At a party you can ask face to face. Online, the "asking" must happen in a banner or form before any tracking code runs, and the site must keep a record that proves the answer.
+</Analogy>
+
+## Real-world example
+
+An online shoe store sells to shoppers in Europe and India. Its analytics tag and two ad tags used to fire the moment a page opened.
+
+The team adds a **consent management platform (CMP)**. A CMP is a tool that shows the cookie banner, records each visitor's choices, and passes those choices to the **tag manager**, the tool that decides when each tag runs (or "fires"). The banner offers "Accept," "Reject," and "Choose by purpose." Ad tags now wait for a "yes" to advertising. The shopping basket cookie still works for everyone, because the shop needs it to deliver what the visitor asked for.
+
+Reports now show fewer tracked visits, because visitors who say no aren't tracked with cookies. Step 6 shows how some tools estimate the gap. The data the store keeps is now data it is allowed to use.
+
+## How it works
+
+**1. Know the key words.**
+
+- **Personal data** — any information about a person who can be identified, like an email address. It also includes a **cookie ID**, a random code that marks one browser, when it is tied to one shopper.
+- **Cookie** — a small piece of data a website stores in your browser to remember things, like your basket or your visits.
+- **Controller** (GDPR) or **Data Fiduciary** (India) — the company that decides why and how data is used.
+- **Data subject** (GDPR) or **Data Principal** (India) — the person the data is about.
+
+**2. Know which law applies.**
+
+- **European Union:** The main law is the General Data Protection Regulation (GDPR). Cookie rules sit in a second law, the e-Privacy Directive.
+- **India:** The main law is the Digital Personal Data Protection (DPDP) Act, 2023. The DPDP Rules, 2025 explain how to follow it.
+- **Taking it back:** Under GDPR, withdrawing must be as easy as giving consent. Under DPDP, people can withdraw at any time.
+
+**3. Make the "yes" valid.** Under GDPR, all four conditions must hold, or the consent doesn't count. The European Data Protection Board (EDPB), the group of EU privacy regulators, explains them:
+
+- **Freely given:** the person has a real choice and can say no without being punished.
+- **Specific:** one consent per purpose. "Improving user experience" is too vague.
+- **Informed:** the person learns who you are, what data you use, why, and that they can withdraw.
+- **Unambiguous:** the person takes a clear action, like clicking "Accept." Silence, pre-ticked boxes, or doing nothing do not count.
+
+India's DPDP framework also asks for clear, informed consent. It comes after a separate, plain notice that names the purpose. In both places, you must be able to prove you got consent, so the CMP keeps a log of each choice.
+
+**4. Ask before the cookie, not after.** EU guidance says most tracking cookies, such as those for ads and analytics, need consent first. They cannot be set the moment the page opens. Cookies that are strictly needed for something the visitor asked for are exempt. Examples are a login cookie or a shopping basket.
+
+**5. India's DPDP timeline.** The government officially published ("notified") the DPDP Rules on 13 November 2025. Companies get 18 months to comply, in stages. A few rules started at once.
+
+Rules for **Consent Managers** start on 13 November 2026. A Consent Manager is a registered Indian company that runs one platform where people can give, review, and withdraw consent. It is not the same as a CMP: a CMP is a tool a website uses, while a Consent Manager works for the person across many companies.
+
+Most company duties, including consent notices, start on 13 May 2027. Using a child's data needs consent from a parent or guardian that the company can check is real, with some exceptions.
+
+**6. Connect consent to your tags.** The CMP tells the tag manager what each visitor chose. Google's version of this is **consent mode**. Google's tag code uses a command called `gtag` to set it. It uses named consent types, each set to `granted` or `denied`:
+
+```js
+// Run first, before any tag sends data
+gtag('consent', 'default', {
+  ad_storage: 'denied',          // ad cookies
+  ad_user_data: 'denied',        // sending user data to Google for ads
+  ad_personalization: 'denied',  // personalized ads
+  analytics_storage: 'denied'    // analytics cookies
+});
+
+// Later, when the visitor clicks "Accept all"
+gtag('consent', 'update', {
+  ad_storage: 'granted', ad_user_data: 'granted',
+  ad_personalization: 'granted', analytics_storage: 'granted'
+});
+```
+
+Google offers two setups. In **basic** mode, Google tags stay blocked until the visitor answers the banner. In **advanced** mode, tags load at once with consent set to denied. Until the visitor agrees, they send **pings**: small messages that report events and the consent choice, without using cookies. Google uses those pings to estimate the missing data.
+
+Google warns that if the consent code runs out of order, the defaults won't work. In both modes, Google says getting valid consent is your job, not the tool's.
+
+```text
+visitor ──> banner (CMP) ──> choice saved + logged
+                                  │
+                                  ▼
+                      tag manager reads the choice
+                     ┌────────────┴────────────┐
+                 granted                     denied
+             tags fire normally      tags blocked, or cookieless pings
+```
+
+## Common mistakes
+
+- **Firing tags before the banner answer** — this collects data you had no right to collect. Set consent defaults to denied, and make sure they run before any tag.
+- **Punishing people who say no** — consent is not freely given if refusing costs the visitor something. Offer a real "Reject" choice, keep a basic service for people who refuse, and make withdrawing as easy as accepting.
+- **One checkbox for everything** — bundling ads, analytics, and email into one "yes" fails the "specific" rule. Ask per purpose.
+- **Assuming the CMP makes you compliant** — a tool can be set up wrongly. Use the tag manager's preview mode, a private test view, to check that each tag respects each choice.
+- **Copying EU rules to India, or the reverse** — the laws use different terms and timelines. Check each market you serve and keep the dates current.
+
+## Remember this
+
+<Remember>
+- Valid consent under GDPR is freely given, specific, informed, and unambiguous, and taking it back must be as easy as giving it.
+- Ask before tracking cookies are set; strictly necessary cookies, like a shopping basket, are exempt.
+- India's DPDP Rules phase in over 18 months: Consent Managers from 13 Nov 2026, most duties from 13 May 2027.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A news site lets you read nothing at all unless you accept ad tracking for every purpose. Which GDPR condition is most at risk?",
+      options: ["Specific", "Freely given", "Informed", "Strictly necessary"],
+      answer: 1,
+      why: "If saying no means losing the whole service, the person doesn't have a real, free choice. 'Strictly necessary' is a cookie exemption, not a consent condition."
+    },
+    {
+      q: "Which cookie can usually be set without asking first in the EU?",
+      options: [
+        "An ad cookie set by an ad company",
+        "An analytics cookie",
+        "A shopping basket cookie",
+        "A social media tracking cookie"
+      ],
+      answer: 2,
+      why: "A basket cookie is strictly necessary for something the visitor asked for. Ad, analytics, and social tracking cookies need consent first."
+    },
+    {
+      q: "In Google consent mode, why must the 'default' command run before other tags?",
+      options: [
+        "So tags know the starting consent state before they send any data",
+        "Because it makes pages load faster",
+        "Because the default command shows the banner",
+        "It doesn't matter when it runs"
+      ],
+      answer: 0,
+      why: "Google says the default must come before any command that sends data; out of order, the defaults won't work. The CMP shows the banner, not the default command."
+    },
+    {
+      q: "A shoe store starts selling in India in June 2027. What does the DPDP framework expect for consent notices?",
+      options: [
+        "Nothing until 2030",
+        "A separate, plain notice that names the purpose of the data",
+        "Only a link to the privacy policy in the footer",
+        "Consent is never needed in India"
+      ],
+      answer: 1,
+      why: "The DPDP Rules require a standalone, clear notice that states the specific purpose. Most of these duties apply from 13 May 2027."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [First-party data and identity resolution](/docs/martech/data/first-party-data-and-identity)
+- Read first: [Tag management (what GTM and similar tools do)](/docs/martech/analytics/tag-management-basics)
+- **What may change:** On 21 Oct 2026, EU member states agreed a position that would let some cookies skip consent, such as those for counting visitors (audience measurement). It is not law yet; talks with the European Parliament start once Parliament agrees its own position.
+- Sources are listed below with the date they were last checked.
