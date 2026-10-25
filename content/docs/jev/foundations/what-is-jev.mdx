@@ -1,0 +1,174 @@
+---
+title: What is Jev? A "System One" model
+description: Jev is an AI model from TypeSafe AI that answers fixed questions with probabilities instead of writing text. Here is what that means.
+domain: jev
+level: basics
+order: 1
+prerequisites: [what-is-an-ai-agent, tools-and-function-calling]
+tags: [jev, typesafe, system-one, classifier, probabilities, basics]
+sources:
+  - title: "System One (TypeSafe docs)"
+    url: https://docs.typesafe.ai/concepts/system-one
+    type: official
+  - title: "Introducing System One Models & Jev (TypeSafe blog, 15 Sep 2026)"
+    url: https://typesafe.ai/blog/introducing-system-one-models-and-jev
+    type: official
+  - title: "Models (TypeSafe docs)"
+    url: https://docs.typesafe.ai/models.md
+    type: official
+  - title: "Noul (TypeSafe docs)"
+    url: https://docs.typesafe.ai/primitives/noul.md
+    type: official
+  - title: "TypeSafe AI debuts model for machines that plays Doom (The Register, 16 Sep 2026)"
+    url: https://www.theregister.com/a/5296711
+    type: article
+  - title: "TypeSafe launched Jev because sequential LLMs are 'totally useless for computers' (The New Stack, 21 Sep 2026)"
+    url: https://thenewstack.io/typesafe-jev-system-one/
+    type: article
+  - title: "Jev (AI model) (Wikipedia, used as a map only)"
+    url: https://en.wikipedia.org/wiki/Jev_(AI_model)
+    type: article
+last_verified: 2026-10-25
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** Jev is an AI model from TypeSafe AI. You give it some text and a few multiple-choice questions, and it returns a probability for each answer instead of writing a reply.
+- **Why it matters:** Software can act on a number like "0.95 yes" right away. It doesn't have to read and check a paragraph of text first.
+- **Example:** A support tool asks Jev, "Does this message ask for a refund?" Jev returns `0.95`, so the tool sends the ticket to the refunds team.
+
+## Think of it like…
+
+<Analogy>
+A large language model (LLM), the kind of AI behind chatbots, is like an essay writer. You ask a question and it writes an answer, word by word.
+
+Jev is like a person filling in a multiple-choice form. You hand them the form and the facts. They tick boxes and write how sure they are next to each one.
+
+**Where the comparison breaks:** A person can add a note in the margin, but Jev cannot write anything outside the answers you defined.
+</Analogy>
+
+## Real-world example
+
+An online shoe store gets hundreds of support messages a day. Each one must go to the right team: billing, technical, or account. The store also wants to know how upset the customer is, and whether they asked for a refund.
+
+The store's code sends each message to Jev with three questions. Jev answers all three at once with probabilities. If Jev is very sure, the code routes the ticket automatically. If Jev is unsure, the code sends the ticket to a person to decide.
+
+This is the same pattern TypeSafe uses in its own docs. The model makes the judgment call. Normal code makes the final decision and does the action.
+
+## How it works
+
+**1. Where the name comes from.** TypeSafe calls Jev the first "System One" model. The idea comes from the psychologist Daniel Kahneman. He described two modes of thinking: **System 1** is fast and intuitive, like recognizing a face. **System 2** is slow and careful, like solving a math problem. Jev aims to be the fast mode for software.
+
+**2. You send a state and questions.** The **state** is the information Jev should judge. It can be a text string, a JSON object (structured data in key–value form), or a list of strings. Jev reads text only, with no images, audio, or video. You also send one or more questions. Each question uses one of three answer types, which TypeSafe calls **primitives**:
+
+- **Noul** — a yes/no question. Output `0.95` means a 95% chance the answer is yes.
+- **Choice** — pick one option from a list you define. Output: `"billing"`, plus a probability for each option.
+- **Score** — a spot on a scale you define, like 0 = calm to 2 = very frustrated. Output: `1.4`.
+
+**3. Jev answers every question at once.** An LLM writes its output one **token** (a small piece of a word) at a time. TypeSafe says Jev produces all its outputs in one parallel step. So TypeSafe's docs say to group only independent questions in one request. If one answer decides what the next question is, you send two requests.
+
+**4. You get typed answers back.** "Typed" means each answer is always the kind of value you asked for, like a number from 0 to 1. Here is a shortened response from TypeSafe's docs for two yes/no questions:
+
+```json
+{
+  "model": "jev-1.13.0",
+  "answers": {
+    "is_human_escalation": { "type": "noul", "noul": 0.99 },
+    "is_repeat_contact":   { "type": "noul", "noul": 0.93 }
+  },
+  "usage": { "input_tokens": 360, "output_tokens": 39 }
+}
+```
+
+Choice and Score answers also include a `confidence` value. It sums up how spread out the probabilities are. A Noul doesn't need one, because its single number already says everything.
+
+**5. Your code decides what to do.** You set a **threshold**, a cut-off number. Above it, the software acts. Below it, a person takes over, or a slower "System 2" model that reasons step by step, like a full LLM.
+
+```text
+message ──> Jev (state + questions) ──> probabilities
+                                            │
+                              ┌─────────────┴─────────────┐
+                       above threshold              below threshold
+                     code acts on its own       send to a person to review
+```
+
+**6. Facts as of 25 Oct 2026.** These come from TypeSafe's own blog and docs:
+
+- At launch on 15 Sep 2026, Jev opened in **early access**: only developers let in from a waitlist can use it so far.
+- The newest version is `jev-1.14.0`, released 14 Oct 2026. The `jev-latest` name points to it.
+- By default, one request can hold up to 64k (about 64,000) tokens. The state plus any one question can use up to 32k. A special long-context setting raises both to 262k, but TypeSafe says it is slower and less accurate.
+- Price: $0.042 per million input tokens. Output tokens are free.
+
+**7. Vendor claims vs. checked facts.** TypeSafe claims Jev answers in 70–500 milliseconds and is 40–200 times faster than comparable LLMs. TypeSafe also says Jev "can't hallucinate." Its reason is that Jev can only return answers of the types you defined, so it can't make things up in free text. TypeSafe's own blog admits its tests were built by its own team and may favor Jev. It also says it can't prove its low price isn't subsidized, meaning partly paid for by the company. *The Register* points out that an answer from a fixed list can still be wrong. So far there are only informal checks by outside developers, not an independent benchmark.
+
+## Common mistakes
+
+- **Treating Jev like a chatbot** — it can't write replies, code, or explanations. Use an LLM for writing, and Jev for quick judgments on fixed answers.
+- **Reading "can't hallucinate" as "always right"** — Jev can still pick the wrong option. Set thresholds and send unsure cases to a person.
+- **Asking questions that depend on each other** — questions in one request are answered at the same time, so one can't see another's answer. Send the second question in a new request.
+- **Treating a probability as a guarantee** — TypeSafe trains Jev to be **calibrated**: across many answers, its numbers should match how often it is right. So out of many answers marked `0.9`, about 1 in 10 will still be wrong.
+- **Repeating vendor speed and price numbers as facts** — speed claims come from TypeSafe's own tests, and prices can change during early access. Label them "TypeSafe says" and re-check the docs before you rely on them.
+
+## Remember this
+
+<Remember>
+- Jev answers multiple-choice questions with probabilities. It does not write text.
+- You send a state plus questions of three types: Noul (yes/no), Choice (pick one), and Score (a scale).
+- Your code uses a threshold to act on sure answers and hand unsure ones to a person.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A team wants an AI to write friendly email replies to customers. Is Jev the right tool?",
+      options: [
+        "Yes, because Jev is faster than an LLM",
+        "No, because Jev returns probabilities for fixed answers, not written text",
+        "Yes, if you use the Score primitive",
+        "No, because Jev only reads images"
+      ],
+      answer: 1,
+      why: "Jev gives up free-text writing. It is built to judge, not to write. It reads text only, so the image option is wrong too."
+    },
+    {
+      q: "Which primitive fits the question 'Which team should handle this ticket: billing, technical, or account?'",
+      options: ["Noul", "Score", "Choice", "State"],
+      answer: 2,
+      why: "Choice picks one option from a list you define. Noul is for yes/no, Score is for a scale, and State is the input, not a question type."
+    },
+    {
+      q: "Jev returns 0.55 for 'Does this message ask for a refund?' and your threshold is 0.9. What should your code do?",
+      options: [
+        "Issue the refund right away",
+        "Send the ticket to a person to review",
+        "Ask Jev to explain its reasoning",
+        "Treat 0.55 as an error"
+      ],
+      answer: 1,
+      why: "0.55 is below the threshold, so the case is unsure and goes to a person. Jev can't explain its reasoning in text."
+    },
+    {
+      q: "First you ask 'Is this about shoes or bags?' Then you want a Choice question whose list of options is shoe models if the answer is shoes, or bag models if it is bags. How should you send them?",
+      options: [
+        "In one request, because Jev answers all questions together",
+        "In two requests, because questions in one request can't depend on each other",
+        "As one Noul question",
+        "It is not possible with Jev"
+      ],
+      answer: 1,
+      why: "Jev answers all questions in a request at once, so the second can't see the first answer. You only know which option list to use after the first answer comes back, so send them one after the other."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is an AI agent?](/docs/ai-agents/foundations/what-is-an-ai-agent)
+- Read first: [Tools and function calling](/docs/ai-agents/foundations/tools-and-function-calling)
+- Coming next in this track: why Jev returns probabilities (discriminative vs generative models).
+- Sources are listed below with the date they were last checked.

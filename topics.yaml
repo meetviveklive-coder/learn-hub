@@ -127,7 +127,7 @@ items:
     title: Consent, cookies, and privacy rules (basics)
     why: Every martech setup depends on it.
     priority: 2
-    status: in_review
+    status: published
     notes: Include India's DPDP Act alongside GDPR — verify current status of rules.
 
   # ── Jev (TypeSafe AI) ────────────────────────────────────
@@ -140,7 +140,7 @@ items:
     title: What is Jev? A "System One" model
     why: New model type; contrast with text-generating LLMs.
     priority: 1
-    status: queued
+    status: in_review
     notes: Sources — Wikipedia "Jev (AI model)" as a map, then TypeSafe's official site/docs as primary.
 
   - id: discriminative-vs-generative

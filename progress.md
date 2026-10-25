@@ -18,3 +18,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-10-24 | new-lesson | event-tracking-basics written, reviewer fixes applied, checks + build pass, PR opened; what-is-a-cdp marked published | claude/lesson-event-tracking-basics
 2026-10-24 | new-lesson | tag-management-basics written, reviewer fixes applied, checks + build pass, PR opened; event-tracking-basics marked published | claude/lesson-tag-management-basics
 2026-10-25 | new-lesson | consent-and-privacy-basics written, reviewer fixes applied, checks + build pass, PR opened; tag-management-basics marked published | claude/lesson-consent-and-privacy-basics
+2026-10-25 | new-lesson | what-is-jev written, reviewer fixes applied, checks + build pass, PR opened; consent-and-privacy-basics marked published | claude/lesson-what-is-jev
