@@ -149,7 +149,7 @@ items:
     title: Discriminative vs generative models (why Jev returns probabilities)
     why: Core concept to understand Jev and classifiers in general.
     priority: 1
-    status: in_review
+    status: published
 
   - id: jev-in-an-agent-loop
     domain: jev
@@ -157,7 +157,7 @@ items:
     title: Using a fast classifier model inside an agent or MarTech workflow
     why: Connects Jev to agents (routing, guardrails) and MarTech (lead scoring, intent).
     priority: 2
-    status: queued
+    status: in_review
     notes: Mark any cost/speed figures as vendor claims. Only use documented API features.
 
   # ── Loop Engineering ─────────────────────────────────────

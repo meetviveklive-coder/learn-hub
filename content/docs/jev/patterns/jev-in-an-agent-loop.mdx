@@ -1,0 +1,177 @@
+---
+title: Using a fast classifier inside an agent or MarTech flow
+description: Put a fast classifier like Jev at the decision points of a workflow to route requests, guard an LLM, and score leads, with code making the final call.
+domain: jev
+level: intermediate
+order: 1
+prerequisites: [what-is-jev, discriminative-vs-generative, the-agent-loop]
+tags: [jev, classifier, routing, guardrails, lead-scoring, confidence, patterns]
+sources:
+  - title: "How to build with TypeSafe (TypeSafe docs)"
+    url: https://docs.typesafe.ai/concepts/how-to-build-with-system-one.md
+    type: official
+  - title: "Intent routing (TypeSafe docs)"
+    url: https://docs.typesafe.ai/patterns/intent-routing
+    type: official
+  - title: "Confidence (TypeSafe docs)"
+    url: https://docs.typesafe.ai/confidence.md
+    type: official
+  - title: "Confidence-gated routing (TypeSafe docs)"
+    url: https://docs.typesafe.ai/patterns/confidence-routing.md
+    type: official
+  - title: "Guardrails for LLMs (TypeSafe cookbook)"
+    url: https://docs.typesafe.ai/cookbooks/llm_guardrails.md
+    type: official
+  - title: "Composite scoring (TypeSafe docs)"
+    url: https://docs.typesafe.ai/patterns/composite-scoring.md
+    type: official
+  - title: "Example use cases (TypeSafe docs)"
+    url: https://docs.typesafe.ai/concepts/use-case-map
+    type: official
+  - title: "Jev guardrails (agentgateway docs)"
+    url: https://agentgateway.dev/docs/standalone/latest/integrations/llm/guardrails/jev/
+    type: official
+last_verified: 2026-10-26
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** A **classifier** is a model that sorts an input into labels you define. You place a fast one, like Jev from the company TypeSafe AI, at the decision points of a workflow.
+- **Why it matters:** The classifier makes quick judgment calls, so slow, costly LLMs and people only see the cases that need them.
+- **Example:** A shoe store's website form gets a new message. Jev scores how ready the person is to buy, and code sends likely buyers to sales and the rest to email.
+
+## Think of it like…
+
+<Analogy>
+Think of a triage nurse in a busy emergency room. The nurse checks each patient quickly and decides who sees a doctor now and who can wait. Doctors spend their time only where it matters.
+
+A fast classifier plays the nurse. The LLM, a slower model that reasons and writes step by step, plays the doctor.
+
+**Where the comparison breaks:** A nurse can treat small problems alone, but the classifier only labels; your code or another model does the actual work.
+</Analogy>
+
+## Real-world example
+
+An online shoe store gets messages through the "contact us" form on its website. Some come from shop owners who want to buy 500 pairs. Others are students asking about a school project. The marketing team wants the big buyers called within the hour.
+
+So the store adds a **lead score**: a rating of how likely a contact is to become a customer. Each message goes to Jev with three small questions. First, a yes/no question: is this a business? Second, a pick-one question: is the sender ready to buy, just browsing, or not buying? Third, a scale: how big is the order, from 0 to 3? Code then adds the answers into one score. It gives each answer a **weight**, a number that says how much that answer counts.
+
+High scores go straight to a sales rep. Low scores join a **nurture** list, a series of helpful emails sent over time. Unsure cases go to a person to check. TypeSafe lists lead generation, including spotting **purchase intent** (signs someone wants to buy), as an example use case. The questions and scale here are made up for this lesson.
+
+## How it works
+
+**1. Code owns the flow; the model answers narrow questions.** TypeSafe's build guide says to write a normal software workflow and add its model only where judgment is needed. Code handles rules, order of steps, and **side effects**, the real actions like sending email or moving money. Jev answers questions like "What does this person want?"
+
+**2. Where a classifier fits.** In an **agent loop**, a model picks an action, a tool runs it, and the result comes back. A classifier can sit at several spots in that loop, or in a plain workflow:
+
+| Spot | Pattern | Question asked | TypeSafe page |
+|---|---|---|---|
+| Before the LLM | **Routing**: send each request to the right handler | "What does the person want (their **intent**)? How complex is it?" | Intent routing |
+| Around the LLM | **Guardrail**: a safety check on what goes in and comes out | "Is this a **jailbreak** (an attempt to trick the model past its rules)? How severe?" | Guardrails for LLMs |
+| Before an action | **Gate**: once an action is picked, decide whether to do it, confirm it, or ask a person | "Which action, and how sure?" | Confidence-gated routing |
+| On data | **Scoring**: rate items on several factors, then weight them | "How strong is each factor?" | Composite scoring |
+
+```text
+user message
+     │
+     ▼
+ [Jev: guardrail] ──flagged──> block / human review
+     │ ok
+     ▼
+ [Jev: route by intent] ──simple──> plain code (e.g. order lookup)
+     │                  ──risky action──> [code: confidence gate] ──> act / confirm / human
+     │ hard
+     ▼
+  LLM (only the hard cases)
+```
+
+In short: Jev checks and sorts, code decides, and the LLM only gets the hard cases.
+
+**3. Routing example.** TypeSafe's intent-routing page sorts support tickets. "Order status" goes to plain code with no LLM at all. Product and return questions go to LLMs set up just for those topics. If Jev is unsure of the intent (confidence below 0.5, see step 4), a person takes over. Jev also rates each complaint's complexity on a scale. A complaint goes to a person if that score is above 1, or if Jev is unsure of the score.
+
+**4. Confidence decides whether to act.** For pick-one questions (TypeSafe calls them Choice) and scale questions (Score), Jev gives a probability for every possible answer. It also returns a **confidence** value from 0 to 1. It is 1 when all the probability sits on one answer, and 0 when it is spread evenly. TypeSafe suggests three bands: high means act, medium means go carefully (for example, ask the user to confirm), low means hand off or ask again.
+
+**5. Thresholds scale with the stakes.** A **threshold** is the cut-off for acting. In TypeSafe's banking example, anything below 0.6 confidence goes to a person. Checking a balance acts at 0.6 or above. Approving a money transfer acts on its own only above 0.85; between 0.6 and 0.85, it asks the user first. A wrong balance check is harmless, but a wrong transfer is not.
+
+**6. Guardrails as a set of checks.** The guardrail cookbook asks several yes/no questions at once, one per **hazard** (a kind of harm), plus a 0–3 severity score. Code maps each hazard to an action: block, review, or offer support. The same page warns that a second LLM used as a guard can also be tricked by an attacker. A gateway tool called agentgateway, which sits between an app and its LLM, can run a similar Jev check. A flagged prompt is rejected before the LLM is ever called. It can also check the LLM's reply before the user sees it.
+
+**7. Test on your own data.** Yes/no answers have no confidence value; the single probability of "yes" already shows how sure Jev is. TypeSafe's guide calls 0.7 for "yes" and 0.3 for "no" a good starting point for that probability. Its confidence page says to start careful and adjust. To tune, collect **labeled examples**: past inputs where a person wrote down the right answer. Then check how often Jev is right at each confidence level.
+
+## Common mistakes
+
+- **Letting the classifier take the action** — a label is not a decision. Keep side effects in code, behind a confidence gate.
+- **Using one threshold for everything** — a wrong refund costs more than a wrong tag. Set a higher bar for risky, hard-to-undo actions.
+- **Asking one broad question** — "Is this a good lead?" hides several judgments. Split it into small questions and combine them with weights you can read.
+- **Shipping thresholds you never tested** — the numbers in TypeSafe's docs are examples. Check them against labeled examples from your own traffic first.
+- **Repeating vendor speed and cost claims as facts** — TypeSafe calls Jev fast and cheap, but those are its own claims. Measure them in your own setup.
+
+## Remember this
+
+<Remember>
+- A fast classifier makes quick judgments; code makes the decisions and takes the actions.
+- The main spots are routing, guardrails, action gates, and scoring.
+- Raise the confidence threshold as the cost of a wrong action goes up.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "In a support workflow, a ticket asks 'Where is my order?' What does TypeSafe's intent-routing example do with it?",
+      options: [
+        "Sends it to the most powerful LLM",
+        "Sends it to plain code that looks up the order, with no LLM",
+        "Blocks it as a jailbreak",
+        "Always sends it to a person"
+      ],
+      answer: 1,
+      why: "Order status is a simple, rule-based job, so code handles it directly. The point of routing is to keep LLMs and people for the cases that need them."
+    },
+    {
+      q: "Jev picks 'approve transfer' with confidence 0.75. Using TypeSafe's banking example, what should happen?",
+      options: [
+        "Approve it automatically",
+        "Ask the user to confirm first",
+        "Send it to a person because it is below 0.6",
+        "Ignore the confidence and act"
+      ],
+      answer: 1,
+      why: "0.75 is above the 0.6 floor but not above 0.85, the bar for auto-approving a transfer. So the system asks the user to confirm."
+    },
+    {
+      q: "Why does a balance check get a lower threshold than a money transfer?",
+      options: [
+        "Balance checks are easier for the model",
+        "A wrong balance check is harmless, but a wrong transfer is costly",
+        "Transfers use a different model",
+        "Jev is always more confident about balances"
+      ],
+      answer: 1,
+      why: "Thresholds scale with the cost of a mistake, not with how easy the question is. Riskier actions need more confidence."
+    },
+    {
+      q: "A marketing team asks Jev one question: 'Is this a good lead?' What is the better design?",
+      options: [
+        "Ask an LLM instead",
+        "Ask the same question twice and average",
+        "Split it into small questions, like business or not and buying readiness, then combine with weights in code",
+        "Lower the threshold"
+      ],
+      answer: 2,
+      why: "A broad question hides several judgments in one answer. Small questions combined with visible weights show why a lead scored high, and the team can change the weights."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is Jev? A "System One" model](/docs/jev/foundations/what-is-jev)
+- Read first: [Discriminative vs generative models](/docs/jev/foundations/discriminative-vs-generative)
+- Read first: [The agent loop (think → act → observe)](/docs/ai-agents/foundations/the-agent-loop)
+- Related: [Sub-agents and the maker/checker pattern](/docs/ai-agents/patterns/subagents-maker-checker)
+- Related: [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents)
+- Sources are listed below with the date they were last checked.
