@@ -140,7 +140,7 @@ items:
     title: What is Jev? A "System One" model
     why: New model type; contrast with text-generating LLMs.
     priority: 1
-    status: in_review
+    status: published
     notes: Sources — Wikipedia "Jev (AI model)" as a map, then TypeSafe's official site/docs as primary.
 
   - id: discriminative-vs-generative
@@ -149,7 +149,7 @@ items:
     title: Discriminative vs generative models (why Jev returns probabilities)
     why: Core concept to understand Jev and classifiers in general.
     priority: 1
-    status: queued
+    status: in_review
 
   - id: jev-in-an-agent-loop
     domain: jev
