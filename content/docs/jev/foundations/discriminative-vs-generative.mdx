@@ -1,0 +1,170 @@
+---
+title: Discriminative vs generative models
+description: Some models learn to create new data. Others learn to tell kinds of data apart. Here is the difference, and why Jev returns probabilities.
+domain: jev
+level: basics
+order: 2
+prerequisites: [what-is-jev]
+tags: [jev, discriminative, generative, classifier, probabilities, basics]
+sources:
+  - title: "Background: What is a Generative Model? (Google Machine Learning)"
+    url: https://developers.google.com/machine-learning/gan/generative
+    type: official
+  - title: "Logistic regression: Calculating a probability with the sigmoid function (Google ML Crash Course)"
+    url: https://developers.google.com/machine-learning/crash-course/logistic-regression/sigmoid-function
+    type: official
+  - title: "LLMs: What's a large language model? (Google ML Crash Course)"
+    url: https://developers.google.com/machine-learning/crash-course/llm/transformers
+    type: official
+  - title: "On Discriminative vs. Generative Classifiers: A comparison of logistic regression and naive Bayes (Ng & Jordan, NIPS 2001)"
+    url: https://papers.nips.cc/paper/2001/hash/7b7a53e239400a13bd6be6c91c4f6c4e-Abstract.html
+    type: paper
+  - title: "API reference (TypeSafe docs)"
+    url: https://docs.typesafe.ai/api
+    type: official
+  - title: "Models (TypeSafe docs)"
+    url: https://docs.typesafe.ai/models
+    type: official
+  - title: "Getting started with Discriminative (Jev/DiffusionGemma) models (Google Codelabs)"
+    url: https://codelabs.developers.google.com/codelabs/discriminative-models
+    type: article
+  - title: "Jev (AI model) (Wikipedia, used as a map only)"
+    url: https://en.wikipedia.org/wiki/Jev_(AI_model)
+    type: article
+last_verified: 2026-10-26
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** A **generative** model learns what the data itself looks like, so it can create new examples. A **discriminative** model learns only how to tell groups of data apart, like spam and normal email.
+- **Why it matters:** Many discriminative models, including Jev, hand back a probability for each answer you allow. Software can act on that number right away.
+- **Example:** A generative model can write a new email. A discriminative model reads an email and says "spam: 0.93."
+
+## Think of it like…
+
+<Analogy>
+A generative model is like an art student who has studied thousands of cats and dogs. They know each animal so well that they can draw a brand-new cat from memory.
+
+A discriminative model is like a vet's receptionist who only needs to sort patients: "cat" or "dog." They learn the few clues that separate the two, such as ear shape. They never learn enough to draw either animal.
+
+**Where the comparison breaks:** A real receptionist knows they are unsure and can say so in words, while a discriminative model can only show doubt through its numbers.
+</Analogy>
+
+## Real-world example
+
+An online shoe store wants to sort support messages into "refund" or "not refund." It could ask a large language model (LLM), a generative model that writes text. The LLM would write an answer like "This looks like a refund request." The store's code then has to read that sentence and work out what it means.
+
+Or the store could use a discriminative model such as Jev, a fast AI model from the company TypeSafe AI. Jev reads the message and returns one number, like `0.95` for "yes, refund." The code compares that number to a **threshold**, a cut-off it picked, such as 0.9. Above the cut-off, it routes the ticket. Below it, a person checks.
+
+## How it works
+
+**1. Two ways to learn from examples.** Models learn from **training data**: many past examples. Say each example has some data, called **X** (an email), and a **label**, the right answer, called **Y** ("spam" or "not spam"). Google's machine learning guide explains the split in probability terms:
+
+| | Generative model | Discriminative model |
+|---|---|---|
+| Learns | How X and Y occur together, written p(X, Y). If the examples have no labels, just how X itself looks, p(X). | How likely each Y is once you know X, written p(Y \| X). |
+| In plain words | "What do spam emails look like? What do normal ones look like?" | "Given this email, how likely is it to be spam?" |
+| Can do | Create new X, like a new email or photo | Pick between labels, with a probability for each |
+| Classic example | Naive Bayes, a simple model that learns each label's typical words | Logistic regression, a simple model that turns clues into one probability |
+
+Read p(Y | X) as "the probability of Y, given X." The bar means "given."
+
+**2. Why a generative model has the harder job.** To create a realistic email, the model must learn how real emails work in detail. Google's guide says generative models face a more difficult task than discriminative ones. A discriminative model can ignore most details. It only needs the clues that separate the labels.
+
+**3. How a discriminative model gives a probability.** Take logistic regression. It adds up its clues into a single score, which can be any number. Then a **sigmoid function** squashes that score into a value between 0 and 1. Google's example is a spam model that outputs 0.932, which means about a 93.2% chance the email is spam.
+
+**4. How an LLM is different.** Google's guide describes LLMs as models that predict the next **token** (a word, a piece of a word, or a single character), almost like autocomplete. To write a full answer, the LLM keeps adding tokens to the text it has so far. That is what lets an LLM write anything, from a poem to code.
+
+```text
+Generative (LLM)                    Discriminative (Jev, logistic regression)
+"Is this a refund?"                 input: message text
+   → "This" → "looks" → "like"…     question: is it a refund? (yes/no)
+   → free text you must parse         → 0.95   (one number, ready to use)
+```
+
+**5. Where Jev fits.** TypeSafe's docs don't use the word "discriminative." But outside writers, including a Google Codelab and Wikipedia, call Jev a discriminative model. The reason is its output. Per TypeSafe's API docs, Jev returns probabilities for its three text question types:
+
+- A **Noul** (yes/no) answer is one number from 0 to 1: the probability of "yes." So a value near 0.5 means Jev leans neither way.
+- A **Choice** answer has a probability for each option, and they add up to about 1. The listed choice is simply the one with the highest probability.
+- A **Score** answer rates the input on a scale of levels you define, like 0 = calm, 1 = annoyed, 2 = angry. Jev gives a probability for each level, and the score is their weighted average. With 0.1, 0.1 and 0.8, the score is 0.1×0 + 0.1×1 + 0.8×2 = 1.7.
+
+The docs also list a newer **Box** type that finds an object in an image and returns its edges, not a probability per answer. For text questions, though, probabilities are simply what a model like Jev produces. TypeSafe says it trains Jev to give **calibrated** answers, meaning its numbers should match how often it is right. TypeSafe has published little else about how Jev is built inside.
+
+**6. Which one wins?** Neither, always. In a 2001 paper, Andrew Ng and Michael Jordan compared logistic regression with naive Bayes. **Error** here means the share of wrong predictions. They found the discriminative model reaches a lower error once it has lots of data. The generative model's best error is higher, but it can get close to that best much faster, with fewer examples. So with very little training data, a generative model may win.
+
+## Common mistakes
+
+- **Thinking "generative" just means "AI"** — "generative AI" became a buzzword, but here it is a precise term. Use it only for models that learn what the data looks like and can create new data.
+- **Using an LLM when you need a label** — free text has to be read and checked before code can use it. If the answers are fixed, a discriminative model gives a number you can act on.
+- **Asking a discriminative model to write** — it can only pick among answers you define. Use a generative model for replies, summaries, or code.
+- **Treating a probability as certainty** — if a model is calibrated, 0.93 spam still means about 7 in 100 such emails are not spam. Set a threshold and send unsure cases to a person.
+- **Assuming discriminative is always better** — with very little training data, a generative model may do better, as Ng and Jordan showed. Test both on your own data.
+
+## Remember this
+
+<Remember>
+- Generative models learn what the data looks like, p(X, Y), so they can create new data.
+- Discriminative models learn p(Y | X): given the input, how likely each label is.
+- Jev acts like a discriminative model, so its output is probabilities for answers you define, not text.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Which task needs a generative model?",
+      options: [
+        "Deciding if a photo shows a cat or a dog",
+        "Writing a brand-new product description",
+        "Scoring how angry a customer message is",
+        "Flagging an email as spam"
+      ],
+      answer: 1,
+      why: "Only a generative model learns what the data looks like well enough to create new data. The other three pick a label or a score, which a discriminative model can do."
+    },
+    {
+      q: "What does p(Y | X) mean?",
+      options: [
+        "The probability of X and Y together",
+        "The probability of the data X, with no labels",
+        "The probability of label Y, given the input X",
+        "The number of examples of Y"
+      ],
+      answer: 2,
+      why: "The bar means 'given.' A discriminative model learns how likely each label is once it has seen the input. p(X, Y) is what a generative model learns."
+    },
+    {
+      q: "Why does Jev return numbers like 0.95 instead of a sentence?",
+      options: [
+        "Because it turns an LLM's sentence into a number afterwards",
+        "Because, like a discriminative model, it outputs a probability for each answer you allow",
+        "Because sentences cost more tokens",
+        "Because TypeSafe hides the text for privacy"
+      ],
+      answer: 1,
+      why: "Jev is described as a discriminative model, so its output is a probability for each allowed answer. It does not write a sentence first and convert it."
+    },
+    {
+      q: "You have only 50 labeled emails. Based on Ng and Jordan's study, what is a fair statement?",
+      options: [
+        "A discriminative model will always do better",
+        "A generative model like naive Bayes may do better with so little data",
+        "Neither model can learn from 50 examples",
+        "The two models always give the same result"
+      ],
+      answer: 1,
+      why: "The study found generative models can get near their best result with fewer examples, though that best is a higher error. Discriminative models tend to win once there is lots of data, so 'always' is wrong."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is Jev? A "System One" model](/docs/jev/foundations/what-is-jev)
+- Related: [The agent loop (think → act → observe)](/docs/ai-agents/foundations/the-agent-loop)
+- Coming next in this track: using a fast **classifier** (a model that sorts inputs into labels) inside an agent or MarTech workflow.
+- Sources are listed below with the date they were last checked.
