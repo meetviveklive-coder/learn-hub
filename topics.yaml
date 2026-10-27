@@ -157,7 +157,7 @@ items:
     title: Using a fast classifier model inside an agent or MarTech workflow
     why: Connects Jev to agents (routing, guardrails) and MarTech (lead scoring, intent).
     priority: 2
-    status: in_review
+    status: published
     notes: Mark any cost/speed figures as vendor claims. Only use documented API features.
 
   # ── Loop Engineering ─────────────────────────────────────
@@ -176,7 +176,7 @@ items:
     title: Anatomy of a loop (trigger, work, check, state, stop)
     why: The building blocks.
     priority: 1
-    status: queued
+    status: in_review
 
   - id: loops-in-claude-code
     domain: loop-engineering

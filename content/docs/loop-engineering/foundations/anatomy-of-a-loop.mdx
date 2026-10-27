@@ -1,0 +1,169 @@
+---
+title: Anatomy of a loop (trigger, work, check, state, stop)
+description: Every agent loop has five parts. Something starts it, it does a small piece of work, checks it, saves notes, and knows when to stop.
+domain: loop-engineering
+level: basics
+order: 2
+prerequisites: [the-agent-loop, subagents-maker-checker, evaluating-agents]
+tags: [loops, automation, agents, scheduling, state, stop-conditions]
+sources:
+  - title: Loop Engineering (Addy Osmani, on O'Reilly Radar, Jun 2026)
+    url: https://www.oreilly.com/radar/?p=18967
+    type: article
+  - title: Run prompts on a schedule (Claude Code docs)
+    url: https://code.claude.com/docs/en/scheduled-tasks
+    type: official
+  - title: Keep Claude working toward a goal (Claude Code docs)
+    url: https://code.claude.com/docs/en/goal
+    type: official
+  - title: Effective harnesses for long-running agents (Anthropic Engineering)
+    url: https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+    type: official
+last_verified: 2026-10-27
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** A loop that runs an AI agent without you has five parts: a trigger, the work, a check, saved state, and a stop rule. An agent is an AI that can take actions, like editing files.
+- **Why it matters:** When a loop goes wrong, one of these five parts is usually missing or weak. Naming them lets you find the problem fast.
+- **Example:** A daily timer starts an agent. It fixes one bug, runs the tests, writes notes for tomorrow, and ends the run.
+
+## Think of it like…
+
+<Analogy>
+Think of a night-shift nurse. The shift starts at a set time (trigger). The nurse reads the handover notes, cares for patients (work), checks each patient's readings (check), and writes notes for the next nurse (state). At the end of the shift, they go home (stop).
+
+**Where the comparison breaks:** A nurse remembers a lot even without notes. An AI agent remembers nothing between runs, so the notes are its only memory.
+</Analogy>
+
+## Real-world example
+
+First, two words. A **run** is one start-to-finish session of the agent. A **loop** is the repeating series of runs. Each run starts with a fresh agent that remembers nothing from the last one.
+
+This learning site is written by a loop. Here are its five parts.
+
+- **Trigger:** A scheduled task, a saved instruction that a service runs at set times, starts a fresh agent in the cloud. The instruction is written once, so nobody types it each time.
+- **Work:** The agent reads a topic list, picks the next topic, does research, and writes exactly one lesson.
+- **Check:** A script checks the lesson's sections and reading level. The site build, which turns the files into the finished website, must pass. A second "reviewer" agent then reads the lesson and looks for errors.
+- **State:** The agent marks the topic "in review" in the topic list. It adds one line to a log file. The next run reads both files first.
+- **Stop:** After one pull request, the run ends. A pull request (PR) is a proposed change that a human must approve. A run also skips its work when three lesson PRs are already waiting. The whole loop stops only when the owner pauses the scheduled task.
+
+Notice what each part prevents. Without the state files, the agent would write the same lesson again and again. Without the one-lesson rule, the owner would get more pull requests than they can review.
+
+## How it works
+
+```text title="The five parts of one loop"
+ TRIGGER fires (timer, event, or "goal not met yet")
+     │
+     ▼
+ Read STATE ──► do one piece of WORK ──► CHECK it
+                     ▲                      │
+                     └──── fails: fix ◄─────┤
+                                            │ passes
+                                            ▼
+                         write STATE, end this run
+                                            │
+                                            ▼
+                  Loop still allowed? ── yes ──► wait for next TRIGGER
+                                            │
+                                            no ──► loop ends
+```
+
+*Each run reads notes, works, checks, writes notes, and ends. Then the loop decides if another run may start.*
+
+### 1. Trigger: what starts a run
+
+A trigger is the event that starts a run. Common triggers are a timer, a new event (like a failed test), or "the goal is not met yet." Claude Code, a coding agent tool, has commands for this. Typing `/loop` re-runs a prompt (your written request) on a timer while Claude Code stays open. If you give no interval, Claude picks its own wait, between one minute and one hour. Cloud scheduled tasks run in the cloud, even with your computer off, but at most once an hour.
+
+### 2. Work: one small piece at a time
+
+The work is what the agent does in one run. Keep it small. Anthropic's engineers found that an agent trying to do too much at once often ran out of context mid-task. Context is the text the AI model, the engine inside the agent, can see at one time. Their fix was to work on one feature per session and leave the work in a clean state.
+
+### 3. Check: proof, not a promise
+
+The check decides if the work is good enough to keep. Use real evidence: tests, a build, or a separate checker agent. Software engineer Addy Osmani, who wrote a widely shared post on loop engineering, warns that the model that wrote the code grades itself too kindly. He also says a "done" is a claim, not a proof.
+
+### 4. State: the loop's memory
+
+State is everything the next run needs to know, saved outside the agent. It could be a notes file, a task list, or the history of changes in a repository (a shared folder of files with full history). Anthropic's long-running agent used a progress file plus a list of features marked "failing" or "passing." Osmani sums it up: "The agent forgets; the repo doesn't."
+
+### 5. Stop: two different stops
+
+There are two stops, and you need both.
+
+| Stop | Question it answers | Example |
+|---|---|---|
+| End this run | "Is this run's job done?" | One lesson written, or no work found |
+| End the loop | "Should the loop keep going?" | Goal met, time limit reached, or a human cancels it |
+
+Claude Code's `/goal` command handles the loop-level stop. It keeps Claude working until a condition is true, or until a checker decides it never can be. After each turn, meaning each time Claude finishes a reply, a separate small model checks the condition. It answers "met," "not yet met," or "impossible." You can add a limit like "or stop after 20 turns." Recurring `/loop` tasks expire after 7 days. The docs say this limits how long a forgotten loop can run.
+
+## Common mistakes
+
+- **A check that only reads the agent's own report** — the agent may say "done" when it isn't. Run something real, like tests (small programs that check the code works), and show the output to the checker. The `/goal` checker, for example, only judges what appears in the conversation.
+- **No state, or state the agent can rewrite freely** — the next run repeats or undoes work. Keep a small file with a fixed layout, like a list where each item has a status, and tell the agent which parts it may change.
+- **Only one kind of stop** — a loop that ends each run but never ends itself can run for months unwatched. Add an end date, a turn limit, or a "goal met" rule.
+- **Too much work per run** — the agent runs out of context and leaves a half-finished mess. Give each run one item, and finish it cleanly.
+- **A trigger faster than your review** — the loop makes changes faster than you can read them. Match the timer to how often you can review.
+
+## Remember this
+
+<Remember>
+- Every loop has five parts: trigger, work, check, state, and stop.
+- The agent forgets between runs, so state must live in files the next run reads first.
+- You need two stops: one that ends each run, and one that ends the whole loop.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A daily bug-fixing loop tries to fix the same bug it already fixed yesterday. Which part is most likely missing?",
+      options: ["The trigger", "The state", "The check", "The stop for each run"],
+      answer: 1,
+      why: "Without saved state, each run starts from zero and can't see that the bug was already fixed. The trigger is working fine, since the loop runs every day."
+    },
+    {
+      q: "Why is \"the agent said it passed\" a weak check?",
+      options: [
+        "Agents can't run tests",
+        "A model tends to grade its own work too kindly, so its report is a claim, not proof",
+        "Checks should only be done by humans"
+      ],
+      answer: 1,
+      why: "Agents can run tests, and that is what you want. A strong check uses real evidence, like test results, not the agent's opinion of its own work."
+    },
+    {
+      q: "Which is an example of a stop that ends the whole loop, not just one run?",
+      options: [
+        "The agent finishes today's one lesson",
+        "Today's run finds no new bugs and ends; tomorrow's run is still scheduled",
+        "A goal condition is met, or the task's end date arrives",
+        "The checker rejects a change"
+      ],
+      answer: 2,
+      why: "Finishing one lesson or finding no work ends a single run; tomorrow's run still happens. A met goal or an end date stops the loop itself."
+    },
+    {
+      q: "Your loop opens 10 pull requests a day, but you can review only 2. What should you change first?",
+      options: [
+        "Add a second checker agent",
+        "Slow the trigger so there are fewer runs per day",
+        "Delete the state file"
+      ],
+      answer: 1,
+      why: "Review time is the real limit, so make fewer runs. A second checker improves quality but still leaves you with 10 pull requests to read."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [The agent loop](/docs/ai-agents/foundations/the-agent-loop) — the small loop inside each run.
+- Read first: [Sub-agents and the maker/checker pattern](/docs/ai-agents/patterns/subagents-maker-checker) — how to build the check.
+- Read first: [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents)
+- Sources are listed below with the date they were last checked.

@@ -21,3 +21,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-10-25 | new-lesson | what-is-jev written, reviewer fixes applied, checks + build pass, PR opened; consent-and-privacy-basics marked published | claude/lesson-what-is-jev
 2026-10-26 | new-lesson | discriminative-vs-generative written, reviewer fixes applied, checks + build pass, PR opened; what-is-jev marked published | claude/lesson-discriminative-vs-generative
 2026-10-26 | new-lesson | jev-in-an-agent-loop written, reviewer fixes applied, checks + build pass, PR opened; discriminative-vs-generative marked published | claude/lesson-jev-in-an-agent-loop
+2026-10-27 | new-lesson | anatomy-of-a-loop written, reviewer fixes applied, checks + build pass, PR opened; jev-in-an-agent-loop marked published | claude/lesson-anatomy-of-a-loop
