@@ -1,0 +1,166 @@
+---
+title: What is loop engineering?
+description: Loop engineering means building a system that prompts your AI agent for you, on a schedule, checks the work, and remembers progress.
+domain: loop-engineering
+level: basics
+order: 1
+prerequisites: [the-agent-loop, prompt-vs-context-engineering, subagents-maker-checker]
+tags: [loops, automation, agents, scheduling, verification]
+sources:
+  - title: Loop Engineering (Addy Osmani, Jun 2026)
+    url: https://addyosmani.com/blog/loop-engineering/
+    type: article
+  - title: Run prompts on a schedule (Claude Code docs)
+    url: https://code.claude.com/docs/en/scheduled-tasks
+    type: official
+  - title: Loop engineering (The New Stack, Jun 2026)
+    url: https://thenewstack.io/loop-engineering/
+    type: article
+last_verified: 2026-10-27
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** Loop engineering is designing a system that prompts an AI agent for you, again and again. A prompt is the typed request you give the AI, and an agent is an AI that can take actions, like editing files.
+- **Why it matters:** The system finds work, hands it to agents, checks the result, and saves progress. You design it once, then review what it produces.
+- **Example:** Each morning, a scheduled job reads failed tests, asks one agent to draft a fix, asks a second agent to check it, and sends you the change to approve.
+
+## Think of it like…
+
+<Analogy>
+Think of a bakery owner. At first, they tell each baker what to bake, one order at a time. Later, they set up an order board, a recipe binder, and a taster who checks each batch. Now the bakery runs every morning without the owner calling out each order.
+
+**Where the comparison breaks:** Bakers remember yesterday by themselves. An AI agent forgets everything between runs unless the loop writes progress into a file it reads next time.
+</Analogy>
+
+## Real-world example
+
+A small team keeps the code for their website in a repository, a shared folder of files with full history. The team also has tests, small programs that check the code still works. Every morning, someone used to read the overnight test failures and ask an AI agent to fix them, one prompt at a time.
+
+They replace that habit with a loop. A scheduled job starts each morning. It reads failed test runs, open issues, and recent changes, then writes a short to-do list into a notes file.
+
+For each item worth fixing, a "maker" agent drafts a fix in its own copy of the code. A separate "checker" agent tests the fix against the team's rules. If it passes, the loop opens a pull request (PR), a proposed change a human must approve. Anything it cannot handle goes to a list for a person.
+
+The notes file records what was tried, what passed, and what is still open. The next morning, the loop starts from there. Nobody typed a single prompt that day, but a human still reviews every pull request.
+
+## How it works
+
+### From prompting to loops
+
+Software engineer and author Addy Osmani gave the idea its name in a June 2026 blog post. He describes it as replacing yourself as the person who prompts the agent. You design the system that does the prompting.
+
+Tech news site The New Stack places it as the latest step in a short history. Osmani himself puts loops one level above harness engineering. Each step works on a bigger piece of the job:
+
+| Step | What you design |
+|---|---|
+| Prompt engineering | One good request. |
+| Context engineering | Everything the AI sees for one request, like files and past notes. |
+| Harness engineering | The setup around one agent run. That means its instructions, tools, and safety rules. |
+| Loop engineering | A system that starts many runs, checks them, and keeps going. |
+
+### The building blocks
+
+Osmani lists five building blocks plus a memory layer. He shows that Claude Code and OpenAI's Codex app, two coding-agent tools, each have all of them:
+
+1. **Automations** start runs on a timer, such as every morning. Their first job is often triage, which means sorting what needs attention.
+2. **Worktrees** give each agent its own working copy of the code. Agents working at the same time then don't overwrite each other's files.
+3. **Skills** are folders of instructions, each with a `SKILL.md` file, that store how the project does things. The agent stops guessing.
+4. **Connectors** let the loop reach real tools, like an issue tracker or a chat app. They are built on the Model Context Protocol (MCP), a standard way for agents to plug into apps.
+5. **Sub-agents** split the work: one agent makes, a different one checks. An AI grading its own work tends to go easy on itself, much like people missing typos in their own essays.
+6. **State**, the memory layer, is a file or task board outside the agent that lists what is done and what is next. Osmani's point: the agent forgets, but the files in the repository remain.
+
+```text title="One loop, run after run"
+ Timer fires
+     │
+     ▼
+ Read state file ──► Find work ──► Maker agent drafts
+                                        │
+                                        ▼
+ Write state file ◄── Open PR or ◄── Checker agent verifies
+     │                flag a human
+     ▼
+ Wait for next timer
+```
+
+*The loop reads its notes, does and checks one batch of work, saves notes, and waits.*
+
+### Two ways a loop decides to run again
+
+- **On a schedule.** In Claude Code, you can type `/loop` to re-run a prompt on a set interval while that Claude Code window stays open. These repeating tasks expire after 7 days. Claude Code also has cloud scheduled tasks, a separate feature that runs on Anthropic's servers. They keep going with your computer off, but run at most once an hour.
+- **Until a goal is met.** Both tools have a `/goal` command. It keeps an agent working until a written, checkable condition is true, like "all tests pass." In Claude Code, a separate small AI model checks that condition after every turn.
+
+## Common mistakes
+
+- **Trusting "done" from the checker** — a checker catches more errors, but its "pass" is still a claim, not proof. Keep real tests in the loop, and read what it ships.
+- **No state file** — each run starts from zero and repeats old work. Write progress to a file the next run reads first.
+- **Letting it run with no cost limit** — each sub-agent adds tokens, the units AI providers bill by. Token costs can vary widely. Add sub-agents only where a second opinion is worth paying for.
+- **Never reading the output** — code nobody has read builds "comprehension debt," a growing gap in what you understand. Osmani warns that loops make this gap grow faster.
+- **Starting more loops than you can review** — your review time, not the tools, sets how many agents you can run well. Start with one loop and add more only when reviews keep up.
+
+## Remember this
+
+<Remember>
+- Loop engineering means designing the system that prompts the agent, instead of prompting it yourself each time.
+- A good loop has a trigger, a maker, a separate checker, and a state file so the next run picks up where this one stopped.
+- Loops make mistakes unattended too, so a human still reviews the output and watches cost.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "What is the main shift loop engineering describes?",
+      options: [
+        "Writing longer and more detailed prompts",
+        "Designing a system that prompts the agent for you",
+        "Training your own AI model",
+        "Replacing code review with AI"
+      ],
+      answer: 1,
+      why: "Osmani defines it as replacing yourself as the one who prompts the agent. Better prompts are still useful, but that is prompt engineering, an earlier step."
+    },
+    {
+      q: "Why does a loop keep progress in a state file?",
+      options: [
+        "The agent forgets between runs, so the next run needs written notes",
+        "Files make the model run faster",
+        "It is required to open a pull request"
+      ],
+      answer: 0,
+      why: "Each run starts with an empty memory. The state file tells it what was done and what is next, so it doesn't repeat work."
+    },
+    {
+      q: "Why use a separate checker agent instead of letting the maker check its own work?",
+      options: [
+        "It is always cheaper",
+        "A model grading its own work tends to be too easy on itself",
+        "The maker cannot run tests",
+        "Pull requests require two agents"
+      ],
+      answer: 1,
+      why: "Splitting maker and checker gives a more honest review. It costs more tokens, not less, so use it where a second opinion matters."
+    },
+    {
+      q: "A loop has run for a month and nobody has read the code it shipped. What risk is growing?",
+      options: [
+        "Running out of disk space",
+        "Comprehension debt",
+        "A broken timer"
+      ],
+      answer: 1,
+      why: "Comprehension debt is the gap between what the system does and what you understand. It grows when nobody reads the output."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [The agent loop](/docs/ai-agents/foundations/the-agent-loop) — the inner loop inside each run.
+- Read first: [Prompt engineering vs context engineering](/docs/ai-agents/foundations/prompt-vs-context-engineering)
+- Read first: [Sub-agents and the maker/checker pattern](/docs/ai-agents/patterns/subagents-maker-checker)
+- Read next: **Anatomy of a loop (trigger, work, check, state, stop)**, coming soon.
+- Sources are listed below with the date they were last checked.
