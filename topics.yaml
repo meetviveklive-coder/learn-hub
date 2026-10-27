@@ -167,7 +167,7 @@ items:
     title: What is loop engineering?
     why: Owner's main learning goal.
     priority: 1
-    status: in_review
+    status: published
     notes: Primary sources — Addy Osmani's post and Claude Code scheduled tasks docs.
 
   - id: anatomy-of-a-loop
@@ -176,7 +176,7 @@ items:
     title: Anatomy of a loop (trigger, work, check, state, stop)
     why: The building blocks.
     priority: 1
-    status: queued
+    status: in_review
 
   - id: loops-in-claude-code
     domain: loop-engineering
