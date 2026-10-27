@@ -167,7 +167,7 @@ items:
     title: What is loop engineering?
     why: Owner's main learning goal.
     priority: 1
-    status: queued
+    status: published
     notes: Primary sources — Addy Osmani's post and Claude Code scheduled tasks docs.
 
   - id: anatomy-of-a-loop
