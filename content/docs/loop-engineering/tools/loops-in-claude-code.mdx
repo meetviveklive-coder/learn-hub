@@ -1,0 +1,150 @@
+---
+title: Loops in Claude Code (/loop, Desktop and cloud tasks)
+description: Claude Code has three ways to repeat work on a timer. Learn where each one runs, what it can reach, and when to pick it.
+domain: loop-engineering
+level: basics
+order: 1
+prerequisites: [what-is-loop-engineering, anatomy-of-a-loop]
+tags: [loops, claude-code, scheduling, automation, cron]
+sources:
+  - title: Run prompts on a schedule (Claude Code docs)
+    url: https://code.claude.com/docs/en/scheduled-tasks
+    type: official
+  - title: Schedule recurring tasks in Claude Code Desktop (Claude Code docs)
+    url: https://code.claude.com/docs/en/desktop-scheduled-tasks
+    type: official
+  - title: Automate work with scheduled tasks (Claude Code docs)
+    url: https://code.claude.com/docs/en/routines
+    type: official
+last_verified: 2026-10-28
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** Claude Code, a coding agent tool, can repeat a prompt (a written request) in three ways: `/loop`, Desktop scheduled tasks, and cloud scheduled tasks.
+- **Why it matters:** Each runs in a different place, so each can reach different things and fails in different ways. Picking the wrong one means a loop that silently never runs.
+- **Example:** Watch a deploy for the next hour with `/loop`. Build a morning report from files on your laptop with a Desktop task. Write a lesson every day, with your laptop off, with a cloud task.
+
+## Think of it like…
+
+<Analogy>
+Think of three ways to get a reminder. A kitchen timer (`/loop`) only works while you stay in the kitchen. An alarm on your home clock (Desktop task) works only while the clock is plugged in and switched on. A wake-up call from a hotel front desk (cloud task) reaches you even when your own clock is unplugged.
+
+**Where the comparison breaks:** These "reminders" don't just ring. Each one starts an AI agent that does real work, like editing files or opening pull requests.
+</Analogy>
+
+## Real-world example
+
+A small online shoe store has one developer, Priya. She uses all three tools for different jobs.
+
+On release day, she ships a new version of the website. This is called a deploy. In her open Claude Code session, which is one ongoing conversation with Claude, she types `/loop 5m check if the deploy finished`. Claude checks every five minutes and reports back. When she closes the terminal (the text window where Claude Code runs), the checks stop. That is fine, because the job is short.
+
+Every weekday morning, a Desktop scheduled task reads sales files in a folder on her laptop and writes a summary. It needs her local files, so it must run on her machine. One morning her laptop was asleep at 9am. When she woke it with the app running, the task ran once to catch up.
+
+Each night, a cloud scheduled task reviews new pull requests in the store's code repository (a shared folder of code with full history). It runs on Anthropic's servers, so it works while her laptop is off. It starts from a fresh copy of the repository each time.
+
+## How it works
+
+All three are triggers, the part of a loop that starts each run. They differ in where the run happens. Shortest gap means the smallest time allowed between two scheduled runs.
+
+```text title="Three ways to repeat work in Claude Code"
+                       /loop           Desktop task         Cloud task
+Runs on                your machine    your machine         Anthropic's cloud
+Computer must be on    yes             yes                  no
+Session must stay open yes             no                   no
+Sees your local files  yes             yes                  no (fresh repo copy)
+Shortest gap           1 minute        1 hour in the form   1 hour (timer)
+                                       (1 minute if you ask
+                                        Claude to set it)
+Approval prompts       same as your    set per task         auto mode by default
+                       session
+```
+
+*Source: the "Compare scheduling options" table in the Claude Code docs.*
+
+### 1. `/loop`: quick repeats inside one session
+
+You type `/loop`, an optional interval like `5m`, and an optional prompt. With an interval, the prompt runs on a fixed timer. With no interval, Claude picks the next wait itself, between one minute and one hour, based on what it saw. With no prompt, it runs a built-in "maintenance" prompt. That prompt finishes open work, then tends the current pull request (a proposed change waiting for review). It handles review comments, failed tests and merge conflicts. If a `loop.md` file exists, its text replaces the built-in prompt.
+
+The loop lives inside the session. If the session exits, the loop stops firing. Recurring tasks also expire after 7 days, which limits how long a forgotten loop can run. If Claude is busy when a run is due, it runs once when Claude is free, not once per missed slot.
+
+### 2. Desktop scheduled tasks: on your computer, on a calendar
+
+You create these in the Claude Desktop app, the program you install on your computer, in the **Code** tab under **Scheduled**. The form's timer options run at most hourly, but you can ask Claude in a session to set a faster one. Each run starts a fresh session in a folder you pick, so the task can read your local files and tools. It only runs while the app is open and the computer is awake.
+
+If the computer slept through a run, Desktop starts one catch-up run on wake. It covers the most recent missed time in the last seven days and drops older ones. Each task has its own permission mode, meaning how much it may do without asking. In Manual mode, a run that needs an approval you did not give in advance stalls until you answer.
+
+### 3. Cloud scheduled tasks: runs with your computer off
+
+These used to be called "routines." You create them on the web or by typing `/schedule` in Claude Code. Each one saves a prompt, one or more GitHub repositories, and connectors, which are links to apps like Slack. Besides a timer, a cloud task can start from an API call (a request sent by another program) or a GitHub event, like a new pull request. Timer runs can be at most once an hour.
+
+Each run clones the repository fresh, meaning it downloads a new copy. A branch is a separate line of changes in the repository. Unless the prompt says otherwise, Claude pushes its work to branches whose names start with `claude/`. A run usually starts in auto mode. In auto mode, a second AI model allows or blocks each risky action, so the run rarely stops to ask you. The docs call the feature a research preview, an early version whose limits may change.
+
+## Common mistakes
+
+- **Using `/loop` for work that must run tomorrow** — it stops when the session closes and expires after 7 days. Use a Desktop or cloud task for anything you need to keep running.
+- **Using a cloud task for local files** — the cloud run only sees a fresh copy of the repository. Put the data in the repository, or use a Desktop task.
+- **Assuming a Desktop task runs on time** — a sleeping laptop skips the slot, and the catch-up run may come hours late. Tell the prompt what to do if it runs late, such as "only review today's commits."
+- **Expecting runs every few minutes from the cloud** — scheduled cloud runs happen at most once an hour. For fast polling, meaning checking again and again, use `/loop` in an open session.
+- **Leaving every connector switched on** — a cloud task can use any included connector, including actions that change data, usually without asking. Remove the ones the task does not need.
+
+## Remember this
+
+<Remember>
+- `/loop` lives inside an open session; it is for short jobs like watching a deploy.
+- Desktop tasks run on your computer and see your files, but only while it is awake and the app is open.
+- Cloud tasks run with your computer off, from a fresh copy of the repository; timer runs are at most hourly.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "You want a daily summary of spreadsheets that live only in a folder on your laptop. Which option fits?",
+      options: ["/loop", "Desktop scheduled task", "Cloud scheduled task"],
+      answer: 1,
+      why: "Only the Desktop task runs on a calendar AND can read local files. A cloud task sees only a fresh copy of the repository, and /loop stops when the session closes."
+    },
+    {
+      q: "A loop writes one lesson a day into a GitHub repository, even while the owner's laptop is off. Why is a cloud scheduled task the right fit?",
+      options: [
+        "It needs to run every minute",
+        "It can run with the laptop off, and it only needs the repository",
+        "It needs files on the owner's laptop",
+        "Cloud tasks never need a check step"
+      ],
+      answer: 1,
+      why: "Cloud tasks run on Anthropic's servers from a fresh clone, so the laptop can be off. Their timer runs at most hourly, not every minute, and they still need checks."
+    },
+    {
+      q: "You start /loop 10m check the build, then close your terminal. What happens?",
+      options: [
+        "It keeps running in the cloud",
+        "It runs once more, then stops forever",
+        "The checks stop, because /loop only runs while the session is open"
+      ],
+      answer: 2,
+      why: "/loop is tied to the session. It does not move to the cloud. The 7-day expiry is a separate limit for sessions that stay open."
+    },
+    {
+      q: "A Desktop task set for 9am finds the laptop asleep all day. At 6pm you wake it and open the app. What happens?",
+      options: [
+        "Nothing; the run is lost",
+        "One catch-up run starts for the most recent missed time",
+        "It runs once for every missed day this week"
+      ],
+      answer: 1,
+      why: "Desktop starts exactly one catch-up run for the latest missed time in the past seven days and drops older ones."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is loop engineering?](/docs/loop-engineering/foundations/what-is-loop-engineering) — why you'd build a loop at all.
+- Read first: [Anatomy of a loop](/docs/loop-engineering/foundations/anatomy-of-a-loop) — the trigger, work, check, state and stop parts these tools plug into.
+- Sources are listed below with the date they were last checked.

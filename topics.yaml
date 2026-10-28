@@ -176,7 +176,7 @@ items:
     title: Anatomy of a loop (trigger, work, check, state, stop)
     why: The building blocks.
     priority: 1
-    status: in_review
+    status: published
 
   - id: loops-in-claude-code
     domain: loop-engineering
@@ -184,7 +184,7 @@ items:
     title: Loops in Claude Code (/loop, Desktop scheduled tasks, cloud scheduled tasks)
     why: The tools this site itself uses.
     priority: 2
-    status: queued
+    status: in_review
     notes: Compare all three from the official "compare scheduling options" page.
 
   - id: when-not-to-loop
