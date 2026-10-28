@@ -1,0 +1,168 @@
+---
+title: When NOT to use a loop (cost, risk, review load)
+description: Loops are not free. Learn the five questions that tell you when a job should stay a one-off prompt or stay in human hands.
+domain: loop-engineering
+level: basics
+order: 1
+prerequisites: [anatomy-of-a-loop, loops-in-claude-code]
+tags: [loops, automation, agents, cost, risk, review]
+sources:
+  - title: Loop Engineering (Addy Osmani, Jun 2026)
+    url: https://addyosmani.com/blog/loop-engineering/
+    type: article
+  - title: Practical Loop Engineering (Addy Osmani, Aug 2026)
+    url: https://addyosmani.com/blog/practical-loop-engineering/
+    type: article
+  - title: Building effective agents (Anthropic Engineering, Dec 2024)
+    url: https://www.anthropic.com/engineering/building-effective-agents
+    type: official
+  - title: Automate work with scheduled tasks (Claude Code docs)
+    url: https://code.claude.com/docs/en/routines
+    type: official
+last_verified: 2026-10-28
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** A short test for deciding when a job should *not* become a loop, meaning a system that runs an AI agent for you again and again. An agent is an AI that can take actions, like editing files.
+- **Why it matters:** Every loop uses up part of your AI plan (its "usage"). It can make mistakes while nobody watches, and it creates work you must review. Some jobs aren't worth that.
+- **Example:** Sorting new bug reports every night is a good loop. "Keep improving the homepage until it looks good" is not, because nothing can prove it is done.
+
+## Think of it like…
+
+<Analogy>
+Think of a garden sprinkler on a timer. It is perfect for a lawn: same job, same time, and you can see if the grass is wet. You would not put a timer on a rare plant that needs you to judge its leaves first. And you would not run the sprinkler every hour if once a day is enough.
+
+**Where the comparison breaks:** A sprinkler only costs water. A loop also hands you a pile of changes to read, and it can change things you care about.
+</Analogy>
+
+## Real-world example
+
+A small team runs an online shoe store. Excited by loops, they list three ideas.
+
+1. **Nightly bug-report sorting.** An agent reads new reports, adds labels, and posts a summary. The job repeats, and mistakes are cheap to fix. **Good loop.**
+2. **"Make the homepage look better."** An agent tweaks the design every hour. Nobody can say what "better" means, so no check can pass or fail it. **Not a loop.** A designer should guide this by hand.
+3. **Unattended changes to checkout code.** An agent "cleans up" the payment code every night with nobody watching. A wrong change could lose real money while everyone sleeps. **Not an unattended loop.** An agent may help, but a person reviews every change before it goes live.
+
+They build only the first one. They also run it once a night, not once an hour, because they can only read one summary a day.
+
+## How it works
+
+Before you build a loop, ask five questions. Any "no" means: don't build an unattended loop as planned. Follow that arrow instead.
+
+```text title="Five questions before you build a loop"
+ 1. Does the job repeat?          no ──► just prompt the agent once
+        │ yes
+ 2. Can a check prove "done"?     no ──► keep a human in charge
+        │ yes
+ 3. Is a mistake cheap to undo?   no ──► watch closely, don't leave it alone
+        │ yes
+ 4. Can you review at its pace?   no ──► run it less often, or don't run it
+        │ yes
+ 5. Is it worth the usage?        no ──► use a simpler fix
+        │ yes
+        ▼
+   Build the loop (small, with a check and a stop)
+```
+
+*Questions 1 and 2 ask if a loop fits the job at all. Questions 3 to 5 weigh its three costs: risk, review load, and usage.*
+
+### 1. One-off jobs don't need a loop
+
+Anthropic's engineers advise starting with the simplest solution that works. They add more moving parts only when needed. They also note that agent systems often trade speed and cost for better results. If a job happens once, a direct prompt is simpler and cheaper.
+
+### 2. No clear finish line, no loop
+
+A loop needs a check that can say "pass" or "fail," like tests passing or a score reaching a target. Addy Osmani, an engineer who writes about loop engineering, says loops fit poorly when work needs human taste or open-ended creative exploration. Without a real check, the loop has no proof that the work is good. In his first post on loops, he warns: "A loop running unattended is also a loop making mistakes unattended."
+
+### 3. High-risk work needs a person watching
+
+Anthropic warns that agents working alone over many steps can suffer from **compounding errors**. That means one early mistake gets built on, and it grows. Osmani says he watches closely when work touches authentication (how users sign in and what they may access), security, or finance.
+
+### 4. Your review time is the real limit
+
+Every loop run produces something a person should read. Osmani says your review time, not the tool, decides how many agents you can actually run at once. He also warns about what he calls **comprehension debt**: the growing gap between the code that exists and the code you understand. A fast, smooth loop makes this gap grow faster unless you read what it made.
+
+### 5. Every run costs usage
+
+Anthropic notes that an agent's freedom to act also means higher costs. In Claude Code, a coding agent tool, cloud scheduled tasks (saved prompts that run on a timer) use up your plan the same way normal chats do. At your plan's limit, extra runs are rejected until the limit resets, unless you pay for extra usage. Osmani adds that sub-agents, helper agents that check or split the work, use more tokens. Tokens are the small pieces of text a model reads and writes, and usage is counted in them.
+
+In short, here are the three costs and the warning sign for each:
+
+- **Usage:** each run spends part of your plan. Warning sign: a cheaper, simpler fix would work.
+- **Risk:** mistakes happen while nobody watches. Warning sign: a mistake would be costly or hard to undo.
+- **Review load:** changes pile up waiting for you. Warning sign: you can't read them as fast as they arrive.
+
+## Common mistakes
+
+- **Looping a job with no finish line** — the agent keeps changing things with no proof they are better. Write a check first. If you can't, do the job by hand.
+- **Leaving sensitive code alone with a loop** — a bad change to payments or sign-in code can do real harm before anyone looks. Have a person review every change before it goes live.
+- **A timer faster than your reading** — unread changes pile up, and you stop understanding your own code. Match how often the loop runs to how often you can review.
+- **Letting the loop decide for you** — it is easy to accept whatever comes back. Osmani says he once almost handed off his judgment along with the task. Check each result against your own standard.
+- **Ignoring the bill** — hourly runs and extra checker agents add up. Start with the slowest schedule that still meets the need.
+
+## Remember this
+
+<Remember>
+- Only loop a job that repeats and has a check that can prove "done."
+- Keep a person watching when a mistake would be costly, like changes to payments, sign-in, or security.
+- Your review time is the real limit, so don't let a loop make changes faster than you can read them.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Which job is the best fit for an unattended loop?",
+      options: [
+        "Make our logo more modern",
+        "Every night, label new bug reports and post a summary",
+        "Rewrite the payment code to be cleaner",
+        "Redesign the app once for a launch next week"
+      ],
+      answer: 1,
+      why: "Labeling bug reports repeats, is easy to check, and mistakes are cheap. The logo needs human taste, the payment code is high-risk, and a one-time redesign doesn't repeat and also needs taste."
+    },
+    {
+      q: "Your loop opens 8 pull requests (proposed changes a person must approve) a day, but you review only 2. What is the main problem?",
+      options: [
+        "The loop uses too few tokens",
+        "Review load: changes pile up faster than you can read them",
+        "The loop needs more sub-agents"
+      ],
+      answer: 1,
+      why: "Your review time is the real limit. More sub-agents would add usage and still leave 8 pull requests to read. The fix is to run the loop less often."
+    },
+    {
+      q: "What does \"compounding errors\" mean for an agent working alone?",
+      options: [
+        "The agent makes errors only at the end",
+        "An early mistake gets built on and grows over later steps",
+        "Errors cancel each other out over time"
+      ],
+      answer: 1,
+      why: "When an agent works over many steps with no one watching, each step builds on the last, so one early mistake can spread."
+    },
+    {
+      q: "A job happens once and will never repeat. What should you do?",
+      options: [
+        "Build a loop that runs once a day",
+        "Build a loop that runs hourly just in case",
+        "Prompt the agent directly, one time"
+      ],
+      answer: 2,
+      why: "Start with the simplest solution that works. A loop adds cost and moving parts that a one-time job doesn't need."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Anatomy of a loop](/docs/loop-engineering/foundations/anatomy-of-a-loop) — the check and stop parts this lesson relies on.
+- Read first: [Loops in Claude Code](/docs/loop-engineering/tools/loops-in-claude-code) — the tools whose cost and limits you weigh here.
+- Related: [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents) — how to build the check that question 2 asks for.
+- Sources are listed below with the date they were last checked.
