@@ -184,7 +184,7 @@ items:
     title: Loops in Claude Code (/loop, Desktop scheduled tasks, cloud scheduled tasks)
     why: The tools this site itself uses.
     priority: 2
-    status: in_review
+    status: published
     notes: Compare all three from the official "compare scheduling options" page.
 
   - id: when-not-to-loop
@@ -193,7 +193,7 @@ items:
     title: When NOT to use a loop (cost, risk, review load)
     why: Avoid over-automation.
     priority: 2
-    status: queued
+    status: in_review
 
   # ── Harness Engineering ──────────────────────────────────
   - id: what-is-harness-engineering
