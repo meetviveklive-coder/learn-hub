@@ -1,0 +1,163 @@
+---
+title: What is harness engineering?
+description: Harness engineering means building the instructions, tools and automatic checks around an AI agent so it does the right thing more often.
+domain: harness-engineering
+level: basics
+order: 1
+prerequisites: [what-is-an-ai-agent, prompt-vs-context-engineering]
+tags: [harness, agents, guardrails, instructions, verification]
+sources:
+  - title: "Harness engineering: leveraging Codex in an agent-first world (OpenAI, Feb 2026)"
+    url: https://openai.com/index/harness-engineering/
+    type: official
+  - title: Harness engineering for coding agent users (Birgitta Böckeler, martinfowler.com, Apr 2026)
+    url: https://martinfowler.com/articles/harness-engineering.html
+    type: article
+  - title: Agent Harness Engineering (Addy Osmani, Apr 2026)
+    url: https://addyosmani.com/blog/agent-harness-engineering/
+    type: article
+last_verified: 2026-10-29
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** Harness engineering is designing everything around an AI model that turns it into a useful agent. That includes its instructions, tools, and the checks that catch its mistakes.
+- **Why it matters:** The same model can do much better or much worse work depending on its harness. You often can't change the model, but you can change the harness.
+- **Example:** An agent keeps forgetting to run the tests. Instead of reminding it each time, you add a check that runs the tests for it and shows it any failures.
+
+## Think of it like…
+
+<Analogy>
+Think of a new driver and a car. The driver is the model. The car around them adds a map that steers the trip before it starts. It also adds a speed warning and lane alerts that catch problems as they happen. A good car does not make the driver smarter, but it makes a safe trip far more likely.
+
+**Where the comparison breaks:** A car stays the same for years. A harness changes every week, because each new mistake the agent makes becomes a new rule or check.
+</Analogy>
+
+## Real-world example
+
+This website is written by an AI agent that runs on a schedule. Its harness is the set of files and checks in the site's code repository, the shared folder of files with full history.
+
+First, an instruction file called `AGENTS.md` tells the agent what it may change and how to work. A style guide and a lesson template show what a good lesson looks like. Then a checking script tests each new lesson. It checks the required sections, the reading level, and that there are at least two sources.
+
+If the script fails, the agent reads the error, fixes the lesson, and runs it again. A human only sees the lesson after it passes. When a new kind of mistake shows up, the owner adds a new rule or check. That makes the same mistake less likely next time.
+
+## How it works
+
+### Agent = model + harness
+
+Writer and engineer Addy Osmani shares a short formula he credits to Viv Trivedy: an agent is a model plus a harness. The model is the AI that reads text and writes a reply. The harness is everything else. That covers instruction files, tools, the files and programs the agent can use, logs (records of what it did), and automatic checks.
+
+Birgitta Böckeler, an engineer at the consulting firm Thoughtworks, writes about this on martinfowler.com. She sees two harness layers around the model. Coding agents like Claude Code already ship with a built-in harness from their makers, such as their own base instructions. You, the user, build an **outer harness** for your own project on top. This lesson is about that outer layer.
+
+### Guides and sensors
+
+Böckeler sorts the parts of an outer harness into two groups.
+
+| Part | When it acts | Examples |
+|---|---|---|
+| **Guides** | Before the agent acts, to steer it | Instruction files like `AGENTS.md`, skills |
+| **Sensors** | After the agent acts, to catch problems | Tests, linters, an AI reviewer |
+
+A linter is a tool that scans code for errors and style problems. Skills are folders of extra instructions the agent loads only when needed.
+
+You need both kinds. With only sensors, the agent keeps making the same mistake and fixing it. With only guides, the agent never finds out whether it followed the rules well.
+
+Böckeler also splits each part by how it works. **Computational** parts, like tests, are plain programs. They are fast and give the same answer every time. **Inferential** parts, like instruction files or an AI reviewer, rely on an AI to read and judge. They handle subtler problems, but they are slower, cost more, and can give different answers on different runs.
+
+```text title="The steering loop"
+ Agent makes a mistake
+        │
+        ▼
+ Is it the same mistake again? ──no──► Agent fixes it, move on
+        │ yes
+        ▼
+ Add a guide (a rule) or a sensor (a check)
+        │
+        ▼
+ The harness now makes it less likely, or catches it
+```
+
+*A repeated mistake becomes a new rule or check. Böckeler calls this the steering loop.*
+
+### What a big team did
+
+In February 2026, OpenAI described an internal project where engineers wrote no code by hand. Over about five months, a team that grew from three to seven engineers shipped roughly a million lines. Their coding agent, Codex, wrote it all. Their summary: "Humans steer. Agents execute."
+
+When the agent failed, the engineers did not just try again. They asked which capability was missing, then added it to the harness. Three of their choices stand out:
+
+1. **A short map, not a manual.** They tried one huge instruction file and gave up. Their final `AGENTS.md` is about 100 lines. It works like a table of contents that points to deeper docs.
+2. **Checks that teach.** Their custom linters, also written by Codex, print error messages that explain how to fix the problem. The agent reads the message and repairs its own work.
+3. **Regular cleanup.** Agents copy patterns they see, including bad ones. So background agent tasks scan for code that breaks the team's rules and open small fix-up pull requests (proposed changes).
+
+## Common mistakes
+
+- **Blaming the model first** — a new model rarely fixes a missing rule or check. Ask what the harness failed to tell or test, then add it.
+- **One giant instruction file** — it fills up the limited amount of text the agent can read at once, and when everything is "important," nothing is. Keep the main file short and link to details.
+- **Rules with no checks** — the agent can read a rule and still skip it. Back important rules with a sensor, like a test or linter.
+- **Error messages only humans understand** — the agent can't fix what it can't read. Write check messages that say what went wrong and how to fix it.
+- **Trying to remove humans completely** — Böckeler argues a harness should point human attention where it matters most, not remove it.
+
+## Remember this
+
+<Remember>
+- An agent is a model plus a harness, and the harness is everything except the model.
+- A harness has guides that steer the agent before it acts, and sensors that catch problems after.
+- When a mistake repeats, fix the harness with a new rule or check instead of asking the agent again.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Which of these is part of an agent's harness?",
+      options: [
+        "The numbers inside the model learned during training",
+        "An AGENTS.md instruction file and the project's tests",
+        "The company that made the model",
+        "The user's keyboard"
+      ],
+      answer: 1,
+      why: "The harness is everything around the model: instructions, tools, and checks. The numbers the model learned in training are the model itself, not the harness."
+    },
+    {
+      q: "A test suite that runs after the agent edits code is an example of what?",
+      options: ["A guide", "A sensor", "The model"],
+      answer: 1,
+      why: "Sensors act after the agent acts and catch problems. Guides, like instruction files, act before, to steer the agent."
+    },
+    {
+      q: "Your agent forgets the same naming rule for the third time. What is the harness-engineering response?",
+      options: [
+        "Remind it again in your next message",
+        "Switch to a bigger model",
+        "Add the rule to the instructions and a check that catches it",
+        "Stop using agents"
+      ],
+      answer: 2,
+      why: "A repeated mistake is a gap in the harness. A rule plus a check fixes it for every future run. Reminding it again only fixes this one run."
+    },
+    {
+      q: "Why did OpenAI's team keep their AGENTS.md to about 100 lines?",
+      options: [
+        "Longer files are not allowed",
+        "A huge file left too little room for the task itself, so they made a short map that points to deeper docs",
+        "The agent cannot read Markdown"
+      ],
+      answer: 1,
+      why: "They tried one big file and it did not work well. A short table of contents lets the agent find details only when needed."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is an AI agent?](/docs/ai-agents/foundations/what-is-an-ai-agent)
+- Read first: [Prompt engineering vs context engineering](/docs/ai-agents/foundations/prompt-vs-context-engineering)
+- Related: [What is loop engineering?](/docs/loop-engineering/foundations/what-is-loop-engineering) — the layer that runs many harnessed agent runs on repeat.
+- Related: [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents)
+- Read next: **Instruction files (CLAUDE.md, AGENTS.md) and skills**, coming soon.
+- Sources are listed below with the date they were last checked.

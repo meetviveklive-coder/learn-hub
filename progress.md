@@ -25,3 +25,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-10-27 | new-lesson | anatomy-of-a-loop written, reviewer fixes applied, checks + build pass, PR opened; jev-in-an-agent-loop marked published | claude/lesson-anatomy-of-a-loop
 2026-10-28 | new-lesson | loops-in-claude-code written, reviewer fixes applied, checks + build pass, PR opened; anatomy-of-a-loop marked published | claude/lesson-loops-in-claude-code
 2026-10-28 | new-lesson | when-not-to-loop written, reviewer fixes applied, checks + build pass, PR opened; loops-in-claude-code marked published | claude/lesson-when-not-to-loop
+2026-10-29 | new-lesson | what-is-harness-engineering written, reviewer fixes applied, checks + build pass, PR opened; when-not-to-loop marked published | claude/lesson-what-is-harness-engineering
