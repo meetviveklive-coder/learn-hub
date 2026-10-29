@@ -1,0 +1,174 @@
+---
+title: Instruction files (CLAUDE.md, AGENTS.md) and skills
+description: Instruction files give an agent lasting rules at the start of every session. Skills hold longer how-to steps it loads only when needed.
+domain: harness-engineering
+level: basics
+order: 1
+prerequisites: [what-is-harness-engineering, context-window-and-memory]
+tags: [harness, instructions, claude-md, agents-md, skills, context]
+sources:
+  - title: How Claude remembers your project (Claude Code docs)
+    url: https://code.claude.com/docs/en/memory
+    type: official
+  - title: Extend Claude with skills (Claude Code docs)
+    url: https://code.claude.com/docs/en/skills
+    type: official
+  - title: AGENTS.md — a simple, open format for guiding coding agents
+    url: https://www.agents.md
+    type: official
+  - title: Equipping agents for the real world with Agent Skills (Anthropic, Oct 2025)
+    url: https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills
+    type: official
+last_verified: 2026-10-29
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** An instruction file is a plain text file of rules that a coding agent (an AI that edits code for you) reads at the start of every session. A skill is a folder of longer steps it opens only when a task needs them.
+- **Why it matters:** Each session (one run of the agent) starts with an empty context window, the limited text it can read at once. These files give it lasting rules without retyping them.
+- **Example:** You write "run the tests before you finish" once in `AGENTS.md`, and every future session sees it.
+
+## Think of it like…
+
+<Analogy>
+Think of a new hire on day one. A one-page "how we work here" sheet sits on their desk, and they read it every morning. On the shelf are thick binders with clear labels on the spines. They glance at the labels, and only pull down a binder when a task calls for it.
+
+**Where the comparison breaks:** A new hire remembers yesterday, but an agent starts fresh every session. Also, a new hire who ignores the sheet gets noticed. An agent can quietly skip a rule unless a check catches it.
+</Analogy>
+
+## Real-world example
+
+This website is written by an agent that runs on a timer, with no human watching. Its main rules live in `AGENTS.md` at the top of the repository, the project's shared folder of files. The file says which folders the agent may change, how to name branches, and which checks must pass before a pull request (a proposed change).
+
+The repository also has a `CLAUDE.md` file. Its first line is `@AGENTS.md`, which tells Claude Code, Anthropic's coding agent, to pull in the whole `AGENTS.md`. A few extra notes follow that only Claude Code needs. So the rules live in one place, and other coding agents can read the same `AGENTS.md`.
+
+## How it works
+
+### Instruction files: the sheet on the desk
+
+These are Markdown files. Markdown is plain text with simple marks like `#` for headings. Two names matter most:
+
+| File | Read by | Notes |
+|---|---|---|
+| `AGENTS.md` | Many coding agents, including Claude Code | An open format, free for any tool to use. No required fields. |
+| `CLAUDE.md` | Claude Code | Claude Code's own file. It can import other files with `@path`. |
+
+The AGENTS.md site calls it a "README for agents." A README is the intro file for humans. `AGENTS.md` holds what an agent needs, like build steps, test commands, and code style. The format is now run by the Agentic AI Foundation, under the Linux Foundation.
+
+Here is how Claude Code loads these files, according to its docs:
+
+1. **At session start**, it reads `CLAUDE.md` files in the current folder and the folders above it. Your personal `~/.claude/CLAUDE.md` loads too. The `~` means your home folder.
+2. **When it works in a subfolder**, it also loads any `CLAUDE.md` that sits in that subfolder. All these files are added together, not swapped.
+3. **If the project has no `CLAUDE.md`**, recent versions read `AGENTS.md` instead. Your personal file does not count here. By default, if both exist, only `CLAUDE.md` loads, unless it imports `AGENTS.md`.
+
+The AGENTS.md site gives a general rule for big projects: agents read the nearest `AGENTS.md` in the folder tree, so a subfolder's file wins. Tools differ here, since Claude Code adds its files together. The site also says a direct request you type in chat overrides everything.
+
+### Skills: the binders on the shelf
+
+A skill is a folder with a file called `SKILL.md`. Skills follow an open standard, Agent Skills, which Anthropic published in December 2025. At the top of the file sits a short header between `---` lines. The body below holds the full steps:
+
+```text title=".claude/skills/release/SKILL.md"
+---
+name: release
+description: Steps to publish a new version. Use when asked to release.
+---
+1. Run the tests.
+2. Update the version number.
+3. ...
+```
+
+The folder can also hold scripts or reference files.
+
+Skills load in stages. Anthropic calls this progressive disclosure, which means showing only what is needed, when it is needed.
+
+```text title="How a skill loads"
+Session starts ──► agent sees only each skill's name + description
+       │
+Task matches a description (or you type the command /release)
+       │
+       ▼
+Agent loads the full SKILL.md steps
+       │
+       ▼
+Agent opens extra files in the folder only if the steps need them
+```
+
+*Only a skill's short description is always loaded. Its full steps cost almost nothing until used.*
+
+That matters because the context window is limited. Instruction files take up room in it every session. Claude Code's docs suggest keeping each `CLAUDE.md` under 200 lines. Imports don't help with size, since an imported file loads along with the file that imports it.
+
+### What goes where
+
+- **Instruction file:** a short fact needed every session. Example: "Run the tests with `npm test`."
+- **Skill:** a multi-step procedure needed for some tasks. Example: how to release a new version.
+- **A hard check:** a rule that must never break. Example: a hook that blocks edits to files holding passwords.
+
+The last item matters. Claude Code's docs say the agent treats these files as context, "not enforced configuration." To truly block an action, you need a hook: a small program that runs automatically before or after an agent action. Hooks are the next lesson.
+
+## Common mistakes
+
+- **One giant instruction file** — it eats context every session, and the docs warn that longer files get followed less. Keep facts short and move procedures into skills.
+- **Vague skill descriptions** — the agent picks a skill only from its description. Say plainly what the skill does and when to use it.
+- **Two rules that disagree** — the docs say Claude may then pick one arbitrarily. Review your files now and then and remove old or clashing rules.
+- **Treating a rule as a lock** — an instruction file is advice the agent reads, not a barrier. Back critical rules with a hook or a test.
+- **Copying the same rules into two files** — they drift apart over time. Keep one source, like `AGENTS.md`, and import it from `CLAUDE.md`.
+
+## Remember this
+
+<Remember>
+- Instruction files like AGENTS.md and CLAUDE.md load every session, so keep them short.
+- Skills load in stages: only the name and description at first, the full steps when needed.
+- Instruction files and skills guide the agent but do not force it; use hooks or tests for hard rules.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "You have a 40-step checklist for releasing a new version, used about once a month. Where should it live?",
+      options: [
+        "At the top of CLAUDE.md, so the agent never misses it",
+        "In a skill, so its steps load only when a release happens",
+        "Pasted into chat every session",
+        "Nowhere; agents know how to release"
+      ],
+      answer: 1,
+      why: "A skill's full steps load only when needed, so a long, rarely used procedure costs almost nothing the rest of the time. In CLAUDE.md it would fill context every session."
+    },
+    {
+      q: "At the start of a session, what does the agent see from each installed skill?",
+      options: ["Nothing at all", "Its full SKILL.md body", "Only its name and description", "Every script in its folder"],
+      answer: 2,
+      why: "This is progressive disclosure: name and description first, full steps only when a task matches."
+    },
+    {
+      q: "Your CLAUDE.md says 'never edit the .env file' (it holds secret keys), but the agent edits it anyway. What is the best fix?",
+      options: [
+        "Write the rule in capital letters",
+        "Repeat the rule three times",
+        "Add a hook that blocks edits to that file",
+        "Move the rule to the bottom of the file"
+      ],
+      answer: 2,
+      why: "Instruction files are context, not enforcement. A hook runs automatically and can block the action, whatever the agent decides."
+    },
+    {
+      q: "A project has an AGENTS.md and a separate CLAUDE.md that does not import it. What does Claude Code read by default?",
+      options: ["Only CLAUDE.md", "Only AGENTS.md", "Both, merged together"],
+      answer: 0,
+      why: "By default Claude Code reads AGENTS.md only when there is no CLAUDE.md. To use both, add @AGENTS.md inside CLAUDE.md."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is harness engineering?](/docs/harness-engineering/foundations/what-is-harness-engineering) — instruction files and skills are the "guides" from that lesson.
+- Read first: [Context window, memory, and why agents forget](/docs/ai-agents/foundations/context-window-and-memory)
+- Related: [Prompt engineering vs context engineering](/docs/ai-agents/foundations/prompt-vs-context-engineering)
+- Read next: **Guardrails, permissions, and hooks**, coming soon.
+- Sources are listed below with the date they were last checked.
