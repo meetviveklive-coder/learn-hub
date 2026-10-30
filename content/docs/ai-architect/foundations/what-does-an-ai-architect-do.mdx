@@ -1,0 +1,172 @@
+---
+title: What does an AI technical architect do?
+description: An AI technical architect makes the big, hard-to-change decisions about how a company builds and runs AI systems safely.
+domain: ai-architect
+level: basics
+order: 1
+prerequisites: [what-is-an-ai-agent, evaluating-agents]
+tags: [architecture, career, ai-architect, decisions, trade-offs]
+sources:
+  - title: Who Needs an Architect? (Martin Fowler, IEEE Software, 2003)
+    url: https://martinfowler.com/ieeeSoftware/whoNeedsArchitect.pdf
+    type: article
+  - title: AI workloads on Azure — Azure Well-Architected Framework (Microsoft Learn)
+    url: https://learn.microsoft.com/azure/well-architected/ai/get-started
+    type: official
+  - title: Generative AI Lens — AWS Well-Architected Framework
+    url: https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lens.html
+    type: official
+  - title: Professional Machine Learning Engineer certification (Google Cloud)
+    url: https://cloud.google.com/learn/certification/machine-learning-engineer
+    type: official
+  - title: TOGAF Standard pocket guide — Introduction (The Open Group)
+    url: https://pubs.opengroup.org/pocket-guides/togaf-pocket-guide/main/introduction.html
+    type: official
+last_verified: 2026-10-30
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** An AI technical architect decides the overall shape of a company's AI systems. That means which models, where data flows, how it stays safe, and what it costs.
+- **Why it matters:** These choices are hard to undo later. A wrong one can leak customer data or waste months of work.
+- **Example:** Before anyone writes code for a support chatbot, the architect decides it will use a hosted model, read only approved help pages, and never issue refunds alone.
+
+## Think of it like…
+
+<Analogy>
+Think of the architect of a house. They don't lay bricks. They decide where the walls, pipes and wires go, because those are painful to move once the house is built. Builders then do the work inside that plan.
+
+**Where the comparison breaks:** A house plan is finished once. AI tools change every few months, so an AI architect keeps revisiting the plan.
+</Analogy>
+
+## Real-world example
+
+An online shoe store wants an AI assistant that answers "Where is my order?" questions. The team is excited and wants to start coding today.
+
+The AI architect first asks a few questions. Should we buy a ready-made chatbot or build our own app on a model? A model is the AI program that reads text and writes replies. A hosted model runs on another company's servers, and our app calls it through an API (a way for one program to call another). Which customer data may the model see, and where is it sent? How will we test that answers are correct? What happens if the assistant tries to give a refund?
+
+The architect writes down the answers: use a hosted model, let it look up only the customer's own orders, add a cost limit per month, and require a human to approve every refund. Engineers then build inside those limits. Six months later, when a cheaper model appears, the team can swap it in because the plan expected that change.
+
+## How it works
+
+### Architecture is "the important stuff"
+
+Software author Martin Fowler wrote a short essay on this in 2003. He says architecture is "about the important stuff," and that the team decides what counts as important. He also describes it as the parts people see as hard to change. An architect is the person who worries about that important stuff.
+
+An AI technical architect does this job for systems that use AI.
+
+### Why AI needs its own kind of architect
+
+Microsoft's guide to AI workloads lists challenges that AI systems bring. A workload is one complete system that does a job, like the shoe store's assistant.
+
+- **Unpredictable output.** Normal code gives the same answer every time. An AI model can give different answers to the same question.
+- **Hard to test.** The guide says randomness makes AI hard to test. In practice, simple pass/fail tests are not enough, so teams add evaluations that score many sample answers.
+- **Models get worse over time.** The guide calls this model decay: a model's results can become less accurate over time.
+- **Fast change.** New models and tools arrive constantly. The guide warns against adding complexity just to keep up.
+
+### The decisions the role owns
+
+Most of these decisions are trade-offs: you gain one thing, like speed, by giving up another, like cost or control.
+
+| Decision | The question it answers | Later lesson in this track |
+|---|---|---|
+| Build or buy | Ready-made tool, model API, or our own model? | Build, buy, or customize |
+| Model choice | Which model fits our quality, speed, cost and risk needs? | Choosing a model |
+| Data | Which company data can the AI use, and how does it find it? | RAG (letting AI look up company documents), data readiness |
+| Security | How do we stop misuse and leaks? | AI security threats |
+| Cost | How do we keep spending predictable as usage grows? | Managing AI cost |
+| Operations | How do we watch quality once it is live? | LLMOps (running AI apps in production) |
+| Governance (the rules and oversight for AI use) | Which laws and company rules apply, and who is accountable? | Governance frameworks |
+
+Big cloud companies publish checklists that cover the same ground. Microsoft and Amazon Web Services (AWS) both group their advice into "pillars", or main areas, such as security, reliability, and cost. AWS's Generative AI Lens is its checklist for systems that create text or images. It names architects as one of its main readers.
+
+### How it differs from nearby roles
+
+| Role | Main focus |
+|---|---|
+| Machine learning (ML) engineer | Builds, tests, launches and improves models and the data pipelines (automated steps) that feed them. Google's certification for this role is mostly about this hands-on work, though it overlaps with design. |
+| AI technical architect | Decides how AI pieces fit together and fit the company's systems, data, security and budget. |
+| Enterprise architect | Plans change across the whole company's systems, often using The Open Group's TOGAF Standard, a widely used method for that planning. AI is one part of that picture. |
+
+Job titles vary a lot between companies, so treat this table as a pattern, not a rule.
+
+### Guide, not boss
+
+Fowler describes two kinds of architect. One makes every important decision alone and becomes a bottleneck, a single point everything must wait for. The other works next to the team, explains trade-offs, and teaches others to decide well. He prefers the second. His rule of thumb: an architect's value goes down as the number of decisions they make alone goes up. A colleague suggested calling this person a "guide."
+
+## Common mistakes
+
+- **Picking a model before the problem** — the model choice depends on data, risk and cost. Write down the requirements first, then choose.
+- **Treating AI like normal code** — fixed tests miss varied answers. Plan evaluations and monitoring from day one.
+- **Locking in one vendor (supplier) by accident** — models change fast, and a cheaper one may arrive next quarter. Design so the model can be swapped.
+- **Deciding everything alone** — the architect becomes a bottleneck and the team stops learning. Explain trade-offs and let the team own smaller choices.
+- **Forgetting the data rules** — some data may not be sent outside the company at all. Check privacy and legal limits before the design is final.
+
+## Remember this
+
+<Remember>
+- An AI architect owns the hard-to-change decisions: build or buy, model, data, security, cost, operations and governance.
+- AI needs extra care because its answers vary, are hard to test, and models get worse over time.
+- The best architects act as guides who explain trade-offs, not bosses who decide everything.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Which task belongs most to the architecture role rather than the hands-on build role?",
+      options: [
+        "Tuning a model's training settings",
+        "Deciding whether customer data may be sent to an outside model at all",
+        "Writing the data pipeline code",
+        "Fixing a bug in the chatbot's web page"
+      ],
+      answer: 1,
+      why: "Where data may go is a hard-to-change, company-wide decision, so it is architecture. Tuning and pipeline code are hands-on build work, which is the ML engineer's focus."
+    },
+    {
+      q: "Why are simple pass/fail tests not enough for AI systems?",
+      options: [
+        "AI systems cannot be tested at all",
+        "The same question can get different answers, so you need to score many sample answers",
+        "Tests make AI models slower"
+      ],
+      answer: 1,
+      why: "AI output varies, so you use evaluations that score many answers. It is still possible to test AI; you just need different methods."
+    },
+    {
+      q: "A cheaper model appears six months after launch. What design choice makes switching easy?",
+      options: [
+        "Building the whole app around one vendor's special features",
+        "Planning from the start that the model can be swapped",
+        "Training your own model from scratch",
+        "Removing all tests"
+      ],
+      answer: 1,
+      why: "Expecting the model to change keeps the switch cheap. Tying everything to one vendor's features is the most tempting shortcut, but it makes switching painful."
+    },
+    {
+      q: "In Fowler's view, what makes an architect most valuable?",
+      options: [
+        "Making as many decisions as possible personally",
+        "Writing all the code",
+        "Helping the team understand trade-offs so they can decide well too"
+      ],
+      answer: 2,
+      why: "Fowler says an architect's value drops as the number of decisions they make goes up. An architect who decides everything becomes a bottleneck."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What is an AI agent?](/docs/ai-agents/foundations/what-is-an-ai-agent)
+- Read first: [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents)
+- Related: [What is harness engineering?](/docs/harness-engineering/foundations/what-is-harness-engineering) — the controls around a single agent that an architect designs for at company scale.
+- Related: [Consent, cookies, and privacy rules (basics)](/docs/martech/privacy/consent-and-privacy-basics)
+- Next in this track: "The layers of an enterprise AI system" (coming soon).
+- Sources are listed below with the date they were last checked.
