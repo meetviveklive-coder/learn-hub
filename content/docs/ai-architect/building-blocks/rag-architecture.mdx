@@ -1,0 +1,158 @@
+---
+title: "RAG architecture: giving AI your company's knowledge"
+description: How retrieval-augmented generation finds the right pieces of your documents and hands them to a model, so answers use your facts and can cite them.
+domain: ai-architect
+level: intermediate
+order: 1
+prerequisites: [build-buy-or-customize, context-window-and-memory]
+tags: [rag, retrieval, embeddings, chunking, reranking, ai-architect]
+sources:
+  - title: Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks (Lewis et al., 2020)
+    url: https://arxiv.org/abs/2005.11401
+    type: paper
+  - title: Design and develop a RAG solution (Azure Architecture Center)
+    url: https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/rag/rag-solution-design-and-evaluation-guide
+    type: official
+  - title: How Amazon Bedrock knowledge bases work (AWS docs)
+    url: https://docs.aws.amazon.com/bedrock/latest/userguide/kb-how-it-works.html
+    type: official
+  - title: Relevance in Azure AI Search (Microsoft Learn)
+    url: https://learn.microsoft.com/azure/search/search-relevance-overview
+    type: official
+  - title: Introducing Contextual Retrieval (Anthropic Engineering)
+    url: https://www.anthropic.com/engineering/contextual-retrieval
+    type: article
+last_verified: 2026-10-30
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Retrieval-augmented generation (RAG) is a design where your code first finds the right pieces of your documents, then gives them to a model with the question.
+- **Why it matters:** A model only knows what it learned in training. RAG lets it answer from your own, current facts, and show where each answer came from.
+- **Example:** An HR chatbot finds the two paragraphs of the leave policy that match a question, and answers from just those.
+
+## Think of it like…
+
+<Analogy>
+Think of an open-book exam. The student is smart but has never read your company's rule book. Before each answer, a helper puts the right pages on the desk. The student answers from them and notes the page numbers.
+
+**Where the comparison breaks:** A student can flip through the whole book, but the model sees only the pages the helper picked. If the helper picks the wrong pages, the model answers from the wrong facts.
+</Analogy>
+
+## Real-world example
+
+A help desk answers the same HR and IT questions all day. The answers live in hundreds of policy pages that change every month. Retraining a model each time would be slow and costly.
+
+The architect designs a RAG system. Every night, a job splits the pages into small pieces and stores them in a search index, a store built for fast lookup, like the index at the back of a book. When an employee asks "How many days of parental leave do I get?", the system finds the best five pieces and sends them to the model. The model answers in two sentences and links the policy page it used.
+
+When HR updates the policy, the nightly job picks up the new page. The model stays untouched.
+
+## How it works
+
+### Why RAG at all
+
+The 2020 paper that named RAG pointed out a problem. A model, the AI program that reads and writes text, stores facts inside its weights. Weights are the many numbers it learned in training. Those facts are hard to update, and the model cannot show where they came from. RAG adds a second memory: a search index that you can update any time.
+
+### Two pipelines
+
+Microsoft's and AWS's guides both split a RAG system into two parts. A **pipeline** is a series of steps where each step's output feeds the next. **Ingestion** means taking documents in and preparing them. The rerank step below comes from the Azure AI Search and Anthropic sources, not these two guides.
+
+```text
+INGESTION (runs ahead of time, e.g. nightly)
+  documents → clean → split into chunks → add metadata → embed → search index
+
+QUERY (runs on every question)
+  question → embed → vector + keyword search → top chunks → rerank → prompt → model → answer + sources
+```
+
+The first line prepares your knowledge; the second uses it.
+
+### The ingestion pipeline
+
+1. **Collect and clean.** Turn documents into plain text and strip out parts like page headers.
+2. **Chunk.** Split each document into **chunks**, short passages that are usually a few hundred tokens long. A **token** is a word or part of a word. Small chunks let search return just the useful part.
+3. **Add metadata.** **Metadata** is data about the chunk, such as its title, source link, date and who may see it. Microsoft's guide suggests a title, summary and keywords.
+4. **Embed.** An **embedding model** turns each chunk into an **embedding**: a long list of numbers that captures its meaning. Texts with similar meanings get similar numbers. Another name for this list is a **vector**.
+5. **Store.** Save each chunk, its embedding and its metadata in a **search index**, keeping a link back to the original document. A **vector database** is one kind of search index, built to compare embeddings quickly.
+
+### The query pipeline
+
+1. **Embed the question** with the same embedding model.
+2. **Search.** **Vector search** finds chunks whose numbers are closest to the question's numbers, meaning their meaning is most alike. **Keyword search** finds exact words, such as a product code. **Hybrid search** runs both and merges the two lists into one.
+3. **Rerank.** A **reranker** is a second model that reads the question next to each chunk and scores how well they match. It is slower but more accurate, so it checks only the first search's top results.
+4. **Build the prompt.** The **prompt** is the full text sent to the model. Put the best few chunks, their sources and the question into it. Tell the model to answer only from these chunks and to say when they do not contain the answer.
+5. **Answer with citations.** A **citation** is a pointer to the source behind a claim. Each chunk keeps its link, so the app can show the source.
+
+### The main design choices
+
+| Choice | What you decide | What goes wrong if it is off |
+|---|---|---|
+| Chunk size and method | By sentence, fixed length, or by headings. | Too big wastes room in the prompt; too small loses meaning. |
+| Embedding model | Which model turns text into numbers. | Microsoft's guide says this choice strongly affects search quality. |
+| Search type | Vector, keyword, or hybrid. | Vector alone can miss exact codes and names. |
+| Reranking | Whether to rerank, and how many results. | Without it, weaker chunks reach the model. |
+| Number of chunks | How many go into the prompt. | Too few misses facts; too many adds off-topic text and cost. |
+| Access rules | Which chunks each user may see. | Staff could read documents they should not. |
+
+### What the sources measured
+
+In a 2024 post, Anthropic tested ways to improve the search step on public data, such as code and research papers. A "failed search" meant the right chunk was not in the top 20 results. Having a model write a short note on where each chunk fits in its document, and using keyword search too, cut failed searches by about half. Adding a reranker raised the cut to 67%. These are Anthropic's numbers on its own tests, not a promise for yours.
+
+The same post says RAG is not always needed. If your whole knowledge base is under about 200,000 tokens (about 500 pages), you can put all of it in the prompt instead. That cutoff assumes a model that can read that much at once. Check the limit of the model you use.
+
+## Common mistakes
+
+- **Blaming the model for bad search** — if the right chunk never arrives, no model can answer well. For each sample question, check that the right chunk is in the top results.
+- **Chunks that lose their context** — a chunk saying "revenue grew 3%" is useless without the company and year. Add a title, section name or a short summary to each chunk.
+- **Ignoring who may see what** — the index can leak documents to the wrong people. Store access rules as metadata and filter by the user's rights.
+- **No "I don't know" path** — the model fills gaps with guesses. Tell it to say when the chunks are not enough.
+- **Checking steps but never the final answer** — Microsoft's guide says to test each step, but users only see the final answer. Also score whole answers on a fixed set of sample questions after each change.
+
+## Remember this
+
+<Remember>
+- RAG has two pipelines: ingestion (chunk, embed, store) runs ahead of time; the query pipeline (search, rerank, prompt, answer) runs on every question.
+- Answers can only be as good as retrieval: if the right chunk is not found, the model cannot use it.
+- Keep a source link and access rules on every chunk, so answers can cite sources and users only see what they are allowed to.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "HR changes the leave policy. What must happen for a RAG chatbot to give the new answer?",
+      options: ["Retrain the model", "Re-run ingestion so the updated page is chunked, embedded and stored again", "Make the prompt longer", "Nothing, the model learns it on its own"],
+      answer: 1,
+      why: "In RAG the facts live in the search index, not in the model's weights. Updating the index is enough; retraining is what RAG avoids."
+    },
+    {
+      q: "Users search for part number 'XK-4471' and the chatbot finds nothing useful. Which change is most likely to help?",
+      options: ["Use hybrid search so keyword search can match the exact code", "Use bigger chunks", "Switch to a larger model", "Remove the reranker"],
+      answer: 0,
+      why: "Vector search matches meaning and can miss exact codes. Keyword search matches the exact string, and hybrid search combines both. A larger model cannot fix a chunk that was never found."
+    },
+    {
+      q: "What does a reranker do?",
+      options: ["Turns documents into embeddings", "Reads the question next to each top result and re-scores how well they match", "Writes the final answer", "Splits documents into chunks"],
+      answer: 1,
+      why: "A reranker is a second, more careful scoring step on the first search's best results. It is slower, so it only checks a short list."
+    },
+    {
+      q: "A team's whole knowledge base is 80 pages. What does Anthropic's post suggest?",
+      options: ["Build a full RAG system anyway", "Retrain the model on the 80 pages", "Consider putting all of it in the prompt instead of building RAG"],
+      answer: 2,
+      why: "The post says a knowledge base under about 200,000 tokens (about 500 pages) can go straight into the prompt, if the model can read that much. RAG adds parts to build and run, so in this lesson's view it pays off for larger collections."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Build, buy, or customize? Choosing how to use AI](/docs/ai-architect/foundations/build-buy-or-customize)
+- Read first: [Context window, memory, and why agents forget](/docs/ai-agents/foundations/context-window-and-memory)
+- Related: [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents)
+- Sources are listed below with the date they were last checked.

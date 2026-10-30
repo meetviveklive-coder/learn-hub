@@ -247,7 +247,7 @@ items:
     title: "Build, buy, or customize? Choosing how to use AI"
     why: "The first big decision on any AI project: SaaS tool vs API vs RAG vs fine-tuning vs own model."
     priority: 1
-    status: in_review
+    status: published
     notes: "Explain trade-offs (cost, control, speed, risk) in a table. No vendor prices."
 
   - id: choosing-a-model
@@ -265,7 +265,7 @@ items:
     title: "RAG architecture: giving AI your company's knowledge"
     why: "Most enterprise AI is retrieval-augmented generation; the core pattern to master."
     priority: 1
-    status: queued
+    status: in_review
     notes: "Cover chunking, embeddings, vector search, re-ranking, citations. Link context-window lesson."
 
   - id: ai-gateway
