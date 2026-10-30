@@ -229,7 +229,7 @@ items:
     title: "What does an AI technical architect do?"
     why: "Sets the goal of the track: the role, its decisions, and how it differs from ML engineer and enterprise architect."
     priority: 1
-    status: in_review
+    status: published
     notes: "Use real job descriptions only as patterns, never quote a company. Show the main decisions the role owns."
 
   - id: enterprise-ai-reference-architecture
@@ -238,7 +238,7 @@ items:
     title: "The layers of an enterprise AI system"
     why: "The one-page mental map every later lesson hangs on: users, apps, orchestration, models, data, platform, governance."
     priority: 1
-    status: queued
+    status: in_review
     notes: "Vendor-neutral first; name AWS/Azure/Google only as examples, from their official architecture centres. Prefer a layered text diagram."
 
   - id: build-buy-or-customize

@@ -1,4 +1,7 @@
 {
   "title": "Foundations",
-  "pages": ["what-does-an-ai-architect-do"]
+  "pages": [
+    "what-does-an-ai-architect-do",
+    "enterprise-ai-reference-architecture"
+  ]
 }

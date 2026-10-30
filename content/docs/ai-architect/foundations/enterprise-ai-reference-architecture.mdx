@@ -1,0 +1,168 @@
+---
+title: The layers of an enterprise AI system
+description: A one-page map of a company AI system in seven layers, from the user down to the cloud, with governance wrapped around it all.
+domain: ai-architect
+level: basics
+order: 2
+prerequisites: [what-does-an-ai-architect-do, what-is-an-ai-agent]
+tags: [architecture, layers, reference-architecture, rag, ai-architect]
+sources:
+  - title: Emerging Architectures for LLM Applications (Andreessen Horowitz, 2023)
+    url: https://a16z.com/emerging-architectures-for-llm-applications/
+    type: article
+  - title: Baseline Microsoft Foundry chat reference architecture (Azure Architecture Center)
+    url: https://learn.microsoft.com/en-us/azure/architecture/ai-ml/architecture/baseline-openai-e2e-chat
+    type: official
+  - title: RAG infrastructure for generative AI using Agent Platform and AlloyDB for PostgreSQL (Google Cloud Architecture Center)
+    url: https://docs.cloud.google.com/architecture/rag-capable-gen-ai-app-using-vertex-ai
+    type: official
+  - title: Generative AI Lens — AWS Well-Architected Framework
+    url: https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lens.html
+    type: official
+last_verified: 2026-10-30
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** A layered map of a company AI system: users, apps, orchestration, models, data, platform, and governance around all of them.
+- **Why it matters:** Each layer has its own owners, risks and choices. The map shows where a new decision belongs.
+- **Example:** A support chatbot touches every layer, from the chat window down to the network, and each layer needs its own checks.
+
+## Think of it like…
+
+<Analogy>
+Think of a restaurant. Guests sit in the dining room. Waiters take orders, and the kitchen cooks. The pantry holds ingredients, and the building supplies power and water. A health inspector checks every part.
+
+**Where the comparison breaks:** A cook follows a recipe and makes the same dish each time. An AI model can give a different answer to the same question.
+</Analogy>
+
+## Real-world example
+
+An insurance company wants a chatbot that answers staff questions about policy rules. The team first sketches it as seven layers.
+
+Staff open the chatbot inside the company's internal website. The website checks who they are. Behind it, orchestration code runs the steps in order. It turns each question into a search, finds the right policy pages, and sends them to a model. A model is the AI program that reads text and writes the answer. The instructions and pages it receives are called the prompt.
+
+The policy pages sit in a search index, a store built so the right pages can be found fast. Everything runs in the company's cloud account on a private network that outsiders cannot reach. Around it all, governance rules decide what gets logged, what gets filtered, and who signs off on changes.
+
+When a cheaper model comes out later, the team knows exactly which layer changes. The website, the data and the rules stay the same. The team only re-runs its quality tests before switching.
+
+## How it works
+
+### There is no single official diagram
+
+Each big cloud company draws this picture its own way. Microsoft, Google and Amazon Web Services (AWS) all publish reference architectures. A reference architecture is a tested, reusable design for a common kind of system. The seven layers below are a teaching map that blends their ideas without depending on any one supplier.
+
+```text
+ ┌──────────────────────────────────────────────┐  ┌────────────┐
+ │ 1. Users & channels  web, mobile, chat       │  │            │
+ ├──────────────────────────────────────────────┤  │ 7. GOVERN- │
+ │ 2. Applications      UI, login, rules        │  │   ANCE     │
+ ├──────────────────────────────────────────────┤  │            │
+ │ 3. Orchestration     prompts, retrieval,     │  │ policies   │
+ │                      tools, agent loop       │  │ safety     │
+ ├──────────────────────────────────────────────┤  │ filters    │
+ │ 4. Models            chat models, embedding  │  │ evals      │
+ │                      models                  │  │ audit logs │
+ ├──────────────────────────────────────────────┤  │ cost       │
+ │ 5. Data & knowledge  documents, databases,   │  │            │
+ │                      search index, history   │  │            │
+ ├──────────────────────────────────────────────┤  │            │
+ │ 6. Platform          compute, network,       │  │            │
+ │                      identity, monitoring    │  │            │
+ └──────────────────────────────────────────────┘  └────────────┘
+```
+
+A request travels down from layer 1 to layer 5, and the answer travels back up. Layer 6, the platform, is what all of them run on. Governance (layer 7) watches every layer.
+
+A few words from the diagram: **tools** are actions the AI may take, like looking up an order. The **agent loop** is the cycle of choosing a step, doing it and checking the result. **Embedding models** turn text into lists of numbers, so a computer can find text with a similar meaning. **Evals** are tests that score many sample answers. **Audit logs** are records of who did what, and when.
+
+### What each layer does
+
+| Layer | Job | Typical question for the architect |
+|---|---|---|
+| 1. Users & channels | Where people meet the AI | Staff only, or customers too? |
+| 2. Applications | The screen, the login, and the business rules | Who may see which conversations? |
+| 3. Orchestration | The code that builds the prompt, fetches data, calls tools and repeats steps | A fixed workflow, or an agent that picks its own steps? |
+| 4. Models | The AI programs that read and write text, or turn text into numbers for search | Which model, and can we swap it later? |
+| 5. Data & knowledge | The facts the AI may use, plus saved conversations | Which data is allowed, and how fresh must it be? |
+| 6. Platform | The computers that run everything (compute), the private network, identity (who or what is allowed in), and monitoring | Where does it run, and how do parts connect safely? |
+| 7. Governance | The rules, checks and records around everything | What do we log, block, test and approve? |
+
+### What the official designs show
+
+**The core flow has been around for years.** A 2023 essay by the investment firm Andreessen Horowitz described three stages for apps built on large language models (LLMs). First, documents are split into pieces and stored for search. Next, the app finds the most useful pieces and builds a prompt. Then a model answers. The essay called this in-context learning. Today the same pattern is usually called RAG, short for retrieval-augmented generation. All three cloud designs in this lesson use a version of it.
+
+**Google splits the work into subsystems.** A subsystem is a smaller system with one job inside the bigger one. Google's RAG design has three: one loads data, one answers users, and one scores answer quality. Answers pass through safety filters, which Google calls Responsible AI filters, before users see them. Logs of requests and responses can be stored for later review.
+
+**Microsoft adds strong platform and governance layers.** Its baseline chat design has one internet-facing front door, protected by a web application firewall. That firewall screens incoming web traffic for attacks. The agent reaches its data over a private network. Microsoft also notes that the app layer must check that each user sees only their own conversations. It advises turning off automatic model upgrades and testing new versions first.
+
+**AWS organizes advice by area and by stage.** Its Generative AI Lens groups advice into six pillars, or main areas. In plain words, they are: running it well, security, reliability, speed, cost, and energy use. It also follows six stages of a project, from scoping and choosing a model through to launch and continuous improvement.
+
+### Why layers help
+
+Layers let you change one part without breaking the others, and they make ownership clear. They also give every later lesson in this track a home. In RAG, the stored documents live in layer 5, while finding them and building the prompt happen in layer 3. Security and cost touch every layer.
+
+## Common mistakes
+
+- **Drawing only the model** — the model is one box out of seven. Data leaks, access mistakes and missing logs happen in the other layers. Sketch all layers before choosing a model.
+- **Putting access checks in the wrong layer** — if the app does not check who owns a conversation, users may see each other's chats. Decide which layer enforces each rule and write it down.
+- **Tying the app straight to one model** — swapping models later means rewriting the app. Keep model calls inside the orchestration layer.
+- **Treating governance as a final step** — adding logs and filters after launch is slow and risky. Design them in from the first sketch.
+- **Copying a vendor diagram as-is** — each cloud's diagram uses its own product names. Map their boxes to the generic layers first, then choose products.
+
+## Remember this
+
+<Remember>
+- Seven layers: users, applications, orchestration, models, data, platform, and governance around all of them.
+- The core flow is RAG: find the right data, build a prompt, let the model answer.
+- Layers make ownership clear and let you swap one part, like the model, without rebuilding the rest.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Your team wants to switch to a cheaper model. Which layer should change the most?",
+      options: ["Users & channels", "Models (and the orchestration code that calls them)", "Platform network", "Governance policies"],
+      answer: 1,
+      why: "The model layer changes, plus perhaps the orchestration code that calls it. The team re-runs its evals before switching. If the app called the model directly, you would also have to rewrite the app, which is why model calls belong in orchestration."
+    },
+    {
+      q: "Where does the code that finds policy pages and builds the prompt belong?",
+      options: ["Applications", "Orchestration", "Data & knowledge"],
+      answer: 1,
+      why: "Orchestration does the steps: search, build the prompt, call the model. The pages themselves live in the data layer, which is the tempting wrong answer."
+    },
+    {
+      q: "Why is governance drawn as a side bar instead of one more row?",
+      options: [
+        "Because it is optional",
+        "Because it applies to every layer, from logging user requests to testing models",
+        "Because only lawyers work on it",
+        "Because it runs on a separate cloud"
+      ],
+      answer: 1,
+      why: "Governance cuts across all layers: filters on answers, rules on data, audit logs on the platform. It is not optional, and it is not only a legal job."
+    },
+    {
+      q: "In Google's RAG design, what does the third subsystem do?",
+      options: ["Loads new documents", "Answers user questions", "Scores the quality of answers"],
+      answer: 2,
+      why: "Google's design has three parts: one loads data, one answers users, and one scores answer quality. Quality checking is its own subsystem, not an afterthought."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What does an AI technical architect do?](/docs/ai-architect/foundations/what-does-an-ai-architect-do)
+- Read first: [What is an AI agent?](/docs/ai-agents/foundations/what-is-an-ai-agent)
+- Related: [Context window, memory, and why agents forget](/docs/ai-agents/foundations/context-window-and-memory) — why the data layer has to pick only the most useful pieces.
+- Related: [Model Context Protocol (MCP) in plain words](/docs/ai-agents/tools/mcp-basics) — one standard way the orchestration layer reaches tools and data.
+- Related: [Guardrails, permissions, and hooks](/docs/harness-engineering/building-blocks/guardrails-and-hooks) — governance at the scale of a single agent.
+- Next in this track: "Build, buy, or customize? Choosing how to use AI" (coming soon).
+- Sources are listed below with the date they were last checked.
