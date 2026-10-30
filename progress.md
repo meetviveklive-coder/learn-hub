@@ -30,3 +30,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-10-30 | new-lesson | guardrails-and-hooks written, reviewer fixes applied, checks + build pass, PR opened; instruction-files marked published | claude/lesson-guardrails-and-hooks
 2026-10-30 | new-lesson | what-does-an-ai-architect-do written, reviewer fixes applied, checks + build pass, PR opened; guardrails-and-hooks marked published | claude/lesson-what-does-an-ai-architect-do
 2026-10-30 | new-lesson | enterprise-ai-reference-architecture written, reviewer fixes applied, checks + build pass, PR opened; what-does-an-ai-architect-do marked published | claude/lesson-enterprise-ai-reference-architecture
+2026-10-30 | new-lesson | build-buy-or-customize written, reviewer fixes applied, checks + build pass, PR opened; enterprise-ai-reference-architecture marked published | claude/lesson-build-buy-or-customize

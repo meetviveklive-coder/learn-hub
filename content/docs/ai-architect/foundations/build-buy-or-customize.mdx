@@ -1,0 +1,154 @@
+---
+title: Build, buy, or customize? Choosing how to use AI
+description: Five ways a company can use AI, from buying a ready tool to training its own model, and how to pick the simplest one that works.
+domain: ai-architect
+level: basics
+order: 3
+prerequisites: [enterprise-ai-reference-architecture, prompt-vs-context-engineering]
+tags: [build-vs-buy, rag, fine-tuning, saas, ai-architect]
+sources:
+  - title: AI adoption — Cloud Adoption Framework (Microsoft Learn)
+    url: https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/scenarios/ai
+    type: official
+  - title: GENOPS05-BP01 Learn when to customize models — AWS Well-Architected Generative AI Lens
+    url: https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/genops05-bp01.html
+    type: official
+  - title: The generative AI customization spectrum, from prompt engineering to custom models on AWS (AWS Machine Learning Blog, Sep 2026)
+    url: https://aws.amazon.com/blogs/machine-learning/the-generative-ai-customization-spectrum-from-prompt-engineering-to-custom-models-on-aws/
+    type: article
+  - title: Model optimization (OpenAI API docs)
+    url: https://developers.openai.com/api/docs/guides/model-optimization
+    type: official
+last_verified: 2026-10-30
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** The first big choice on an AI project: buy a ready tool, call a model, feed it your data, retrain it, or build your own.
+- **Why it matters:** Each step up costs more and takes longer, and you have to run what you build. Pick the wrong step and you waste months.
+- **Example:** A store buys an AI writing tool for staff, but connects a model to its own policy pages for the customer chatbot.
+
+## Think of it like…
+
+<Analogy>
+Think about getting a suit. You can buy one off the rack, or have a tailor adjust one. You can also order a made-to-measure suit, or weave your own cloth. Each choice fits better, but costs more and takes longer. Buying is off the rack, prompts and your own data are the tailor, fine-tuning is made-to-measure, and building a model is weaving cloth.
+
+**Where the comparison breaks:** A suit stays the same once made. AI models and tools change every few months, so your choice needs a fresh look over time.
+</Analogy>
+
+## Real-world example
+
+An online furniture store has three AI ideas. The architect treats each one as its own decision, not one big choice.
+
+**Staff email drafts.** Staff want help writing emails. Many ready-made AI assistants already do this well. The store buys one, sets the access rules, and is done in weeks.
+
+**Customer chatbot.** Customers ask about delivery times and the return policy. A general model does not know this store's rules. So the team calls a model and gives it the right policy pages with each question. When a policy changes, they update the page, not the model.
+
+**Product descriptions.** The store writes thousands of descriptions in a strict house style. Careful prompts get close, but tests show the tone still drifts. Only then does the team try fine-tuning: extra training of the AI on a few thousand approved examples. A smaller fine-tuned model also needs shorter prompts, so each call is cheaper.
+
+## How it works
+
+### Five options, from least to most effort
+
+A **model** is the AI program that reads and writes text. Its **weights** are the billions of numbers it learned in training. The options differ in how much you change, and how much you must run yourself.
+
+1. **Buy a ready tool (SaaS).** Software as a service (SaaS) is an app you rent and use online. The vendor runs everything. You change only its settings.
+2. **Call a model through an API, with good prompts.** An application programming interface (API) lets your code send text to a model and get an answer back. You write the prompt: the instructions and examples sent with each request.
+3. **Add your own data (RAG).** Retrieval-augmented generation (RAG) means your code finds the right documents and adds them to the prompt. The model's weights stay the same. Only the data changes.
+4. **Fine-tune.** You train an existing model further on your own labeled examples, so its weights change. Labeled examples are inputs paired with the answers you want.
+5. **Build your own model.** You train a model on a huge pile of your own field's data. A cheaper middle step extends an existing model this way. Training one from scratch needs the most data, money and skill.
+
+### The trade-offs
+
+| Option | Cost | Control | Speed to launch | Main risk |
+|---|---|---|---|---|
+| 1. Buy SaaS | Low; licence or usage fees | Low | Fastest | Only does what the vendor allows |
+| 2. API + prompts | Low to medium; pay per use | Medium | Fast | Prompts grow long; model lacks your facts |
+| 3. RAG | Medium; adds a search system | Medium to high | Weeks to months | Bad search gives bad answers |
+| 4. Fine-tune | High; labeled data plus training | High | Months | Data work, retraining when the original model is retired |
+| 5. Own model | Highest | Full | Slowest | Big cost and skills you may not have |
+
+Options can be combined. A system may use RAG for fresh facts and a fine-tuned model for its writing style.
+
+### What the official guides advise
+
+**Pick the least you have to run.** Microsoft's AI adoption guide groups choices into three tiers. You can buy a ready product, or build on a managed platform where the cloud company runs the computers. Or you can run your own models on rented cloud computers you manage yourself. Its rule is to meet your needs with the least operational responsibility, meaning the least work to keep it running. It says managing the computers yourself should not be the default.
+
+**Start simple and climb only when needed.** AWS's Well-Architected guidance lists prompting first, then RAG, then fine-tuning or extending a model, then a custom model. It advises moving up only when the simpler step falls short. An AWS blog post from September 2026 says most workloads, meaning real tasks a company runs, never need to go past RAG. That is the authors' view, not a measured rule.
+
+**Measure before and after each step.** OpenAI's guide puts evals (tests that score many sample answers) at the start. You set a baseline, try better prompts, and fine-tune only if the scores still fall short. The guide notes that good prompting may be all you need.
+
+### A simple decision path
+
+```text
+Does a ready tool already do the job?   yes → buy it (1)
+        │ no
+Do good prompts on a model work?        yes → API + prompts (2)
+        │ no: model lacks your facts
+Add your documents to the prompt        works → RAG (3)
+        │ no: style or format still wrong
+Fine-tune on approved examples          works → fine-tune (4)
+        │ no: still poor, and you have huge amounts of field data
+Build your own model (5) — rare, and costly
+```
+
+Climb one step at a time, and let test scores decide each move.
+
+## Common mistakes
+
+- **Fine-tuning to teach facts** — facts change, and retraining is slow and costly. Use RAG for facts that change, and fine-tuning for style, format or narrow tasks.
+- **Building when you could buy** — you then own the servers, updates and fixes forever. Check ready tools first, and build only for a real gap.
+- **Skipping the baseline test** — without scores, you cannot tell if a harder option helped. Write evals before you change anything.
+- **Treating the choice as permanent** — vendors change what they offer. OpenAI's docs now say it is winding down its fine-tuning platform, which is closed to new users. Review the choice regularly, and keep the model easy to swap.
+- **One answer for the whole company** — each use case has its own needs. Decide per use case, like the furniture store did.
+
+## Remember this
+
+<Remember>
+- Five options, from least to most effort: buy SaaS, API with prompts, RAG, fine-tune, build your own model.
+- Pick the simplest option that meets the need, and climb only when tests show the step below falls short.
+- RAG brings in fresh facts without changing the model; fine-tuning changes the model's behavior or style.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A bank's chatbot must answer from interest-rate rules that change every month. Which option fits best?",
+      options: ["Fine-tune the model each month", "RAG: add the current rule pages to each prompt", "Build a new model", "Prompts alone, with no data"],
+      answer: 1,
+      why: "RAG lets you update the documents, not the model, so new rules show up right away. Fine-tuning every month is slow and costly, and it is a weak way to store changing facts."
+    },
+    {
+      q: "Microsoft's AI adoption guide gives which rule for choosing?",
+      options: ["Always build your own for full control", "Pick the option that meets your needs with the least operational responsibility (least work to run)", "Always pick the cheapest licence"],
+      answer: 1,
+      why: "The guide says to meet your needs with the least operational responsibility, meaning the least work to keep it running. More control means more skill and more work to keep it running, so running your own infrastructure should not be the default."
+    },
+    {
+      q: "Good prompts get product descriptions close, but the tone still drifts in tests. What is a sensible next step?",
+      options: ["Build your own model", "Give up on AI", "Try fine-tuning on approved examples, then re-run the tests", "Buy a different SaaS tool without testing it"],
+      answer: 2,
+      why: "Style and format problems that prompts cannot fix are what fine-tuning is for. Re-running the same tests shows whether it helped. Building your own model jumps too many steps."
+    },
+    {
+      q: "Why should you run evals before choosing a harder option?",
+      options: ["Vendors require them", "They give a baseline, so you can tell if the harder option actually helped", "They make the model faster"],
+      answer: 1,
+      why: "Without a baseline score, you cannot show that RAG or fine-tuning improved anything. Evals do not speed up the model; they measure quality."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [The layers of an enterprise AI system](/docs/ai-architect/foundations/enterprise-ai-reference-architecture)
+- Read first: [Prompt engineering vs context engineering](/docs/ai-agents/foundations/prompt-vs-context-engineering)
+- Related: [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents) — how to build the tests that guide each step.
+- Related: [Context window, memory, and why agents forget](/docs/ai-agents/foundations/context-window-and-memory) — why RAG must pick only the most useful pages.
+- Next in this track: "Choosing a model: capability, cost, speed and risk" (coming soon).
+- Sources are listed below with the date they were last checked.

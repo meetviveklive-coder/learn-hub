@@ -238,7 +238,7 @@ items:
     title: "The layers of an enterprise AI system"
     why: "The one-page mental map every later lesson hangs on: users, apps, orchestration, models, data, platform, governance."
     priority: 1
-    status: in_review
+    status: published
     notes: "Vendor-neutral first; name AWS/Azure/Google only as examples, from their official architecture centres. Prefer a layered text diagram."
 
   - id: build-buy-or-customize
@@ -247,7 +247,7 @@ items:
     title: "Build, buy, or customize? Choosing how to use AI"
     why: "The first big decision on any AI project: SaaS tool vs API vs RAG vs fine-tuning vs own model."
     priority: 1
-    status: queued
+    status: in_review
     notes: "Explain trade-offs (cost, control, speed, risk) in a table. No vendor prices."
 
   - id: choosing-a-model
