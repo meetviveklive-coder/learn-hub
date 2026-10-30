@@ -1,0 +1,182 @@
+---
+title: Guardrails, permissions, and hooks
+description: Guardrails are hard limits around an agent. Permission rules decide what it may do, and hooks run your own checks before or after each action.
+domain: harness-engineering
+level: basics
+order: 2
+prerequisites: [instruction-files, what-is-harness-engineering, tools-and-function-calling]
+tags: [harness, guardrails, permissions, hooks, sandbox, safety]
+sources:
+  - title: Configure permissions (Claude Code docs)
+    url: https://code.claude.com/docs/en/permissions
+    type: official
+  - title: Hooks reference (Claude Code docs)
+    url: https://code.claude.com/docs/en/hooks
+    type: official
+  - title: Automate actions with hooks (Claude Code docs)
+    url: https://code.claude.com/docs/en/hooks-guide
+    type: official
+  - title: Configure the sandboxed Bash tool (Claude Code docs)
+    url: https://code.claude.com/docs/en/sandboxing
+    type: official
+last_verified: 2026-10-30
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** A guardrail is a hard limit on what an agent can do. In Claude Code, the main guardrails are permission rules, hooks (your own scripts that run at set moments), and a sandbox (a walled-off space where commands run).
+- **Why it matters:** An instruction file only asks the agent to behave. A guardrail makes the tool itself refuse, so you can leave the agent alone with less worry.
+- **Example:** A rule that denies reading `.env` stops the agent's file tools from opening that file, whatever the agent decides.
+
+## Think of it like…
+
+<Analogy>
+Think of a teenager borrowing the family car. The talk before they leave ("drive slowly, be home by ten") is the instruction file. A speed limiter in the engine is a permission rule: it simply won't let the car pass a set speed. A smart dashcam that beeps when they drift, and can even brake the car, is a hook: a check that fires at certain moments.
+
+**Where the comparison breaks:** A speed limiter covers every road. A permission rule only covers the actions it names, so an agent can sometimes reach the same result another way.
+</Analogy>
+
+## Real-world example
+
+A small team lets a coding agent fix failing tests overnight, with no one watching. The team writes "never touch the secrets file" in `CLAUDE.md`. But that is only advice. Claude Code's docs say rules in prompts or `CLAUDE.md` shape what the agent *tries* to do, not what the tool *allows*.
+
+So the team adds three guardrails in `.claude/settings.json`, the project's settings file. First, a deny rule blocks reads of `.env`. Second, a hook runs before every file edit and blocks changes to the lock file (the exact list of library versions) and the `.git/` folder (the project's history). Third, a second hook runs the tests after each edit and shows the agent any failures. Now the important rules hold even on a night when the agent ignores its instructions.
+
+## How it works
+
+Each time the agent wants to use a tool, Claude Code runs a set of checks before the tool does anything. A tool is an action the agent can take, like reading a file or running a shell command (a typed command for the computer, like `npm test`).
+
+```text title="One tool call, step by step"
+Agent asks to use a tool (e.g. Edit config.js)
+        │
+        ▼
+PreToolUse hooks run ──► exit code 2 or "deny" ──► BLOCKED
+        │                 (a hook can also say "ask" or "allow")
+        │
+        ▼
+Permission rules: deny? ──► BLOCKED
+                  ask?  ──► ask the human
+                  allow? ─► run without asking
+        │
+        ▼
+Tool runs (inside the sandbox, if it's a shell command and the sandbox is on)
+        │
+        ▼
+PostToolUse hooks run ──► can report problems back to the agent
+```
+
+*Hooks and rules both get a say before the tool runs. A block from either one wins.*
+
+### 1. Permission rules: allow, ask, deny
+
+You write rules in a settings file. Each rule names a tool and, if you like, a pattern, a short template that matches many commands. The `*` stands for "anything here." For example, `Bash(npm run test *)` matches `npm run test` alone or followed by more words.
+
+| Rule | What happens |
+|---|---|
+| **deny** | The call is blocked. |
+| **ask** | Claude Code stops and asks you to approve. |
+| **allow** | The call runs without asking. |
+
+Claude Code checks deny first, then ask, then allow. The first match decides. So a broad deny rule beats a narrow allow rule, and an allow rule can never "carve a hole" in a deny rule.
+
+By default, reading files in your project needs no approval. Editing files and running most shell commands do. A permission mode is a preset that changes these defaults for a whole session. For example, `acceptEdits` approves file edits and simple file commands automatically. `plan` lets the agent explore but not edit your source files.
+
+### 2. Hooks: your own checks at set moments
+
+A hook is a command that Claude Code runs automatically at a point in the agent's work. The docs call this "deterministic control." That means the step always happens, instead of relying on the model to remember it. Three common moments:
+
+- **PreToolUse** runs before a tool call and can block it.
+- **PostToolUse** runs after a tool call succeeds. Good for formatting code or running a quick check.
+- **Stop** runs when the agent finishes its reply. It can tell the agent to keep going.
+
+A hook receives details about the action as JSON, a simple text format for data. Here is the shape of the docs' example, which blocks edits to protected files. You don't need every symbol: it reads the file path, compares it to a list, and blocks on a match.
+
+```bash title=".claude/hooks/protect-files.sh (shortened)"
+INPUT=$(cat)                                   # read the action details
+FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
+for p in ".env" "package-lock.json" ".git/"; do
+  if [[ "$FILE" == *"$p"* ]]; then
+    echo "Blocked: $FILE is protected" >&2     # error message; goes to the agent
+    exit 2                                     # 2 = block the action
+  fi
+done
+exit 0                                         # 0 = fine, carry on
+```
+
+You register it in settings under `PreToolUse` with the matcher `Edit|Write`. A matcher picks which tools the hook watches, and `|` means "or." So it runs only before file edits. The exit code is the number a program returns when it ends, and it matters a lot here. Code 2 blocks the action. Code 0 means success. By default, any other code, like 1, is a "non-blocking error": the hook failed, but the action still goes ahead.
+
+A hook can also answer with JSON that says `allow`, `deny`, or `ask`. But a hook's "allow" cannot override your deny or ask rules. Deny still wins.
+
+### 3. The sandbox: a wall around shell commands
+
+Permission rules match the *text* of a command. The docs warn that this is not a full security boundary. A deny rule for `.env` stops `cat .env`. But a small Python script that opens `.env` by itself slips past it.
+
+The sandbox closes that gap. The operating system itself (the core software of the computer) limits what shell commands can touch. This also covers any programs those commands start. With the sandbox on, commands can write only inside the project folder (plus a few allowed places, like a folder for temporary files). By default they can still read most of the computer, so you list secret paths to block. Network traffic goes through a filter that checks each domain (a website name like `github.com`); a new one needs your approval or must be on your allowed list. The sandbox is off by default, so you have to turn it on.
+
+## Common mistakes
+
+- **Using an instruction file as a lock** — the agent can skip a written rule. Put rules that must never break in a deny rule or a hook.
+- **Exiting with code 1 to block** — by default, code 1 does not block; the action runs anyway. Use exit code 2 when a hook enforces a policy.
+- **Trusting a Bash deny rule as airtight** — a script the agent writes can still read or change the file another way. Turn on the sandbox and list the secret paths it must block.
+- **Expecting a narrow allow rule to beat a broad deny rule** — deny is always checked first. Make the deny rule narrower instead.
+- **Treating PostToolUse as a blocker** — it runs after the tool has already run. Use PreToolUse to stop an action; use PostToolUse to check its results.
+
+## Remember this
+
+<Remember>
+- Instruction files ask; guardrails enforce. Permission rules, hooks and the sandbox are enforced by the tool, not the model.
+- Permission rules are checked deny, then ask, then allow, and the first match wins.
+- A PreToolUse hook blocks an action by exiting with code 2; by default, other error codes let it through.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Your settings allow Bash(git push origin feature) but deny Bash(git push *). The agent runs 'git push origin feature'. What happens?",
+      options: [
+        "It runs, because the allow rule is more specific",
+        "It is blocked, because deny rules are checked first",
+        "Claude Code asks you to choose",
+        "It depends on the order of the rules in the file"
+      ],
+      answer: 1,
+      why: "Claude Code checks deny, then ask, then allow. Specificity doesn't matter, so the broad deny rule wins."
+    },
+    {
+      q: "With default settings, your PreToolUse hook finds a problem and exits with code 1. What happens to the action?",
+      options: ["It is blocked", "It still runs", "The agent stops completely"],
+      answer: 1,
+      why: "Exit code 2 blocks. By default, code 1 counts as a non-blocking error, so the action goes ahead."
+    },
+    {
+      q: "You want code to be formatted automatically after every file edit. Which hook event fits best?",
+      options: ["PreToolUse", "PostToolUse", "Stop", "None; put it in CLAUDE.md"],
+      answer: 1,
+      why: "PostToolUse runs right after a tool call succeeds, so the edit exists and can be formatted. A CLAUDE.md note only asks the agent to remember."
+    },
+    {
+      q: "Why turn on the sandbox if you already have deny rules for shell commands?",
+      options: [
+        "Deny rules only work in plan mode",
+        "The sandbox makes the agent faster",
+        "Deny rules match command text, so another form of the command can slip past; the sandbox is enforced by the operating system",
+        "The sandbox replaces the need for hooks"
+      ],
+      answer: 2,
+      why: "Rules check the text of a command. The sandbox limits what any shell command, and the programs it starts, can touch, however it is written."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Instruction files (CLAUDE.md, AGENTS.md) and skills](/docs/harness-engineering/building-blocks/instruction-files) — the soft rules that guardrails back up.
+- Read first: [What is harness engineering?](/docs/harness-engineering/foundations/what-is-harness-engineering) — guardrails are part of the harness.
+- Related: [Tools and function calling](/docs/ai-agents/foundations/tools-and-function-calling) — the tool calls these checks sit in front of.
+- Related: [When NOT to use a loop](/docs/loop-engineering/patterns/when-not-to-loop) — guardrails lower risk, but don't remove it.
+- Sources are listed below with the date they were last checked.

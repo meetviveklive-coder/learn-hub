@@ -210,7 +210,7 @@ items:
     title: Instruction files (CLAUDE.md, AGENTS.md) and skills
     why: How you give an agent lasting context.
     priority: 1
-    status: in_review
+    status: published
 
   - id: guardrails-and-hooks
     domain: harness-engineering
@@ -218,7 +218,7 @@ items:
     title: Guardrails, permissions, and hooks
     why: Making agents safe to leave alone.
     priority: 2
-    status: queued
+    status: in_review
 
   # ── Path to AI Technical Architect ──────────────────────
   # Capstone track. Lessons stay at 12th-grade reading level even though the topic is senior.
