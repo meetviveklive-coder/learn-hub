@@ -1,4 +1,4 @@
 {
   "title": "Building Blocks",
-  "pages": ["instruction-files"]
+  "pages": ["instruction-files", "guardrails-and-hooks"]
 }
