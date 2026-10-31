@@ -274,7 +274,7 @@ items:
     title: "The AI gateway: one front door for every model"
     why: "Central control point for routing, keys, rate limits, logging, cost tracking and fallbacks."
     priority: 1
-    status: in_review
+    status: published
     notes: "Explain the pattern generically; mention products only as examples from official docs."
 
   - id: agents-in-the-enterprise
@@ -301,7 +301,7 @@ items:
     title: "Is your data ready for AI?"
     why: "Data quality and access are the most common reason AI projects stall."
     priority: 1
-    status: queued
+    status: in_review
     notes: "Cover ownership, quality, freshness, access rights and lineage."
 
   - id: vector-databases-and-embeddings
