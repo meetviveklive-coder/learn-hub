@@ -1,0 +1,144 @@
+---
+title: "The AI gateway: one front door for every model"
+description: Why companies send every AI request through one central gateway, and what it does there - keys, limits, routing, logs, cost and safety.
+domain: ai-architect
+level: intermediate
+order: 2
+prerequisites: [enterprise-ai-reference-architecture]
+tags: [ai-gateway, routing, rate-limits, observability, cost, ai-architect]
+sources:
+  - title: Use a gateway in front of multiple Azure OpenAI / Foundry deployments (Azure Architecture Center)
+    url: https://learn.microsoft.com/azure/architecture/ai-ml/guide/azure-openai-gateway-guide
+    type: official
+  - title: AI gateway in Azure API Management (Microsoft Learn)
+    url: https://learn.microsoft.com/azure/api-management/genai-gateway-capabilities
+    type: official
+  - title: Cloudflare AI Gateway features (Cloudflare docs)
+    url: https://developers.cloudflare.com/ai-gateway/features/
+    type: official
+  - title: Guidance for Multi-Provider Generative AI Gateway on AWS (AWS Solutions Library)
+    url: https://docs.aws.amazon.com/solutions/multi-provider-generative-ai-gateway-on-aws/
+    type: official
+last_verified: 2026-10-31
+status: published
+author: agent
+reading_minutes: 7
+---
+
+## In 3 lines
+
+- **What it is:** An AI gateway is one service that every app in a company calls instead of calling AI models directly.
+- **Why it matters:** It gives one place to control keys, limits, routing, logs, cost and safety, instead of every team building these alone.
+- **Example:** Ten teams share one gateway. If you set up a backup, the gateway can send their requests to it when the main model fails.
+
+## Think of it like…
+
+<Analogy>
+Think of the front desk of an office building. Visitors do not wander to any room they like. They sign in, show a badge, and the desk sends them to the right floor. If a meeting room is closed, the desk points them to another one, and the visitor log shows who came and when.
+
+**Where the comparison breaks:** A front desk adds a few seconds once per visit. A gateway adds a small delay to every single request, so it must be fast and built to survive failures.
+</Analogy>
+
+## Real-world example
+
+A retail company has a support chatbot, a product-description writer and an internal search tool. Each team signed up on its own with a **model provider**, a company that runs AI models you pay to use. An **API** is the set of rules code uses to talk to a service. Each app holds its own **API key**, a secret password that lets code call the model. Nobody knows the total monthly bill, and one script with a bug looped endlessly and used up the shared limit for everyone.
+
+The architect puts an AI gateway in the middle. Each team now gets its own gateway key with its own token budget. The real provider keys sit only inside the gateway. The gateway logs every request, so finance can see cost per team. The architect also sets a backup: when the main model returns errors, the gateway retries on a second model, and the apps do not change.
+
+## How it works
+
+### Where it sits
+
+Microsoft's architecture guide describes the gateway as a **reverse proxy**: a server that receives requests on behalf of other servers and passes them on. Apps talk to the gateway; the gateway talks to the models. A **self-hosted model** is one the company runs on its own servers.
+
+```text
+  support bot ─┐                        ┌─→ model provider A
+  writer app  ─┼─→  AI GATEWAY  ───────┼─→ model provider B (backup)
+  search tool ─┘   (keys, limits,       └─→ self-hosted model
+                    routing, logs,
+                    cache, safety)
+```
+
+Every request passes through one front door, so every rule lives in one place.
+
+### What a gateway does
+
+Between them, the sources describe these core jobs. Products marked **beta** or **preview** are early versions that may still change. A **prompt** is the text sent to a model.
+
+| Job | What it means | Example from the sources |
+|---|---|---|
+| **Access control** | Check who is calling and hide the real provider keys. | The AWS guidance hands out gateway-made ("virtual") keys and keeps real provider keys in a locked vault service for secrets. Cloudflare (beta) can store provider keys so apps never hold them. |
+| **Rate limits and quotas** | Cap how much each app may use. A **token** is a word or part of a word. A limit caps speed; a quota caps the total over a period. | Azure API Management can set a tokens-per-minute limit, or a token quota per month, for each caller. It also logs token use for billing. |
+| **Routing and fallback** | **Routing** picks which model gets each request. **Fallback** means switching to another model when one fails. | Azure can give priority to capacity you already prepaid for, and send the rest to models billed per use. Cloudflare (beta) can route by rules, with fallbacks. |
+| **Circuit breaker** | Like a home fuse box, it cuts off a model that keeps failing, then tries again later. | When an overloaded model replies "try again in N seconds", Azure pauses traffic to it for that long. |
+| **Caching** | Reuse an earlier answer instead of calling the model again. | Cloudflare caches identical requests. Azure's **semantic cache** (semantic means "about meaning") reuses an answer when a new prompt means nearly the same thing, judged by comparing their meanings as numbers. |
+| **Logging and cost tracking** | Record each request, its tokens and its cost, tagged by team. | Cloudflare tracks requests, tokens, costs and errors. Azure can send token counts to its monitoring tools. |
+| **Safety checks** | Scan prompts and replies for harmful content or private data. | Azure can check prompts with its content-safety service. Cloudflare (beta) can check prompts and replies, and flag private data such as card numbers. |
+
+### One API for many models
+
+Different providers expect requests in different shapes. Some gateways translate between them. The AWS guidance uses LiteLLM, a free tool whose code anyone can read, so apps send one request format and reach many providers. Azure lists a similar feature as a preview. This makes switching models a gateway setting, not a code change in every app.
+
+### The costs of a gateway
+
+Microsoft's guide is clear that a gateway is not free:
+
+1. **Single point of failure.** If the gateway breaks, every AI feature breaks. The guide says not to add one if it puts your agreed reliability or speed goals at risk.
+2. **Extra delay.** Each request makes an extra stop on its way, so place the gateway near both users and models.
+3. **More to run.** It needs locking down against attacks, updates and its own monitoring.
+4. **It sees everything.** Raw prompts and answers flow through it, so it falls under your data and privacy rules.
+5. **Streaming.** Many chat apps stream an answer word by word. The gateway must keep the link open until the last word, without timing out early.
+
+## Common mistakes
+
+- **Letting apps keep provider keys** — a leaked key bypasses every gateway rule. Keep real keys only inside the gateway and give apps their own gateway keys.
+- **Counting requests, not tokens** — one request can be ten tokens or ten thousand, so request limits do not control cost. Limit and track by tokens, per team.
+- **Caching too eagerly** — a cached answer can be out of date, meant for another user, or, with a semantic cache, the answer to a similar but different question. Cache only safe, general questions, and set a short expiry time.
+- **Building one fragile box** — one gateway in one place can take down every AI feature. Many teams run more than one copy and test what happens when it fails.
+- **Logging prompts without a plan** — logs may hold customer data. Decide who can read them and how long you keep them before you switch logging on.
+
+## Remember this
+
+<Remember>
+- An AI gateway is one front door between all your apps and all your models, so rules for keys, limits, routing, logs, cost and safety live in one place.
+- Its main jobs are access control, token limits, routing with fallback, caching, logging and cost tracking, and safety checks.
+- It adds delay, cost and a single point of failure, so add one only when shared control is worth that price.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A team's script loops by mistake and uses up the shared model limit for every other team. Which gateway feature prevents this?",
+      options: ["Semantic caching", "A token limit or quota per team", "A bigger model", "Logging prompts"],
+      answer: 1,
+      why: "A per-team token limit stops one caller from using everyone's capacity. Logging would show the problem afterwards but would not stop it."
+    },
+    {
+      q: "Why should the real provider API keys live only inside the gateway?",
+      options: ["So the gateway runs faster", "So no app can skip the gateway's rules by calling the model directly", "Because providers require it", "So answers can be cached"],
+      answer: 1,
+      why: "If an app holds the real key, it can call the model directly and bypass limits, logs and safety checks. Teams get gateway keys instead."
+    },
+    {
+      q: "The main model provider starts returning errors. What does a gateway with fallback and a circuit breaker do?",
+      options: ["Shows users an error until the provider is fixed", "Stops sending traffic to the failing model for a while and sends requests to a backup", "Retrains the model", "Turns off logging"],
+      answer: 1,
+      why: "The circuit breaker pauses traffic to the failing model, and fallback routing sends requests to another model, without changes in the apps."
+    },
+    {
+      q: "What is the biggest new risk a gateway adds to your system?",
+      options: ["Models give worse answers", "It becomes a single point of failure for every AI feature", "Teams can no longer use AI", "Tokens cost more"],
+      answer: 1,
+      why: "Because every request goes through it, a broken gateway breaks every AI feature. That is why it needs more than one copy and failure testing."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [The layers of an enterprise AI system](/docs/ai-architect/foundations/enterprise-ai-reference-architecture)
+- Related: [RAG architecture: giving AI your company's knowledge](/docs/ai-architect/building-blocks/rag-architecture)
+- Related: [Guardrails, permissions, and hooks](/docs/harness-engineering/building-blocks/guardrails-and-hooks)
+- Sources are listed below with the date they were last checked.

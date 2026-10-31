@@ -265,7 +265,7 @@ items:
     title: "RAG architecture: giving AI your company's knowledge"
     why: "Most enterprise AI is retrieval-augmented generation; the core pattern to master."
     priority: 1
-    status: in_review
+    status: published
     notes: "Cover chunking, embeddings, vector search, re-ranking, citations. Link context-window lesson."
 
   - id: ai-gateway
@@ -274,7 +274,7 @@ items:
     title: "The AI gateway: one front door for every model"
     why: "Central control point for routing, keys, rate limits, logging, cost tracking and fallbacks."
     priority: 1
-    status: queued
+    status: in_review
     notes: "Explain the pattern generically; mention products only as examples from official docs."
 
   - id: agents-in-the-enterprise
