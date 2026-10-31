@@ -32,3 +32,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-10-30 | new-lesson | enterprise-ai-reference-architecture written, reviewer fixes applied, checks + build pass, PR opened; what-does-an-ai-architect-do marked published | claude/lesson-enterprise-ai-reference-architecture
 2026-10-30 | new-lesson | build-buy-or-customize written, reviewer fixes applied, checks + build pass, PR opened; enterprise-ai-reference-architecture marked published | claude/lesson-build-buy-or-customize
 2026-10-30 | new-lesson | rag-architecture written, reviewer fixes applied, checks + build pass, PR opened; build-buy-or-customize marked published | claude/lesson-rag-architecture
+2026-10-31 | new-lesson | ai-gateway written, reviewer fixes applied, checks + build pass, PR opened; rag-architecture marked published | claude/lesson-ai-gateway
