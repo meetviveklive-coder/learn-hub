@@ -1,0 +1,161 @@
+---
+title: "Is your data ready for AI?"
+description: Five checks to run on your data before an AI project starts — owner, quality, freshness, access rights and lineage — and why skipping them stalls projects.
+domain: ai-architect
+level: intermediate
+order: 1
+prerequisites: [rag-architecture, enterprise-ai-reference-architecture]
+tags: [data-readiness, data-quality, data-governance, lineage, access-control, ai-architect]
+sources:
+  - title: Lack of AI-Ready Data Puts AI Projects at Risk (Gartner press release, Feb 2025)
+    url: https://www.gartner.com/en/newsroom/press-releases/2025-02-26-lack-of-ai-ready-data-puts-ai-projects-at-risk
+    type: article
+  - title: Complying with enterprise data governance policies (Microsoft AI engineering playbook)
+    url: https://learn.microsoft.com/ai/playbook/capabilities/data-curation/data-governance
+    type: official
+  - title: Auto data quality overview (Google Cloud Dataplex docs)
+    url: https://docs.cloud.google.com/dataplex/docs/auto-data-quality-overview
+    type: official
+  - title: What is OpenLineage? (AWS SageMaker Unified Studio docs)
+    url: https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/datazone-data-lineage-what-is-openlineage.html
+    type: official
+  - title: Document-level access control in Azure AI Search (Microsoft Learn)
+    url: https://learn.microsoft.com/en-us/azure/search/search-document-level-access-overview
+    type: official
+last_verified: 2026-10-31
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Data readiness means checking, before you build, that the data an AI system needs has an owner, is good enough, is current, may legally be used, and can be traced.
+- **Why it matters:** A model can only be as good as the data it reads. Weak data is a common reason AI projects stall or get cancelled.
+- **Example:** A support chatbot gives out last year's prices because nobody owns the price sheet it reads, so nobody keeps it up to date.
+
+## Think of it like…
+
+<Analogy>
+Think of a restaurant kitchen before dinner service. A great chef still needs fresh ingredients, a known supplier for each one, labels on the jars and rules about who may use the expensive items. If any of that is missing, the meal fails, no matter how good the chef is.
+
+**Where the comparison breaks:** A chef can taste a bad ingredient and stop. A model cannot tell that its data is old or wrong, so it serves a confident answer anyway.
+</Analogy>
+
+## Real-world example
+
+An online furniture store wants an AI assistant that answers "Where is my order?" and "Will this sofa fit through an 80 cm door?". The team plans a retrieval-augmented generation (RAG) system. RAG means the app first finds the right records and documents, then hands them to a model with the question.
+
+Before building, the architect checks the data. Product sizes live in two systems that disagree. Delivery dates refresh only once a day. Nobody is named as the owner of the product manuals, and the order table holds customers' home addresses.
+
+The team fixes the size data, names an owner for each source and limits the assistant to each customer's own orders. Launch slips two weeks, but no wrong sizes or private addresses reach customers.
+
+## How it works
+
+### Why this matters now
+
+The research firm Gartner surveyed 1,203 data management leaders in July 2024 and shared the results in February 2025. Of them, 63% said their organization lacked the right data practices for AI, or was not sure. Gartner predicted that through 2026, organizations will abandon 60% of AI projects that lack AI-ready data. That is a forecast, not a measured result.
+
+Gartner makes two more points. AI-ready data must fit the specific use case, not just be "clean" in general. And readiness is an ongoing practice, not a one-time cleanup.
+
+### The five checks
+
+Run these checks for every data source the AI system will read or learn from.
+
+| Check | The question to ask | A sign of trouble |
+|---|---|---|
+| **1. Owner** | Who is responsible for this data and can approve its use? | Nobody answers when the data breaks. |
+| **2. Quality** | Is it correct and complete enough for this task? | Duplicates, blanks, two systems that disagree. |
+| **3. Freshness** | How old can it be before answers go wrong? | Data updated daily, but answers need hour-old data. |
+| **4. Access rights** | Who may see it, and may we use it for this purpose? | Personal data with no rules on who sees it. |
+| **5. Lineage** | Where did it come from, and what changed it on the way? | Nobody can say which data trained the model. |
+
+### 1. Ownership
+
+This check is common practice rather than a rule from this lesson's sources. A **data owner** is the person or team who answers for a dataset. A dataset is a named collection of data, such as a table or a folder of documents. The owner decides who may use it and fixes it when it breaks.
+
+### 2. Quality
+
+**Data quality** means how well the data fits the job you need it for. Dataplex, Google Cloud's data quality tool, checks seven dimensions:
+
+- **Freshness:** when the data was last updated.
+- **Volume:** whether all the expected data arrived.
+- **Completeness:** whether it has all the information the task needs.
+- **Validity:** whether it follows set formats and ranges, like a date in the date field.
+- **Consistency:** whether the same fact matches across tables.
+- **Accuracy:** whether it is actually correct. Google notes that valid data is not always accurate.
+- **Uniqueness:** whether it has no duplicates.
+
+Microsoft's AI playbook adds checks that matter for machine learning. **Machine learning (ML)** means a model learns patterns from example data. The extra checks include outliers, which are values far from the rest, and representativeness. That means the data covers the full range of real cases the model will meet.
+
+### 3. Freshness
+
+Freshness is also a quality dimension, but it gets its own check because AI answers sound equally sure whether the data is one minute or one year old. Decide the oldest data each answer can safely use, then match the update schedule to it.
+
+Freshness also applies to permissions. Microsoft's Azure AI Search docs say a permission change in the source shows up in search results only after the next sync. The **search index** is the searchable copy of your documents that a RAG system looks things up in. A **sync** is any update that copies source changes into that index.
+
+### 4. Access rights
+
+First, **who may see it?** In a RAG system, each user should only get back documents they could open themselves. Azure AI Search, for example, can store permissions on each document and filter results by the user's identity.
+
+Second, **may we use it for this purpose?** Microsoft's playbook calls it an essential first step to **classify** data by how sensitive it is. It also says to find **personal data** early, meaning information that identifies a person. Then hide or remove that data where needed. Check privacy laws with your legal team; this lesson is not legal advice.
+
+### 5. Lineage
+
+**Data lineage** is the record of where data came from and every step that changed it before use. Microsoft's playbook adds a second habit: save a fixed version of each dataset, called **versioning**. Then you can later prove exactly which data trained a model.
+
+OpenLineage is an open standard for collecting lineage. It records three things: datasets, **jobs** (processes that read or write data) and **runs** (one execution of a job). When an answer is wrong, lineage lets you trace it back to the bad input.
+
+## Common mistakes
+
+- **Treating readiness as a one-time cleanup** — data changes over time and new sources appear, so a clean start does not stay clean. Add quality and freshness checks that run on every update.
+- **Checking data in general, not for the use case** — data good enough for a monthly report can be too old or not detailed enough for a chatbot. Write the checks from the questions the AI must answer.
+- **Indexing everything, then fixing access later** — the assistant may already have shown private files to the wrong staff. Carry permissions into the index from day one.
+- **Assuming valid means correct** — a well-formed price can still be the wrong price. Compare samples against a trusted source, not just formats.
+- **No named owner** — issues the AI team finds never get fixed at the source. Name an owner before a source goes into the system.
+
+## Remember this
+
+<Remember>
+- Data is "ready" for a specific AI use case, not in general, and staying ready is ongoing work.
+- The five checks are owner, quality, freshness, access rights and lineage.
+- A model cannot spot old or wrong data, so it repeats it with full confidence.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A sales report and an AI assistant both read the same customer table. The report is fine, but the assistant gives wrong answers. What is the most likely reason?",
+      options: ["The model is too small", "Readiness depends on the use case, and the table is not good enough for the assistant's questions", "The table has no owner", "The report is also wrong"],
+      answer: 1,
+      why: "Gartner says AI-ready data must fit the specific use case. The table may be too old or not detailed enough for live questions, even if a monthly report copes. A bigger model cannot fix missing or stale facts."
+    },
+    {
+      q: "Every product price in a table has the right format, yet some prices are wrong. Which quality dimension fails?",
+      options: ["Validity", "Uniqueness", "Accuracy", "Volume"],
+      answer: 2,
+      why: "Validity only checks format and range, which pass here. Accuracy asks whether the value is actually correct. Google's docs note that valid data is not always accurate."
+    },
+    {
+      q: "HR removes an employee's access to a folder, but the RAG assistant still shows that employee its files for a while. What explains this?",
+      options: ["The model memorized the files", "Permission changes reach the search index only after the next sync", "Lineage is missing", "The folder has duplicate files"],
+      answer: 1,
+      why: "The search index holds a copy of the permissions. Microsoft's docs say source permission changes show up only after the sync runs, so freshness matters for access rights too."
+    },
+    {
+      q: "A model starts giving odd answers after a data change. Which practice helps you find the bad input fastest?",
+      options: ["Data lineage with versioned datasets", "Adding more data", "Switching to a newer model", "Making the prompt longer"],
+      answer: 0,
+      why: "Lineage records where data came from and what changed it, and versioning shows exactly which data the model used. Together they let you trace the answer back to the change."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [RAG architecture: giving AI your company's knowledge](/docs/ai-architect/building-blocks/rag-architecture)
+- Read first: [The layers of an enterprise AI system](/docs/ai-architect/foundations/enterprise-ai-reference-architecture)
+- Related: [Consent, cookies, and privacy rules](/docs/martech/privacy/consent-and-privacy-basics)
+- Sources are listed below with the date they were last checked.
