@@ -301,7 +301,7 @@ items:
     title: "Is your data ready for AI?"
     why: "Data quality and access are the most common reason AI projects stall."
     priority: 1
-    status: in_review
+    status: published
     notes: "Cover ownership, quality, freshness, access rights and lineage."
 
   - id: vector-databases-and-embeddings
@@ -328,7 +328,7 @@ items:
     title: "AI-specific security threats (prompt injection and more)"
     why: "Architects must design against attacks that normal apps don't have."
     priority: 1
-    status: queued
+    status: in_review
     notes: "Use the current OWASP Top 10 for LLM Applications as primary source; verify which edition is current."
 
   - id: guardrails-architecture
