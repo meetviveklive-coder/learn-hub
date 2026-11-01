@@ -1,0 +1,185 @@
+---
+title: "AI governance frameworks: NIST AI RMF, ISO 42001, EU AI Act"
+description: Three rulebooks shape how companies run AI. Learn what each one is, which are optional, and what they ask an architect to build.
+domain: ai-architect
+level: intermediate
+order: 2
+prerequisites: [enterprise-ai-reference-architecture, ai-security-threats]
+tags: [governance, nist-ai-rmf, iso-42001, eu-ai-act, compliance, ai-architect]
+sources:
+  - title: AI Risk Management Framework - program page (NIST)
+    url: https://www.nist.gov/itl/ai-risk-management-framework
+    type: official
+  - title: "NIST AI 100-1: Artificial Intelligence Risk Management Framework (AI RMF 1.0)"
+    url: https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf
+    type: official
+  - title: ISO/IEC 42001:2023 - AI management systems (ISO)
+    url: https://committee.iso.org/standard/42001
+    type: official
+  - title: AI Act - regulatory framework for AI (European Commission)
+    url: https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai
+    type: official
+  - title: Regulation (EU) 2026/1744 amending the AI Act (Official Journal of the EU)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ%3AL_202601744
+    type: official
+  - title: BSI secures ANAB accreditation to certify ISO/IEC 42001 (BSI)
+    url: https://www.bsigroup.com/en-GB/insights-and-media/media-centre/press-releases/2026/march/bsi-secures-anab-accreditation-to-certify-isoiec-42001/
+    type: article
+  - title: EU AI Omnibus enters into force, amending the AI Act (White & Case)
+    url: https://www.whitecase.com/insight-alert/eu-ai-omnibus-enters-force-amending-ai-act
+    type: article
+last_verified: 2026-11-01
+status: published
+author: agent
+reading_minutes: 8
+---
+
+**Note:** This lesson explains frameworks so you can design for them. It is not legal advice. Check with a lawyer before you decide what the law requires of you.
+
+## In 3 lines
+
+- **What it is:** AI governance means the rules, roles and checks a company uses to keep its AI safe, fair and legal. Three frameworks are widely used: NIST AI RMF, ISO/IEC 42001 and the European Union (EU) AI Act.
+- **Why it matters:** Two of them are optional guides, but the EU AI Act is a law with deadlines. An architect must build features, like logging and human review, that let the company prove it follows them.
+- **Example:** A hiring tool that ranks job applicants counts as "high-risk" under the EU AI Act, so it needs records, human oversight and documentation.
+
+## Think of it like…
+
+<Analogy>
+Think of running a restaurant. A good cooking guide teaches you how to spot and handle food risks. An optional kitchen certificate proves an inspector checked your daily habits. The health law says what you must do, or you get shut down. NIST AI RMF is the guide, ISO/IEC 42001 is the certificate, and the EU AI Act is the law.
+
+**Where the comparison breaks:** Food rules are old and stable. AI rules are new, so dates and details change often.
+</Analogy>
+
+## Real-world example
+
+An online job board wants an AI feature that scores applicants. The European Commission, the EU's executive body, lists CV-sorting software (tools that sort résumés) as a high-risk use.
+
+The team uses NIST AI RMF to list what could go wrong, such as the model favoring one group. They follow ISO/IEC 42001 so roles and reviews are written down. For the EU AI Act, they log every score, document how the model was tested, and let a recruiter override scores.
+
+## How it works
+
+### The three frameworks side by side
+
+|  | NIST AI RMF | ISO/IEC 42001 | EU AI Act |
+|---|---|---|---|
+| **Who made it** | NIST, a United States government standards agency. | ISO and IEC, international standards bodies. | The European Union. |
+| **What it is** | A risk guide. | A management system standard. | A law (official number: Regulation (EU) 2024/1689). |
+| **Optional?** | Yes, voluntary. | Yes, but you can get certified. | No, it is binding where it applies. |
+| **Current version** | AI RMF 1.0 (January 2023), being revised. | First edition, December 2023. | In force since August 2024, amended in 2026. |
+
+### 1. NIST AI RMF: a risk guide
+
+The **National Institute of Standards and Technology (NIST)** released the **AI Risk Management Framework (AI RMF)** in January 2023. It is voluntary and works for any industry. Its core has four functions:
+
+- **Govern:** build a culture of risk management, with clear roles and policies. NIST says Govern runs underneath the other three.
+- **Map:** understand the context. Who uses the system, and what could go wrong?
+- **Measure:** test and track risks with numbers, reviews or both.
+- **Manage:** decide which risks to fix first and spend effort on them.
+
+The functions are not a strict order; you repeat them as the system changes. NIST also lists traits of trustworthy AI, such as "valid and reliable", "secure and resilient" and "fair with harmful bias managed". A companion **Generative AI Profile** (NIST AI 600-1, July 2024) covers risks specific to generative AI, meaning tools that create text, images and other content. NIST says it is revising AI RMF 1.0 as part of the White House AI Action Plan, with no date given.
+
+### 2. ISO/IEC 42001: a management system you can certify
+
+A **management system** is a company's set of policies, goals and processes for one area, such as quality or security. **ISO/IEC 42001** comes from the International Organization for Standardization (ISO) and the International Electrotechnical Commission (IEC). It sets the requirements for an **AI management system (AIMS)**. It applies to any organization that builds, provides or uses AI. It uses the **Plan-Do-Check-Act** cycle: plan, carry it out, check results, then improve.
+
+Unlike NIST AI RMF, outside auditors can certify you against it. A **certification body** audits companies, and an **accreditation body** checks that auditor. For example, the auditor BSI is accredited for ISO/IEC 42001 in the US, UK and Netherlands. A certificate shows your AI process was checked, not just described.
+
+### 3. The EU AI Act: a law with risk levels
+
+The EU AI Act sorts AI uses into four risk levels, with stricter rules as risk rises.
+
+```text
+Unacceptable  → banned            (e.g. social scoring: rating people's behavior)
+High          → strict duties     (e.g. CV sorting, credit scoring for loans)
+Transparency  → must disclose     (e.g. chatbots, labels on deepfakes: fake media)
+Minimal       → no new rules      (e.g. spam filters, video games)
+```
+
+Separate rules cover **general-purpose AI (GPAI) models**, large models that can do many tasks. Their providers must meet transparency and copyright duties, such as publishing a summary of their training content.
+
+For high-risk systems, the Commission lists these duties:
+
+- Assess and reduce risks.
+- Use high-quality data to lower the chance of unfair results.
+- Log activity so results can be traced.
+- Keep detailed documentation for regulators.
+- Give clear information to the businesses that use the system.
+- Let humans oversee it.
+- Make it robust, accurate and secure.
+
+### EU AI Act dates (as of November 2026)
+
+In 2026 the EU passed the **AI Omnibus** (Regulation (EU) 2026/1744), a law that changes several AI Act rules at once. It came into force on 27 July 2026. It pushed back the high-risk deadlines, added a new ban and reworded the AI literacy duty.
+
+| Date | Status (Nov 2026) and what applies |
+|---|---|
+| 2 February 2025 | In force. Eight bans on unacceptable-risk uses, and AI literacy (staff get enough AI training). |
+| 2 August 2025 | In force. General-purpose AI model rules. |
+| 2 August 2026 | In force. Transparency rules and most other parts. |
+| 2 December 2026 | Upcoming. A ninth ban, on AI-made sexual images of real people without consent and on child abuse material. |
+| 2 December 2027 | Upcoming. High-risk uses listed in the Act, like hiring and education. |
+| 2 August 2028 | Upcoming. High-risk AI inside products that already need EU safety approval, like toys or lifts. |
+
+### What this means for the architect
+
+All three ask for similar building blocks. Build them once to serve all three:
+
+1. **An AI inventory:** a list of every AI system, its owner and its risk level.
+2. **Logging:** a record of inputs, outputs and decisions, so you can trace results.
+3. **Human oversight:** a way for people to review, correct or stop the AI.
+4. **Documentation:** how the model was chosen, trained and tested.
+5. **Monitoring:** checks after launch that catch errors, incidents and results that get worse over time.
+
+## Common mistakes
+
+- **Treating NIST AI RMF as a law** — it is voluntary, so following it does not by itself make you legal anywhere. Use it as a method, then check which laws apply.
+- **Thinking "the deadline moved, so we can wait"** — the Omnibus delayed only high-risk duties. The first eight bans, GPAI rules and transparency rules already apply. Build logging and oversight now; adding them later is harder.
+- **Using an old timeline** — articles written before the Omnibus may show 2 August 2026 for high-risk rules. Check the European Commission's page before you plan.
+- **Treating governance as paperwork only** — documents without working logs or review buttons prove nothing. Build the controls into the system.
+- **Assuming one framework covers everything** — an ISO certificate does not replace legal duties under the EU AI Act. Map each requirement to a control and note which framework asks for it.
+
+## Remember this
+
+<Remember>
+- NIST AI RMF is a voluntary risk guide (Govern, Map, Measure, Manage). ISO/IEC 42001 is a management system you can be certified against. The EU AI Act is a binding law.
+- The EU AI Act scales rules by risk: banned, high-risk, transparency, minimal. High-risk duties for listed uses now start on 2 December 2027.
+- Architects make governance real with an AI inventory, logging, human oversight, documentation and monitoring.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Which of the three can an outside auditor certify your organization against?",
+      options: ["NIST AI RMF", "ISO/IEC 42001", "The EU AI Act risk levels", "None of them"],
+      answer: 1,
+      why: "ISO/IEC 42001 is a management system standard, and accredited bodies certify against it. NIST AI RMF is a voluntary guide with no certificate, and the EU AI Act is a law, not a certification scheme."
+    },
+    {
+      q: "A store adds a chatbot that answers shipping questions. Under the EU AI Act, what is the most likely duty?",
+      options: ["It is banned", "Full high-risk duties", "Tell users they are talking to a machine", "No rules at all, ever"],
+      answer: 2,
+      why: "Chatbots fall under transparency risk, so people must know they are talking to AI. High-risk duties are for uses like hiring or credit scoring."
+    },
+    {
+      q: "Your manager says: 'High-risk rules were delayed, so the EU AI Act does not affect us yet.' What is wrong with this?",
+      options: ["Nothing, it is correct", "The delay was cancelled", "Bans, GPAI rules and transparency rules already apply", "The EU AI Act was repealed"],
+      answer: 2,
+      why: "The 2026 Omnibus delayed only the high-risk duties. The first eight bans have applied since February 2025, GPAI rules since August 2025, and most transparency rules since August 2026."
+    },
+    {
+      q: "Which design choice helps meet all three frameworks at once?",
+      options: ["A longer system prompt", "Logging inputs, outputs and decisions so results can be traced", "Using the biggest model available", "Removing human review to save time"],
+      answer: 1,
+      why: "Traceable logs support NIST's Measure and Manage, the Check step of ISO's Plan-Do-Check-Act, and the EU AI Act's logging duty for high-risk systems. Removing human review works against all three."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [The layers of an enterprise AI system](/docs/ai-architect/foundations/enterprise-ai-reference-architecture)
+- Read first: [AI-specific security threats](/docs/ai-architect/security-governance/ai-security-threats)
+- Related: [Consent, cookies, and privacy rules (basics)](/docs/martech/privacy/consent-and-privacy-basics)
+- Sources are listed below with the date they were last checked.
