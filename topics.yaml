@@ -328,7 +328,7 @@ items:
     title: "AI-specific security threats (prompt injection and more)"
     why: "Architects must design against attacks that normal apps don't have."
     priority: 1
-    status: in_review
+    status: published
     notes: "Use the current OWASP Top 10 for LLM Applications as primary source; verify which edition is current."
 
   - id: guardrails-architecture
@@ -346,7 +346,7 @@ items:
     title: "AI governance frameworks: NIST AI RMF, ISO/IEC 42001 and the EU AI Act"
     why: "The rules and standards an enterprise architecture must satisfy."
     priority: 1
-    status: queued
+    status: in_review
     notes: "Official sources only (nist.gov, iso.org, EU official texts). Verify current EU AI Act application dates. Not legal advice — say so."
 
   - id: responsible-ai-in-practice
