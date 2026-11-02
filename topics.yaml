@@ -363,7 +363,7 @@ items:
     title: "LLMOps: monitoring AI systems in production"
     why: "You can't run what you can't see: traces, quality, drift, incidents."
     priority: 1
-    status: in_review
+    status: published
     notes: "Link the evals lesson. Cover tracing, offline vs online evaluation, feedback loops."
 
   - id: ai-cost-and-finops
@@ -372,7 +372,7 @@ items:
     title: "Managing AI cost: tokens, caching and budgets"
     why: "AI cost grows with usage in ways normal software doesn't."
     priority: 1
-    status: queued
+    status: in_review
     notes: "Teach cost drivers and controls; no specific prices (they change)."
 
   - id: latency-scaling-and-reliability

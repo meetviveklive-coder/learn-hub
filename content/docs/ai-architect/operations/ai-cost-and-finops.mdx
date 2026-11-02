@@ -1,0 +1,148 @@
+---
+title: "Managing AI cost: tokens, caching and budgets"
+description: What makes an AI app's bill grow, and the main ways to control it - caching, batching, smaller models, and budgets per team.
+domain: ai-architect
+level: intermediate
+order: 2
+prerequisites: [llmops-and-observability, ai-gateway, context-window-and-memory]
+tags: [finops, cost, tokens, prompt-caching, batch, budgets, ai-architect]
+sources:
+  - title: "Token Economics: The Atomic Unit of AI Value (FinOps Foundation, 2026)"
+    url: https://finops.org/insights/token-economics-the-atomic-unit-of-ai-value/
+    type: article
+  - title: Prompt caching (Claude Platform docs)
+    url: https://platform.claude.com/docs/en/docs/build-with-claude/prompt-caching
+    type: official
+  - title: Prompt caching (OpenAI API docs)
+    url: https://developers.openai.com/docs/guides/prompt-caching
+    type: official
+  - title: Batch processing (Claude Platform docs)
+    url: https://platform.claude.com/docs/en/build-with-claude/batch-processing
+    type: official
+last_verified: 2026-11-02
+status: published
+author: agent
+reading_minutes: 9
+---
+
+## In 3 lines
+
+- **What it is:** AI cost management means knowing what drives your AI bill, and putting controls in place before it grows out of hand. People who manage cloud spending call this **FinOps**, short for "financial operations".
+- **Why it matters:** Most AI services charge per **token**, a word or part of a word. You pay for the **prompt** (the text you send the **model**, the AI that writes answers) and for its reply. So cost grows with every user, every long prompt and every extra step an agent takes.
+- **Example:** A team sends the same 3,000-word instruction text with every request. Caching, where the provider stores that text and reuses it, cuts the cost of those repeated tokens without changing a single answer.
+
+## Think of it like…
+
+<Analogy>
+Think of a taxi meter. You pay for distance, so a longer trip costs more. Detours, wrong turns and waiting in traffic all add to the fare, even if you end up at the same place.
+
+**Where the comparison breaks:** A taxi on the same route usually costs about the same. An AI agent can take a different path on the same question, so its cost changes from one request to the next.
+</Analogy>
+
+## Real-world example
+
+An online shoe store runs an AI support assistant. It also uses AI each night to write product descriptions. After the team adds an **agent**, an AI app that picks its own steps and tools, the monthly bill triples. Traffic grew only a little.
+
+The team looks at its **traces**, the step-by-step records of each request. They find four causes. Every request repeats a long set of instructions. The agent often calls the same tool again after it fails, and loops before it answers. Simple questions such as "where is my order?" go to the largest, most expensive model. And the nightly description job uses the standard service, which answers right away, even though nobody waits for it.
+
+They fix each cause. They put the fixed instructions first and turn on **prompt caching**. They add a step limit to the agent. They send simple questions to a smaller model. They move the nightly job to **batch processing**. Finally, they give each team a token budget with alerts, so the next jump shows up in days, not at month end.
+
+## How it works
+
+### 1. Know what drives the bill
+
+The FinOps Foundation is a group that sets shared practices for managing cloud spending. It notes that providers price **input tokens** (what you send) and **output tokens** (what the model writes) separately, often at different rates. Its 2026 article lists five things that drive the token cost of each request.
+
+| Driver | What it means |
+|---|---|
+| **System prompt** | The fixed instructions sent with every request. |
+| **Context and memory** | Documents, chat history and tool results added to the prompt. |
+| **Model choice** | Larger models usually cost more per token. |
+| **Output length** | Long answers cost more than short ones. |
+| **Retries and agent steps** | Each extra loop is another full model call. |
+
+The article makes one more point. A token may get cheaper, but total spend can still rise, because usage grows faster than prices fall. So cheaper models alone will not fix a cost problem.
+
+A rough way to think about one request:
+
+```text
+cost per model call ≈ (input tokens × input price) + (output tokens × output price)
+total ≈ cost per model call × model calls per request × requests
+```
+
+### 2. Use the main cost controls
+
+| Control | How it saves | Watch out for |
+|---|---|---|
+| **Prompt caching** | The provider stores the start of your prompt. Repeat requests with the same start cost less and often respond faster. | The cached part must match exactly. Put fixed text first and changing text last. |
+| **Batch processing** | You send many requests at once and get results later. Anthropic's docs say batch usage costs half the normal price. | Most batches finish within an hour, but it can take up to 24. Only use it when nobody is waiting. |
+| **Model routing** | Send easy tasks to a smaller, cheaper model, and hard tasks to a large one. | Test the small model on real tasks first. Quality can drop. |
+| **Shorter context** | Send only the documents and history the task needs. | Cutting too much can make answers worse. |
+| **Step limits** | Cap how many loops an agent may run. | Too low a cap stops the agent before it finishes. |
+
+Prompt caching follows the same basic idea at both providers checked for this lesson. The cache matches the prompt from the start, so one changed word near the top breaks it. Anthropic's docs say a cache entry lasts 5 minutes by default, and a 1-hour option exists. You switch it on with a setting in the request. Reading from the cache costs a small fraction of the normal input price. Writing to it costs more than normal: 1.25 times for the 5-minute cache, and 2 times for the 1-hour one. OpenAI turns caching on by default for supported models and says cached input is "discounted up to 95%". Both providers only cache prompts above a minimum length.
+
+The FinOps article also lists **semantic caching**: storing a past answer and reusing it when a new question means the same thing. An **AI gateway**, one central service that sits between your apps and the models, can do this for you (see the gateway lesson).
+
+### 3. Make cost visible, then set budgets
+
+You cannot control what you cannot see. Three of the FinOps article's recommendations stand out:
+
+- **Measure tokens per workload.** Track tokens for each feature and team, not just one total bill. Your AI gateway or tracing tools can tag each request with its team.
+- **Show each team its share.** **Showback** means showing teams what they spent. **Chargeback** means billing it to their own budget. Both make teams care about cost.
+- **Use unit costs.** Track cost per useful result, such as cost per resolved support ticket. The article names metrics like cost per workflow and cost per outcome.
+
+Then set a token budget for each team or feature, with alerts at set levels. As the gateway lesson shows, an AI gateway can enforce token limits for every app in one place.
+
+## Common mistakes
+
+- **Putting changing text at the top of the prompt** — a date or user name at the start breaks the cache for everything after it. Put fixed instructions first and anything that changes at the end.
+- **Using the biggest model for everything** — simple tasks pay a large-model price for no gain. Route easy tasks to a smaller model after testing quality.
+- **Using real-time calls for jobs nobody waits for** — nightly reports and bulk tagging pay full price for speed nobody needs. Use batch processing for them.
+- **Letting agents loop without limits** — a stuck agent can make dozens of model calls on one task. Set a step limit and alert on unusually long traces.
+- **Watching only the monthly total** — by the time the bill arrives, the money is spent. Track tokens per team and feature daily, with budget alerts.
+
+## Remember this
+
+<Remember>
+- AI cost is mostly tokens: input plus output, per model call, multiplied by requests and agent steps.
+- The main controls are prompt caching, batch processing, routing to smaller models, shorter context and step limits.
+- Make cost visible per team and feature, measure cost per useful result, and set budgets with alerts.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Your prompt starts with today's date, then 2,000 words of fixed instructions. Prompt caching saves almost nothing. Why?",
+      options: ["Caching only works on short prompts", "The cache matches from the start, and the date changes every day", "Fixed instructions cannot be cached", "Caching only works for output tokens"],
+      answer: 1,
+      why: "Caching needs the start of the prompt to match exactly. Move the date to the end so the fixed instructions come first and can be reused."
+    },
+    {
+      q: "Which job is the best fit for batch processing?",
+      options: ["A live chat reply to a customer", "Writing 10,000 product descriptions overnight", "A voice assistant answering a question", "An agent that needs each answer before its next step"],
+      answer: 1,
+      why: "Batch processing is cheaper but can take up to 24 hours, though most batches finish within one. It suits large jobs where nobody is waiting for the result right away."
+    },
+    {
+      q: "Token prices fell, but your AI bill went up. What is the most likely reason?",
+      options: ["The provider made a billing error", "Usage grew faster than prices fell, for example more users or more agent steps", "Cheaper tokens always cost more in total", "Output tokens became free"],
+      answer: 1,
+      why: "Total cost is price times volume. If requests, context or agent steps grow quickly, the total can rise even when each token costs less."
+    },
+    {
+      q: "Why track cost per resolved ticket instead of only total monthly spend?",
+      options: ["It is required by law", "It links cost to a useful result, so you can tell if spending is worth it", "It makes the bill smaller", "It replaces the need for budgets"],
+      answer: 1,
+      why: "A unit cost shows value for money. Total spend can rise for good reasons, such as more customers helped, which the total alone hides."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [LLMOps: monitoring AI systems in production](/docs/ai-architect/operations/llmops-and-observability) and [The AI gateway](/docs/ai-architect/building-blocks/ai-gateway)
+- Related: [Context window and memory](/docs/ai-agents/foundations/context-window-and-memory)
+- Sources are listed below with the date they were last checked.
