@@ -346,7 +346,7 @@ items:
     title: "AI governance frameworks: NIST AI RMF, ISO/IEC 42001 and the EU AI Act"
     why: "The rules and standards an enterprise architecture must satisfy."
     priority: 1
-    status: in_review
+    status: published
     notes: "Official sources only (nist.gov, iso.org, EU official texts). Verify current EU AI Act application dates. Not legal advice — say so."
 
   - id: responsible-ai-in-practice
@@ -363,7 +363,7 @@ items:
     title: "LLMOps: monitoring AI systems in production"
     why: "You can't run what you can't see: traces, quality, drift, incidents."
     priority: 1
-    status: queued
+    status: in_review
     notes: "Link the evals lesson. Cover tracing, offline vs online evaluation, feedback loops."
 
   - id: ai-cost-and-finops
