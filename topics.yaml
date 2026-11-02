@@ -256,7 +256,7 @@ items:
     title: "Choosing a model: capability, cost, speed and risk"
     why: "Model choice is a recurring architect decision; teach the criteria, not a leaderboard."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Do NOT rank current models — they change monthly. Teach the evaluation criteria and link the evals lesson."
 
   - id: rag-architecture
@@ -372,7 +372,7 @@ items:
     title: "Managing AI cost: tokens, caching and budgets"
     why: "AI cost grows with usage in ways normal software doesn't."
     priority: 1
-    status: in_review
+    status: published
     notes: "Teach cost drivers and controls; no specific prices (they change)."
 
   - id: latency-scaling-and-reliability
