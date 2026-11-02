@@ -1,0 +1,139 @@
+---
+title: "Choosing a model: capability, cost, speed and risk"
+description: How to pick an AI model for a task by testing it on your own work, instead of trusting a public ranking.
+domain: ai-architect
+level: intermediate
+order: 4
+prerequisites: [build-buy-or-customize, evaluating-agents]
+tags: [model-selection, evals, cost, latency, risk, ai-architect]
+sources:
+  - title: Choosing the right model (Claude Platform docs)
+    url: https://platform.claude.com/docs/en/about-claude/models/choosing-a-model
+    type: official
+  - title: Model selection (OpenAI API docs)
+    url: https://developers.openai.com/api/docs/guides/model-selection
+    type: official
+  - title: Holistic Evaluation of Language Models (Liang et al., HELM paper)
+    url: https://arxiv.org/abs/2211.09110v2
+    type: paper
+last_verified: 2026-11-02
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Choosing a model means picking which AI **model**, the program that reads your prompt and writes the answer, will do a job. You judge it on four things: capability, cost, speed and risk.
+- **Why it matters:** The "best" model on a public ranking may be too slow, too costly or too risky for your task. Providers release new models often, so you will make this choice more than once.
+- **Example:** A team tests three models on 200 real support emails. A smaller one meets their quality bar at a fraction of the cost of the largest.
+
+## Think of it like…
+
+<Analogy>
+Think of hiring for a job. You don't hire the person with the most degrees for every role. You write down what the job needs, give each candidate the same work sample, and pick the one who does it well at a salary you can pay.
+
+**Where the comparison breaks:** Your options keep changing. Providers release new models and change prices, so you should re-test from time to time.
+</Analogy>
+
+## Real-world example
+
+An online shoe store wants AI to sort incoming customer emails into labels such as "refund", "delivery" and "sizing". It handles thousands of emails a day. A wrong label sends a customer to the wrong team, which is annoying but easy to fix.
+
+The team's AI architect, the person who designs how the AI system fits together, writes down the needs first. Each email must be labelled in under two seconds, with fewer than 2 wrong labels in 100. Customer data may only go to a **provider** (the company that runs the model) that the company's security team has approved. Then the team pulls 200 past emails with the correct labels and runs three models on them.
+
+The largest model scores best, but only by a little. A smaller model meets the error limit, answers faster and costs far less per email. The team picks the smaller model. They ask it to say how sure it is of each label. When it reports low confidence, they send the email to the large model as well. They also save the 200-email test, so they can re-run it when a new model comes out.
+
+## How it works
+
+### 1. Know the four criteria
+
+Anthropic's model guide asks you to weigh capabilities, speed and cost, plus an "effort" setting covered below. OpenAI's guide asks how often the task runs, how fast you need the result, how polished the output must be, and how much quality matters. Neither guide lists risk, but a company must check it too, so this lesson adds it as a fourth criterion.
+
+| Criterion | Question to ask | Examples of what to check |
+|---|---|---|
+| **Capability** | Can it do *this* task well enough? | Accuracy on your examples, handling of odd cases, following your format |
+| **Cost** | Can we afford it at our volume? | Price per request × requests per day |
+| **Speed** | Is it fast enough for the user? | **Latency**, the wait between sending a request and getting the answer |
+| **Risk** | Is it safe and allowed to use? | Where your data goes, what your rules permit, what happens if the provider changes the model |
+
+A research project called HELM (Holistic Evaluation of Language Models) makes the same point from the testing side. It scored 30 models on seven measures, not just accuracy. Two examples: **calibration** asks whether the model knows when it might be wrong, and **robustness** asks whether it still works when the input has typos or odd wording. Others cover fairness, bias, **toxicity** (rude or harmful output) and efficiency. The authors say measuring many things at once makes the trade-offs visible.
+
+### 2. Test on your own work
+
+Public **leaderboards** rank models by their scores on shared test sets. They are a starting point, but they do not test your task. Both vendor guides tell you to test on your own prompts and data. Anthropic calls building a good test set "the most important step in the process."
+
+1. **Write the task and the quality bar.** Decide what "good enough" means before you test, for example "fewer than 2 wrong labels in 100".
+2. **Build an evaluation set.** An **evaluation set** (or "eval set") is a fixed group of real examples with known good answers. Include the hard and unusual cases too.
+3. **Shortlist two to four models.** Use your risk rules to drop any that you are not allowed to use.
+4. **Run each model on the same inputs.** OpenAI's guide says to keep the inputs the same and to repeat across many typical tasks.
+5. **Measure quality, speed and cost together.** Count the time people spend checking or fixing outputs, too.
+6. **Pick the lightest option that passes.** "Lightest" means the smallest model or lowest effort setting, which is usually the fastest and cheapest. OpenAI's guide puts it as keeping "the lightest setting that meets your quality bar."
+7. **Re-run the set when things change.** A new model, a price change or a retired model is a reason to test again.
+
+```text
+needs ──> eval set ──> shortlist ──> same tests ──> lightest model that passes
+  ^                                                        │
+  └──────────────── re-test when models change ────────────┘
+```
+
+### 3. Know your other levers
+
+You do not always have to switch models to change the balance.
+
+- **Effort settings.** Some models accept a setting, sent with each request, for how much reasoning to do before answering. Lower effort is faster and cheaper, but can lower quality. Anthropic's guide says tuning effort is often a better lever than switching models.
+- **Start small or start big.** Anthropic describes two paths. Start with a small, fast model and move up only where tests show gaps. Or start with a strong model, get the prompts right, then step down where quality holds.
+- **Combine models.** Anthropic also describes using a cheaper model for most of the work, and passing only the hard parts to a stronger one. That is what the shoe store did.
+
+## Common mistakes
+
+- **Picking from a leaderboard** — a high rank on shared tests does not prove the model does well on your task. Test on your own eval set.
+- **Testing without a quality bar** — you will drift toward the most impressive model, not the one that is good enough. Write the pass mark before you test.
+- **Using only easy examples** — every model passes easy cases, so the test tells you nothing. Add the hard, rare and messy cases you see in real life.
+- **Ignoring risk until the end** — a model that wins the test may not be allowed to see your data. Apply your data and approval rules when you build the shortlist.
+- **Choosing once and forgetting** — new models and price changes can make your choice out of date. Keep the eval set and re-run it when anything changes.
+
+## Remember this
+
+<Remember>
+- Judge a model on four things: capability, cost, speed and risk.
+- Test on your own eval set with a pass mark set in advance, not on a public leaderboard.
+- Pick the lightest model or setting that passes, and re-test when models change.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Model A tops a public leaderboard. Model B scores lower there but passes your own 200-example test at a third of the cost. Which should you pick?",
+      options: ["Model A, because it ranks higher", "Model B, because it meets your quality bar for less", "Neither, wait for a better model", "Whichever is newer"],
+      answer: 1,
+      why: "Your own test measures your task. A leaderboard measures general skills. If B passes your bar, paying more for A buys nothing you need."
+    },
+    {
+      q: "Why should you decide what 'good enough' means before you run the tests?",
+      options: ["Providers require it", "Otherwise you tend to pick the most impressive model instead of the one that is good enough", "It makes the tests run faster", "It lowers the price of each request"],
+      answer: 1,
+      why: "A pass mark set in advance stops you from moving the goalposts after you see the results."
+    },
+    {
+      q: "Your chosen model is good enough but a bit too slow. What is a sensible first thing to try?",
+      options: ["Switch to the largest model", "Lower its effort setting, if it has one, and re-run your tests", "Remove the hard cases from your eval set", "Stop measuring latency"],
+      answer: 1,
+      why: "Lower effort is usually faster and cheaper. Anthropic's guide says tuning effort is often a better lever than switching models. It can also lower quality, so re-test to check you still pass."
+    },
+    {
+      q: "Where in the process should data and approval rules come in?",
+      options: ["After you pick the winner", "When you build the shortlist, before testing", "Only if something goes wrong", "Never, that is the provider's job"],
+      answer: 1,
+      why: "If a model is not allowed to see your data, testing it wastes time. Drop it before you test."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Build, buy, or customize?](/docs/ai-architect/foundations/build-buy-or-customize) and [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents)
+- Related: [Managing AI cost](/docs/ai-architect/operations/ai-cost-and-finops) and [The AI gateway](/docs/ai-architect/building-blocks/ai-gateway)
+- Sources are listed below with the date they were last checked.
