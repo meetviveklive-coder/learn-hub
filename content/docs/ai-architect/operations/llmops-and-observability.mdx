@@ -1,0 +1,151 @@
+---
+title: "LLMOps: monitoring AI systems in production"
+description: How teams watch a live AI app - traces, quality checks on real traffic, cost and speed - and turn what they find into better tests.
+domain: ai-architect
+level: intermediate
+order: 1
+prerequisites: [evaluating-agents, ai-gateway]
+tags: [llmops, observability, tracing, evals, monitoring, ai-architect]
+sources:
+  - title: GenAIOps for MLOps practitioners (Azure Architecture Center)
+    url: https://learn.microsoft.com/azure/architecture/ai-ml/guide/genaiops-for-mlops
+    type: official
+  - title: "Inside the LLM Call: GenAI Observability with OpenTelemetry (OpenTelemetry blog, 2026)"
+    url: https://opentelemetry.io/blog/2026/genai-observability/
+    type: official
+  - title: OpenTelemetry documentation (overview)
+    url: https://opentelemetry.io/docs/
+    type: official
+  - title: Evaluation concepts (LangSmith docs)
+    url: https://docs.langchain.com/langsmith/evaluation-concepts
+    type: official
+last_verified: 2026-11-02
+status: published
+author: agent
+reading_minutes: 9
+---
+
+## In 3 lines
+
+- **What it is:** LLMOps is the set of practices for building, testing and running apps built on large language models (LLMs). This lesson covers the part after launch: watching the live app.
+- **Why it matters:** An AI app can be "up" and still give wrong, unsafe or costly answers. Normal server checks do not catch that.
+- **Example:** A support bot starts quoting an old policy. Quality checks on live answers and a rise in thumbs-down clicks reveal it before many customers are misled.
+
+## Think of it like…
+
+<Analogy>
+Think of a restaurant kitchen. The owner tracks how long each order takes and how much food is used. But they also taste dishes during service and read customer reviews. A fast, cheap meal that tastes bad is still a failure.
+
+**Where the comparison breaks:** A cook makes the same dish the same way each time. An AI model can give a different answer to the same question, so you must check samples all the time, not once.
+</Analogy>
+
+## Real-world example
+
+An insurance company runs a chatbot that answers policy questions. It uses **retrieval-augmented generation (RAG)**: the app first finds relevant company documents, then asks the model to answer from them. To find documents fast, it searches an **index**, a lookup table built from the documents. Before launch, the team tested the bot on 200 sample questions with known good answers. It passed.
+
+Three weeks later, the company changes a policy, but nobody rebuilds the index. The bot keeps quoting the old rules. The servers are healthy and no errors appear. What catches it is an automatic quality check on a sample of live answers, which compares them with the current policy wording. Thumbs-down clicks from users also rise.
+
+The team opens the **traces** of the bad answers: step-by-step records of each request. These show the search step returned old documents. They rebuild the index. Then they add the failing questions to their test set, so this mistake gets caught before the next release.
+
+## How it works
+
+**Observability** means you can see what happened inside a system from the data it records. LLMOps depends on it. Microsoft calls this work GenAIOps and notes it is sometimes called LLMOps.
+
+### 1. Trace every request
+
+A **trace** is the full record of one request as it moves through your system. It is made of **spans**: one span per step. A step might be a model call, or a **tool call**, where the model asks the app to run a function such as a search. An **agent** is an AI app that decides for itself which steps and tools to use. Models read and bill by **tokens**, which are words or parts of words.
+
+**OpenTelemetry** is a free, open-source framework for collecting traces, metrics and logs. Its blog says its naming rules for AI apps are still under active development. Here is a trace using those span names (the numbers are made up):
+
+```text
+invoke_agent  "answer customer question"     4.1 s
+ ├─ chat           model call #1             1.2 s   900 in / 60 out tokens
+ ├─ execute_tool   search_policy_docs        0.8 s
+ └─ chat           model call #2             2.1 s   2,400 in / 180 out tokens
+```
+
+Each model-call span records the model name, the input and output tokens, and why the model stopped. The **prompt** is the text sent to the model. By default, OpenTelemetry's AI data does not include prompt text or tool inputs, because they can hold private data. You switch this "content capture" on deliberately.
+
+### 2. Watch three kinds of numbers
+
+Microsoft's guide splits production monitoring into three areas:
+
+| Area | What you watch | Why |
+|---|---|---|
+| **Operational monitoring** | Errors, delay (**latency**), tokens per request, "too many requests" errors | Is the system working and fast? |
+| **Learning from production** | Is the answer based on its documents? Relevant? Harmful? User thumbs up or down | Is it giving *good* answers? |
+| **Resource management** | Total tokens against your **quota** (the most your provider lets you use), slowdowns from the provider | Can we afford it, and will we hit limits? |
+
+For RAG apps, the guide also says to watch the **data pipelines**, the automated jobs that load and prepare documents, and to keep indexes fresh. Stale data was the bug in the example above.
+
+### 3. Evaluate offline and online
+
+An **eval** is a repeatable quality test. LangSmith's docs describe two kinds:
+
+- **Offline evaluation** runs *before* release, on a fixed test set with known good answers. It can check if answers are correct.
+- **Online evaluation** runs on *live* traffic, where no correct answer is stored. It looks for problems, unusual behavior and drops in quality.
+
+Graders can be code (for example, "is the output in the expected format?"), people, or a **judge model**: another AI model asked to grade the answer.
+
+### 4. Close the feedback loop
+
+```text
+ 1. live traffic → 2. checks flag bad runs → 3. add them to the test set
+        ↑                                              ↓
+ 5. release      ←──────────────────────── 4. run offline tests
+```
+
+Bad runs found in production become new offline test cases. LangSmith's docs suggest good candidates: runs with negative user feedback, unusual delay or errors, and runs a judge model flags. Each fix must then pass the bigger test set before release. Checking that a new version is not worse than the old one is called **regression testing**.
+
+## Common mistakes
+
+- **Watching only uptime and errors** — uptime only shows the service is reachable. The bot in the example had zero errors while giving wrong answers. Add online quality checks on a sample of real answers.
+- **Turning on content capture by default** — prompts and answers can hold customer data. Decide who may read them and how long you keep them before you switch it on.
+- **Tracking requests instead of tokens** — in the trace above, one model call used about 2,600 tokens and another under 1,000. Track tokens and cost per feature and per team.
+- **Forgetting the data side** — in RAG apps, an answer can be wrong because the documents are old, not because the model failed. Monitor data pipelines and index rebuilds too.
+- **Fixing bugs without adding a test** — the same failure can come back after the next prompt or model change. Turn every real failure into an offline test case.
+
+## Remember this
+
+<Remember>
+- LLMOps means watching three things in production: is it working (errors, speed), is it good (quality, safety), and can we afford it (tokens, cost).
+- Traces record every step of a request, so you can see where an answer went wrong, and where time and tokens went.
+- Offline evals test before release; online evals check live traffic; bad live runs become new offline tests.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Your AI app has no errors and normal speed, but users say answers are wrong. What would most likely have caught this?",
+      options: ["A check that the server is reachable", "Online quality checks on a sample of live answers", "A bigger model", "A lower limit on requests per minute"],
+      answer: 1,
+      why: "Uptime and error checks only show the system is running. Online evaluation checks whether the answers are actually good."
+    },
+    {
+      q: "What is the main difference between offline and online evaluation?",
+      options: ["Offline is done by people, online by code", "Offline uses a fixed test set with known answers before release; online checks live traffic without stored answers", "Offline is cheaper, so online is never needed", "They are the same thing"],
+      answer: 1,
+      why: "Offline evals compare against known good answers before release. Online evals run on real traffic, where no correct answer is stored, so they look for problems and drops in quality."
+    },
+    {
+      q: "A trace shows the model call was fine, but the search step returned old documents. What should the team fix first?",
+      options: ["Switch to a different model", "Rebuild the search index and monitor the data pipeline", "Turn off tracing", "Shorten the prompt"],
+      answer: 1,
+      why: "The trace points to the search step, not the model. Changing the model would not fix documents that are out of date."
+    },
+    {
+      q: "Why does OpenTelemetry leave prompt text out of AI traces by default?",
+      options: ["Prompts are too short to matter", "Prompts can contain sensitive or private data", "It is not possible to record text", "Prompts never affect quality"],
+      answer: 1,
+      why: "Prompts and answers may hold personal data, so content capture is something you turn on on purpose, with rules on access and retention."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Evals](/docs/ai-agents/patterns/evaluating-agents) and [The AI gateway](/docs/ai-architect/building-blocks/ai-gateway)
+- Related: [RAG architecture](/docs/ai-architect/building-blocks/rag-architecture)
+- Sources are listed below with the date they were last checked.

@@ -36,3 +36,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-10-31 | new-lesson | data-readiness-for-ai written, reviewer fixes applied, checks + build pass, PR opened; ai-gateway marked published | claude/lesson-data-readiness-for-ai
 2026-11-01 | new-lesson | ai-security-threats written, reviewer fixes applied, checks + build pass, PR opened; data-readiness-for-ai marked published | claude/lesson-ai-security-threats
 2026-11-01 | new-lesson | ai-governance-frameworks written, reviewer fixes applied, checks + build pass, PR opened; ai-security-threats marked published | claude/lesson-ai-governance-frameworks
+2026-11-02 | new-lesson | llmops-and-observability written, reviewer fixes applied, checks + build pass, PR opened; ai-governance-frameworks marked published | claude/lesson-llmops-and-observability
