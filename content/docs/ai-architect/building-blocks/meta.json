@@ -1,4 +1,4 @@
 {
   "title": "Building Blocks",
-  "pages": ["rag-architecture", "ai-gateway", "agents-in-the-enterprise"]
+  "pages": ["rag-architecture", "ai-gateway", "agents-in-the-enterprise", "integration-patterns"]
 }
