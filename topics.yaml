@@ -283,7 +283,7 @@ items:
     title: "Putting agents to work safely in a company"
     why: "How agent patterns from earlier tracks change when real systems, identities and approvals are involved."
     priority: 2
-    status: in_review
+    status: published
     notes: "Link MCP, tools and maker/checker lessons. Cover least privilege and human approval steps."
 
   - id: integration-patterns
@@ -292,7 +292,7 @@ items:
     title: "Connecting AI to existing systems (APIs, events, MCP)"
     why: "Enterprise value comes from integration with CRM, ERP and data platforms."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Sync vs async, event-driven, batch. Keep it concrete with one example."
 
   - id: data-readiness-for-ai

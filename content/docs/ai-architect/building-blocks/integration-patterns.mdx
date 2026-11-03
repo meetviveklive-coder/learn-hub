@@ -1,0 +1,147 @@
+---
+title: "Connecting AI to existing systems (APIs, events, MCP)"
+description: Four ways to plug AI into the systems a company already runs - wait for an answer, react to events, work in batches, or give an agent tools through MCP.
+domain: ai-architect
+level: intermediate
+order: 4
+prerequisites: [tools-and-function-calling, mcp-basics, ai-gateway]
+tags: [integration, api, events, batch, mcp, ai-architect]
+sources:
+  - title: Event-driven architecture style (Azure Architecture Center)
+    url: https://learn.microsoft.com/en-us/azure/architecture/guide/architecture-styles/event-driven
+    type: official
+  - title: Asynchronous Request-Reply pattern (Azure Architecture Center)
+    url: https://learn.microsoft.com/azure/architecture/patterns/async-request-reply
+    type: official
+  - title: Batch processing (Claude Platform docs)
+    url: https://platform.claude.com/docs/en/build-with-claude/batch-processing
+    type: official
+  - title: Architecture (Model Context Protocol specification, 2026-07-28)
+    url: https://modelcontextprotocol.io/specification/2026-07-28/architecture
+    type: official
+last_verified: 2026-11-03
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Integration patterns are the standard ways to connect an AI feature to the systems a company already uses, such as its CRM or ERP.
+- **Why it matters:** The pattern decides who waits, what happens when something fails, and how much the AI work costs.
+- **Example:** A new support ticket fires an event, an AI service sorts it and drafts a reply, and the draft lands back in the ticket.
+
+## Think of it like…
+
+<Analogy>
+Think of the ways you can get food. You can stand at the counter and wait (a sync call). You can order, take a buzzer and sit down until it buzzes (an async request). A waiter can notice your empty glass and refill it without being asked (an event). Or a caterer can cook tomorrow's meals for the whole office tonight (a batch).
+
+**Where the comparison breaks:** Food is cooked once, but in software the same message can be handled twice by accident, so your code must make repeats harmless.
+</Analogy>
+
+## Real-world example
+
+A home-appliance company wants AI inside its existing tools. Its **CRM** (Customer Relationship Management system) holds customers and support tickets. Its **ERP** (Enterprise Resource Planning system) holds orders, stock and invoices. The architect picks a different pattern for each job.
+
+When a sales rep clicks "Summarize this account", the CRM calls the AI service and waits a few seconds. When a new ticket arrives, the help desk sends out a "ticket created" event, and an AI service picks it up later to tag it and draft a reply. Each night, a batch job summarizes all of the day's call transcripts. Finally, the AI support agent gets an "order status" tool, offered by an MCP server that reads the ERP.
+
+## How it works
+
+An **API** (Application Programming Interface) is a set of rules one program uses to ask another program for something. Every pattern below uses APIs. What changes is **who starts the work and who waits**.
+
+| Pattern | Who starts it | Who waits | Good for | Watch out for |
+|---|---|---|---|---|
+| **Synchronous (sync) call** | A user or app. | The caller, until the answer returns. | Short tasks a person is waiting on. | Slow answers freeze the screen. |
+| **Asynchronous (async) request** | A user or app. | Nobody; the caller checks back later. | Tasks that take seconds to minutes. | Must track status and report failures. |
+| **Event-driven** | A change in some system. | Nobody. | Reacting to new tickets, orders, sign-ups. | Duplicates, order, delays. |
+| **Batch** | A schedule. | Nobody; results arrive later. | Large volumes where speed doesn't matter. | Results may take hours. |
+| **Agent tools (MCP)** | The AI agent itself. | The agent, and any person chatting with it. | Letting an agent read or act in many systems. | Permissions and safety. |
+
+### 1. Synchronous: ask and wait
+
+The app sends a request and holds the line until the answer comes back. It is the simplest pattern. It breaks when the AI step is slow. Many systems give up after a set time, called a **timeout**, and report an error.
+
+### 2. Asynchronous request-reply: take a ticket
+
+Microsoft's Azure Architecture Center describes this for slow back-end work. Web requests use **HTTP**, the language of the web, and every reply carries a status number. Here the server replies at once with **202 Accepted**, meaning "I got it, still working". The reply includes a link to a **status endpoint**: an address the caller **polls**, or checks again and again, until the result is ready. The server can add a **header** (an extra label on the reply) named `Retry-After` that suggests when to check next, so clients don't overload it.
+
+### 3. Event-driven: react when something happens
+
+An **event** is a short message saying something happened, such as "ticket 812 was created". In Azure's description, **producers** create events, **consumers** listen for them, and an **event channel** (often a **broker**, a service that passes messages along) carries them between the two. The producer does not know who is listening. You can add a new AI consumer without changing the help desk at all.
+
+Azure also lists the costs. Retried events can be handled out of order, and other systems update a little later rather than instantly. Consumers often run as several copies, so the same event may be processed more than once. That is why consumers should be **idempotent**: processing the same event twice gives the same result as once. Events that keep failing can go to a **dead-letter queue**, a holding area where people can inspect them.
+
+### 4. Batch: do it all at once, later
+
+A **batch** groups many requests and runs them together. Some AI providers offer this directly. Anthropic's Message Batches API, for example, takes up to 100,000 requests or 256 MB in one batch, whichever comes first. Its docs say most batches finish within an hour, unfinished ones expire after 24 hours, and batch usage costs half the normal price.
+
+### 5. MCP: give the agent tools
+
+**MCP** (Model Context Protocol) is a shared set of rules for connecting AI apps to tools and data. In the MCP specification, a **host** (the AI app) runs one **client** per connection, and each client talks to one **server**. A server can offer three kinds of things: **tools**, **resources** and **prompts**. In practice, tools take actions and resources hold data to read. The spec also says a server should not see the whole conversation or look into other servers.
+
+Here, the AI decides when to call the system, not your code. That flexibility is the point, and also the risk.
+
+```text
+ Help desk ──"ticket created"──▶ event broker ──▶ AI tagger (consumer)
+                                                   │ writes tags + draft
+                                                   ▼
+ CRM button ──sync call──▶ AI service ──▶ answer in seconds
+ Nightly timer ──batch──▶ AI provider ──▶ summaries by morning
+ AI support agent ─MCP client─▶ MCP server ──▶ ERP (read-only order status)
+```
+
+Each line starts with whoever kicks off the work. In this setup, the rep waits on the CRM button, and a customer chatting with the AI agent waits on its tool calls.
+
+## Common mistakes
+
+- **Making everything synchronous** — a slow AI step freezes the user's screen and can hit timeouts. Use async or events when nobody needs the answer right now.
+- **Assuming each event arrives exactly once** — a repeated "ticket created" event could send two replies to a customer. Make consumers idempotent, for example by skipping ticket IDs already processed.
+- **Paying full price for work that can wait** — nightly summaries do not need instant answers. Check whether your provider offers a cheaper batch option.
+- **Building a custom connector per AI app** — a **connector** is code that links one app to one system, and each new app repeats that work. Wrap each system once, as an MCP server or an API behind your gateway, and reuse it.
+- **Letting AI write straight into the system of record** — the **system of record** is the official source for some data, like the ERP for orders, so a wrong answer becomes a wrong official record. Write drafts or suggestions first, and keep the real system's own permission checks.
+
+## Remember this
+
+<Remember>
+- The key question is who starts the work and who waits: sync, async, event, batch, or the agent itself through MCP.
+- Event consumers must be idempotent, because events can arrive twice or out of order.
+- Use batch for big jobs that can wait, and MCP when the AI should decide which tool to call.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A store's order system already publishes 'order created' events. It wants an AI to tag each new order for fraud review as soon as it arrives, without changing the order system. Which pattern fits best?",
+      options: ["A synchronous call from the checkout page", "An event consumer listening for 'order created' events", "A nightly batch job", "Asking staff to paste orders into a chatbot"],
+      answer: 1,
+      why: "Event producers don't know who is listening, so a new AI consumer can be added without changing the order system. A sync call would mean changing checkout and making buyers wait."
+    },
+    {
+      q: "Your AI consumer sometimes receives the same 'ticket created' event twice. What should you do?",
+      options: ["Make the consumer idempotent, e.g. skip ticket IDs already handled", "Switch to a bigger model", "Turn off the event broker", "Ignore it; brokers never repeat events"],
+      answer: 0,
+      why: "Repeats and out-of-order events are normal in event-driven systems. Idempotent processing makes a repeat harmless."
+    },
+    {
+      q: "An API replies at once with HTTP 202 and a status link. What is the caller expected to do?",
+      options: ["Treat the job as finished", "Send the same request again", "Check the status link later until the result is ready", "Open a new event broker"],
+      answer: 2,
+      why: "202 Accepted means the work started but isn't done. The caller polls the status endpoint, ideally following the Retry-After hint."
+    },
+    {
+      q: "When is batch processing the better choice than a sync call?",
+      options: ["A user is waiting on screen", "You need thousands of answers by tomorrow and want lower cost", "The task needs a tool the agent picks itself", "You need the answer in under a second"],
+      answer: 1,
+      why: "Batch trades speed for volume and cost. If a person is waiting, batch is too slow."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Tools and function calling](/docs/ai-agents/foundations/tools-and-function-calling) and [MCP in plain words](/docs/ai-agents/tools/mcp-basics).
+- Related: [The AI gateway](/docs/ai-architect/building-blocks/ai-gateway) and [Putting agents to work safely in a company](/docs/ai-architect/building-blocks/agents-in-the-enterprise).
+- Related: [Managing AI cost](/docs/ai-architect/operations/ai-cost-and-finops).
+- Sources are listed below with the date they were last checked.
