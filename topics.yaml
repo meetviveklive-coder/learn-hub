@@ -256,7 +256,7 @@ items:
     title: "Choosing a model: capability, cost, speed and risk"
     why: "Model choice is a recurring architect decision; teach the criteria, not a leaderboard."
     priority: 2
-    status: in_review
+    status: published
     notes: "Do NOT rank current models — they change monthly. Teach the evaluation criteria and link the evals lesson."
 
   - id: rag-architecture
@@ -283,7 +283,7 @@ items:
     title: "Putting agents to work safely in a company"
     why: "How agent patterns from earlier tracks change when real systems, identities and approvals are involved."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Link MCP, tools and maker/checker lessons. Cover least privilege and human approval steps."
 
   - id: integration-patterns
