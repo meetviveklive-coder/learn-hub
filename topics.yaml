@@ -292,7 +292,7 @@ items:
     title: "Connecting AI to existing systems (APIs, events, MCP)"
     why: "Enterprise value comes from integration with CRM, ERP and data platforms."
     priority: 2
-    status: in_review
+    status: published
     notes: "Sync vs async, event-driven, batch. Keep it concrete with one example."
 
   - id: data-readiness-for-ai
@@ -310,7 +310,7 @@ items:
     title: "Embeddings and vector databases in plain words"
     why: "Needed to design and size RAG systems."
     priority: 2
-    status: queued
+    status: in_review
     notes: "No product rankings. Explain similarity search and the main design choices."
 
   - id: privacy-and-data-residency

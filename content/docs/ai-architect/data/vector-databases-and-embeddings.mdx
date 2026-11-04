@@ -1,0 +1,156 @@
+---
+title: "Embeddings and vector databases in plain words"
+description: How embeddings turn text into numbers, how a vector database finds the closest ones fast, and the design choices that decide speed, cost and accuracy.
+domain: ai-architect
+level: intermediate
+order: 2
+prerequisites: [rag-architecture]
+tags: [embeddings, vector-database, similarity-search, hnsw, ann, ai-architect]
+sources:
+  - title: Embeddings FAQ (OpenAI Help Center)
+    url: https://help.openai.com/en/articles/6824809-embeddings-faq
+    type: official
+  - title: pgvector — open-source vector similarity search for Postgres (README, via PGXN)
+    url: https://pgxn.org/dist/vector
+    type: official
+  - title: Efficient and robust approximate nearest neighbor search using HNSW graphs (Malkov and Yashunin, 2016)
+    url: https://arxiv.org/abs/1603.09320v1
+    type: paper
+  - title: The Faiss library (Douze et al.)
+    url: https://arxiv.org/pdf/2401.08281v1.pdf
+    type: paper
+  - title: Migrate to a new embedding model (MongoDB Voyage AI docs)
+    url: https://www.mongodb.com/docs/voyageai/tutorials/migrate-embedding-model/
+    type: official
+last_verified: 2026-11-04
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** An embedding is a list of numbers that stands for the meaning of a text. A vector database stores millions of these lists and finds the closest ones fast.
+- **Why it matters:** This lookup is the "find" step of most AI search and chatbots. Its design decides how fast, how costly and how accurate they are.
+- **Example:** A shopper types "shoes for wet trails". The store finds products whose numbers sit close to the question's numbers, even if no product uses those exact words.
+
+## Think of it like…
+
+<Analogy>
+Think of a huge map where every sentence is a pin. Sentences with similar meanings sit near each other: "rain jacket" lands close to "waterproof coat". To answer a question, you drop a pin for it and pick the nearest pins.
+
+**Where the comparison breaks:** A real map has two directions. An embedding has hundreds or thousands, so you cannot picture it, and checking every pin would be far too slow.
+</Analogy>
+
+## Real-world example
+
+An online outdoor store has 200,000 product pages. Keyword search fails when shoppers use their own words. Someone asks for "shoes for wet trails", but the pages say "waterproof hiking boots".
+
+The architect adds similarity search. Ahead of time, an embedding model turns each page into an embedding, and the store saves it in a **vector database**, a store built to search these lists by closeness. Now each question gets an embedding too, and the database returns the 20 closest pages.
+
+Later the team wants a newer embedding model. The architect knows the old and new numbers cannot be mixed. So the team tests the new model on a sample, embeds every page again into a separate store, checks the results, and then switches over.
+
+## How it works
+
+### Step 1: Turn text into numbers
+
+An **embedding model** is an AI model that reads a text and outputs an **embedding**. Another name for that list of numbers is a **vector**. Each number is one **dimension**, so a model that outputs 1,024 numbers makes 1,024-dimension vectors.
+
+The model is trained so that texts with similar meanings get similar vectors. You must embed your documents and your questions with the **same** model. MongoDB's docs warn that vectors from different models do not line up in meaning. Even with the same number of dimensions, comparing them makes results worse.
+
+### Step 2: Measure "close"
+
+A **similarity metric** is the math that scores how close two vectors are. The common ones are:
+
+| Metric | Plain meaning |
+|---|---|
+| Euclidean (L2) distance | The straight-line gap between two points. Smaller means closer. |
+| Cosine similarity | How much two vectors point the same way. Higher means closer. |
+| Dot product (inner product) | Multiply matching numbers and add them up. Higher means closer. |
+
+OpenAI's FAQ says its embeddings are **normalized**: each vector is scaled to a size of exactly 1. For such vectors, cosine and Euclidean give the same ranking, and cosine can be computed with just a dot product. Use the metric your embedding model's docs recommend.
+
+### Step 3: Search fast
+
+**Exact search** compares the question with every stored vector. It never misses, but the Faiss paper notes it gets slow for large, high-dimension collections. So most systems use **approximate nearest neighbor (ANN) search**. ANN skips most vectors and returns results that are almost always, but not always, the true closest ones.
+
+You measure the "almost" with **recall**: the share of the true top results that the fast search actually returned. A recall of 0.95 for the top 10 means it found, on average, 9.5 of the real 10.
+
+Two common ANN **indexes** (data structures that speed up search) appear in the pgvector docs:
+
+```text
+HNSW (graph)                      IVFFlat (groups)
+top layer:   few points, long jumps     vectors split into many groups ("lists")
+middle:      more points               search only the groups nearest the question
+bottom:      every point, short links
+→ start at the top, step down          → check a few groups, skip the rest
+```
+
+- **HNSW** (Hierarchical Navigable Small World) is a layered graph from a 2016 paper. A **graph** here is a set of points joined by links; "small world" means any point can reach any other in a few hops. Search starts on a sparse top layer and moves down to finer ones. pgvector says it gives a better speed–recall balance but builds slower and uses more memory.
+- **IVFFlat** splits vectors into groups and checks only the closest groups. pgvector says it builds faster and uses less memory, but its speed–recall balance is worse.
+
+Both have **tuning knobs**. Checking more neighbors or groups per query raises recall and slows each query.
+
+### Step 4: Size it
+
+The Faiss paper frames vector search as a trade between accuracy, speed, memory and build time. You cannot max out all four.
+
+A quick size check uses pgvector's storage rule. A normal vector takes 4 bytes per dimension plus 8 bytes per vector. So 1 million **chunks** (short passages of a document) at 1,024 dimensions need about 4.1 GB, before the index. pgvector's half-precision type stores each number less exactly, in 2 bytes,, so the same data takes about 2.1 GB. **Quantization** goes further. It stores each vector as a short code, which saves memory but makes distances rougher.
+
+### Step 5: Filter with care
+
+Real queries add rules, such as "in stock" or "only documents this user may see". This is **metadata filtering**; **metadata** is data about each item, like its price or owner. pgvector warns that with an ANN index, the filter runs after the index search. By default its HNSW search returns 40 candidates. If only 10% of stored items (rows) match the filter, about 4 survive. Since version 0.8.0, you can turn on a setting that keeps scanning until enough rows match. Check how your database handles this.
+
+## Common mistakes
+
+- **Mixing embedding models** — old document vectors and new question vectors do not line up, so results quietly get worse. Re-embed everything with the new model into a new index, test it, then switch.
+- **Never measuring recall** — you cannot tell if the fast search is missing good results. Compare ANN results with exact search on a sample of real questions.
+- **Sizing for vectors only** — the index adds memory on top, and HNSW needs more. Estimate vectors plus index, and test with real data.
+- **Filtering after the search by accident** — users get too few results, or none. Check your database's filtering behavior and test with strict filters.
+- **Relying on vectors alone** — similarity search can miss exact codes and names. Add keyword search, as the [RAG lesson](/docs/ai-architect/building-blocks/rag-architecture) explains.
+
+## Remember this
+
+<Remember>
+- An embedding turns meaning into numbers; documents and questions must use the same embedding model.
+- Vector databases use approximate search, which trades a little recall for a lot of speed.
+- Size and tune for four things together: accuracy, speed, memory and build time.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Your team switches to a newer embedding model for questions but keeps the old document vectors. What happens?",
+      options: ["Results improve right away", "Results get worse, because vectors from different models are not comparable", "Nothing changes if the vectors have the same length", "The database converts the old vectors automatically"],
+      answer: 1,
+      why: "Each model places meanings in its own way. Even with the same number of dimensions, old and new vectors do not line up in meaning. Re-embed the documents with the new model."
+    },
+    {
+      q: "An ANN search for the top 10 has a recall of 0.8. What does that mean?",
+      options: ["80% of queries fail", "On average it returns 8 of the 10 true closest results", "It is 80% faster than exact search", "80% of the vectors were compressed"],
+      answer: 1,
+      why: "Recall compares the fast search with exact search. It measures how many of the true top results the fast search found, not speed."
+    },
+    {
+      q: "You need the best speed–recall balance and have spare memory. Which pgvector index fits best?",
+      options: ["IVFFlat", "HNSW", "No index at all"],
+      answer: 1,
+      why: "pgvector describes HNSW as having the better speed–recall balance, at the cost of slower builds and more memory. IVFFlat saves memory and build time but has a worse speed–recall balance."
+    },
+    {
+      q: "A filtered search for 'in-stock only' returns just 3 products when you asked for 20. What is the likely cause?",
+      options: ["The embedding model is too small", "The filter ran after the approximate search, which had already picked a short list", "Cosine similarity was used instead of dot product"],
+      answer: 1,
+      why: "With an ANN index, a filter can run on the short list the index returned. If most of that list is out of stock, few rows survive. Check whether your database keeps scanning until enough rows match."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [RAG architecture: giving AI your company's knowledge](/docs/ai-architect/building-blocks/rag-architecture)
+- Related: [Is your data ready for AI?](/docs/ai-architect/data/data-readiness-for-ai)
+- Related: [Managing AI cost: tokens, caching and budgets](/docs/ai-architect/operations/ai-cost-and-finops)
+- Sources are listed below with the date they were last checked.

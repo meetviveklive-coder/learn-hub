@@ -1,4 +1,4 @@
 {
   "title": "Data",
-  "pages": ["data-readiness-for-ai"]
+  "pages": ["data-readiness-for-ai", "vector-databases-and-embeddings"]
 }

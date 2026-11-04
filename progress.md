@@ -41,3 +41,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-11-02 | new-lesson | choosing-a-model written, reviewer fixes applied, checks + build pass, PR opened; ai-cost-and-finops marked published | claude/lesson-choosing-a-model
 2026-11-03 | new-lesson | agents-in-the-enterprise written, reviewer fixes applied, checks + build pass, PR opened; choosing-a-model marked published | claude/lesson-agents-in-the-enterprise
 2026-11-03 | new-lesson | integration-patterns written, reviewer fixes applied, checks + build pass, PR opened; agents-in-the-enterprise marked published | claude/lesson-integration-patterns
+2026-11-04 | new-lesson | vector-databases-and-embeddings written, reviewer fixes applied, checks + build pass, PR opened; integration-patterns marked published | claude/lesson-vector-databases-and-embeddings
