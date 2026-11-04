@@ -1,0 +1,181 @@
+---
+title: "Privacy, PII and data residency for AI systems"
+description: Where personal data travels inside an AI system, how to shrink it before it leaves, and how to check which country stores and processes it.
+domain: ai-architect
+level: intermediate
+order: 3
+prerequisites: [data-readiness-for-ai, consent-and-privacy-basics]
+tags: [privacy, pii, data-residency, gdpr, dpdp, pseudonymisation, ai-architect]
+sources:
+  - title: Regulation (EU) 2016/679 — General Data Protection Regulation (EUR-Lex)
+    url: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX%3A02016R0679-20160504
+    type: official
+  - title: Guide to Protecting the Confidentiality of PII, NIST SP 800-122
+    url: https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-122.pdf
+    type: official
+  - title: EDPB adopts pseudonymisation guidelines (EDPB, Jan 2025)
+    url: https://www.edpb.europa.eu/news/edpb-adopts-pseudonymisation-guidelines-and-paves-the-way-to-improve-cooperation-with_en
+    type: official
+  - title: EDPB sheds light on anonymisation and web scraping for generative AI (EDPB, Jul 2026)
+    url: https://www.edpb.europa.eu/news/edpb-sheds-light-on-anonymisation-and-web-scraping-for-generative-ai-and-adopts-final-version_en
+    type: official
+  - title: "EDPB opinion on AI models: GDPR principles support responsible AI (Dec 2024)"
+    url: https://www.edpb.europa.eu/news/edpb-opinion-on-ai-models-gdpr-principles-support-responsible-ai
+    type: official
+  - title: The Digital Personal Data Protection Act, 2023 (MeitY)
+    url: https://www.meity.gov.in/static/uploads/2024/06/2bf1f0e9f04e6fb4f8fef35e82c42aa5.pdf
+    type: official
+  - title: Government notifies DPDP Rules to empower citizens and protect privacy (PIB, Nov 2025)
+    url: https://www.pib.gov.in/PressReleasePage.aspx?PRID=2190014&reg=3&lang=2
+    type: official
+  - title: DPDP Rules Notification Status (ConsentOS, updated Oct 2026)
+    url: https://consentos.in/learn/dpdp-rules-notification-status/
+    type: article
+  - title: Cross-Region inference (Amazon Bedrock User Guide)
+    url: https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html
+    type: official
+  - title: Data controls in the OpenAI platform (OpenAI API docs)
+    url: https://developers.openai.com/api/docs/guides/your-data
+    type: official
+last_verified: 2026-11-04
+status: published
+author: agent
+reading_minutes: 9
+---
+
+> **Note:** This lesson is not legal advice. Privacy laws differ by country and change often, so check with a lawyer before you launch.
+
+## In 3 lines
+
+- **What it is:** Privacy design for AI means knowing which personal data enters the system, where every copy goes, and which country each copy lives in.
+- **Why it matters:** An AI request can copy one customer message into a model provider, logs, a search index and a cache. Each copy can break a law if it sits in the wrong place.
+- **Example:** A support bot hides customer names before it calls the model, and it uses a model region inside the EU for EU customers.
+
+## Think of it like…
+
+<Analogy>
+Think of customer data as a letter. Before posting it, you black out what the reader doesn't need. You pick a courier that stays in the country, and later you shred spare copies.
+
+**Where the comparison breaks:** A letter is one object, but data copies itself silently at every step, so you must track every copy, not just the original.
+</Analogy>
+
+## Real-world example
+
+An online pharmacy in India and the EU wants an AI chatbot for order questions. Chats contain names, addresses and medicine names. Medicine names can reveal health conditions, which EU law treats as extra-sensitive.
+
+The architect lists every place a chat message lands, from the app to the model provider. Then the team makes four changes. A filter swaps names and phone numbers for placeholder tags before the model sees them. EU chats go to a model region inside the EU. Logs keep masked text for a short, fixed time. Prescriptions never enter the search index at all.
+
+## How it works
+
+**1. Learn the key words.**
+
+- **Personal data** — under the EU's General Data Protection Regulation (GDPR), any information about a person who can be identified. India's Digital Personal Data Protection (DPDP) Act uses almost the same idea.
+- **PII (personally identifiable information)** — the common US term. The US standards body NIST counts both data that names a person and data that can be *linked* to them, such as an IP address or a birth date.
+- **Special categories** — GDPR's extra-sensitive data, such as health, religion, and biometric data like fingerprints. These need stronger reasons to use.
+- **Data residency** — where data is *stored* (where files are saved) and *processed* (where the computers running the model sit). Cloud vendors group their data centres into **regions**, such as "EU" or "India".
+- **Data transfer** — sending personal data to another country.
+
+**2. Map every copy.** Personal data rarely stays in one place.
+
+```text
+user message
+   │
+   ▼
+app ──> AI gateway ──> model provider (which region?)
+   │         │                │
+   │         └─> logs and traces    └─> provider's own logs
+   ├─> search index the bot reads from
+   ├─> cache of past answers
+   └─> outside tools the agent calls
+```
+
+The **AI gateway** is one front door that every model call passes through. **Logs** and **traces** are records of each request. The **search index** holds documents the bot looks up, and a **cache** stores past answers for reuse. Every arrow is a copy you must own. For each one, write down the data, the region, who can read it, and when it gets deleted.
+
+**3. Shrink the data before it leaves.** Send the model only what the task needs; this habit is called **data minimisation**. Next, **mask** what remains: swap names or card numbers for tags like `[NAME_1]`. If you keep a lookup table that turns tags back into names, that is **pseudonymisation**. The European Data Protection Board (EDPB), the group of EU privacy regulators, says such data is still personal data. Deleting the table doesn't make it anonymous either, since an address or a medicine name can still point to one person.
+
+Truly **anonymous** data falls outside GDPR, but the bar is high. In EDPB draft guidelines from July 2026, data must pass three checks. You can't pick out one person's record, link it to other data, or infer facts about someone. A trained AI model is not anonymous by default either, because models can memorise bits of their training data. In a December 2024 opinion, the EDPB said a model counts as anonymous only if identifying people, or pulling their data out through questions, is very unlikely.
+
+**4. Check where data is stored and where it is processed.** These are two separate questions, and vendors answer them separately.
+
+- Amazon Bedrock offers *geographic* routing, which keeps model requests inside an area such as the EU. Its *global* routing can process them in any supported region worldwide, at a lower price.
+- OpenAI's API docs list many regions for storing the data that features need to save. They mark only some for regional processing too. Residency also excludes system data, such as usage and billing, and data sent to third-party tools.
+
+So read the fine print for storage, processing, logs, and outside tools. Then set the allowed regional endpoints in your AI gateway, so no team can quietly call another one.
+
+**5. Know the transfer rules.**
+
+| | EU (GDPR) | India (DPDP Act) |
+|---|---|---|
+| Default | Transfers outside the EEA (the EU plus Iceland, Liechtenstein and Norway) must meet set conditions. | Transfers are allowed unless the government restricts a country. |
+| How | The EU decides a country protects data well (an "adequacy" decision). Or you sign EU-approved contract clauses. | Section 16 lets the government publish a list of blocked countries. Stricter laws for fields like banking still apply. |
+| Extra | Narrow exceptions exist, such as explicit consent. | Large firms the government labels "Significant Data Fiduciaries" may have to keep certain data in India. |
+
+India officially published its DPDP Rules in November 2025 and gave companies 18 months to comply. Most company duties start in May 2027. A plan to give those large firms only 12 months was still a proposal, per a tracker updated in October 2026.
+
+**6. Plan deletion.** The DPDP Act says to erase personal data once its purpose is done or consent is withdrawn, unless another law requires keeping it. Your vendors must erase it too. OpenAI, for example, keeps API logs used to spot misuse for up to 30 days by default.
+
+## Common mistakes
+
+- **Guarding the model call but forgetting the logs** — traces and caches often hold the full, unmasked prompt. Mask data before logging, and set short retention on every copy.
+- **Calling masked data "anonymous"** — the rest of the text can still identify someone. Treat it as personal data with lower risk.
+- **Trusting "EU region" without reading the details** — storage and processing can sit in different places, and routing modes can change both. Check each, and pin the region in your gateway.
+- **Putting everything into the search index** — anything indexed can show up in a bot's answer to the wrong person. Index only what users may see, and apply their access rights at search time.
+- **Copying EU rules to India, or the reverse** — the two laws treat transfers differently and use different dates. Check each market you serve.
+
+## Remember this
+
+<Remember>
+- Map every copy of personal data: model call, logs, index, cache and outside tools.
+- Masked or pseudonymised data is still personal data; anonymous is a much higher bar.
+- Residency has two parts: where data is stored and where it is processed. Check both.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A team replaces names with tags like [NAME_1] and keeps a lookup table to restore them. Under GDPR, what is this data?",
+      options: ["Anonymous data, outside GDPR", "Pseudonymised data, still personal data", "Public data", "Special-category data"],
+      answer: 1,
+      why: "The lookup table can turn tags back into names, so the EDPB treats it as personal data. It lowers risk but doesn't remove the law. Anonymous data must pass much stricter checks."
+    },
+    {
+      q: "A vendor offers an EU storage region. What should an architect still check?",
+      options: [
+        "Whether the EU region costs more",
+        "Whether the provider also has a US region",
+        "Where requests are processed, and what data is excluded",
+        "How fast the EU region answers"
+      ],
+      answer: 2,
+      why: "Vendors document storage and processing separately, and some exclude metadata or third-party tools. Price matters, but it doesn't answer the residency question."
+    },
+    {
+      q: "A team masks names before every model call. Which copies might still hold unmasked prompts?",
+      options: ["The model provider's price list", "Their own logs, traces and caches", "The user's keyboard settings", "The quiz answers"],
+      answer: 1,
+      why: "Logging and caching often happen before or beside the masking step. They are copies too, so they need masking and short retention."
+    },
+    {
+      q: "How does India's DPDP Act handle sending personal data abroad?",
+      options: [
+        "Every transfer needs an EU-style adequacy decision",
+        "All data must stay in India",
+        "Transfers are allowed unless the government blocks the country",
+        "Only consent from each person allows a transfer"
+      ],
+      answer: 2,
+      why: "Section 16 lets the government block named countries. Adequacy decisions are the EU's tool, not India's."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Is your data ready for AI?](/docs/ai-architect/data/data-readiness-for-ai)
+- Read first: [Consent, cookies, and privacy rules (basics)](/docs/martech/privacy/consent-and-privacy-basics)
+- Related: [The AI gateway: one front door for every model](/docs/ai-architect/building-blocks/ai-gateway)
+- Related: [RAG architecture: giving AI your company's knowledge](/docs/ai-architect/building-blocks/rag-architecture)
+- **What may change:** The EDPB anonymisation guidelines were open for comment until 30 October 2026, and India may shorten the deadline for Significant Data Fiduciaries. Re-check both.
+- Sources are listed below with the date they were last checked.

@@ -310,7 +310,7 @@ items:
     title: "Embeddings and vector databases in plain words"
     why: "Needed to design and size RAG systems."
     priority: 2
-    status: in_review
+    status: published
     notes: "No product rankings. Explain similarity search and the main design choices."
 
   - id: privacy-and-data-residency
@@ -319,7 +319,7 @@ items:
     title: "Privacy, PII and data residency for AI systems"
     why: "Where data goes and who can see it decides what is allowed at all."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Include India's DPDP Act alongside GDPR; verify current status of each from official sources."
 
   - id: ai-security-threats

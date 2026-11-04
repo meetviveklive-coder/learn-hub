@@ -1,4 +1,8 @@
 {
   "title": "Data",
-  "pages": ["data-readiness-for-ai", "vector-databases-and-embeddings"]
+  "pages": [
+    "data-readiness-for-ai",
+    "vector-databases-and-embeddings",
+    "privacy-and-data-residency"
+  ]
 }
