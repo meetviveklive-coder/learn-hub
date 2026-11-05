@@ -1,0 +1,173 @@
+---
+title: "Latency, scaling and reliability for AI apps"
+description: Why AI apps feel slow, hit rate limits and fail, and the patterns that fix it - streaming, quotas, retries, timeouts and fallbacks.
+domain: ai-architect
+level: intermediate
+order: 3
+prerequisites: [llmops-and-observability, ai-cost-and-finops, ai-gateway]
+tags: [latency, streaming, rate-limits, retries, fallbacks, circuit-breaker, reliability, ai-architect]
+sources:
+  - title: Performance and latency (Azure OpenAI docs, Microsoft Learn)
+    url: https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/latency
+    type: official
+  - title: Streaming messages (Claude Platform docs)
+    url: https://platform.claude.com/docs/build-with-claude/streaming
+    type: official
+  - title: Rate limits (Claude Platform docs)
+    url: https://platform.claude.com/docs/en/api/rate-limits
+    type: official
+  - title: Errors (Claude Platform docs)
+    url: https://platform.claude.com/docs/api/errors
+    type: official
+  - title: Rate limits (Claude Platform on AWS user guide)
+    url: https://docs.aws.amazon.com/claude-platform/latest/userguide/rate-limits.html
+    type: official
+  - title: Circuit Breaker pattern (Azure Architecture Center)
+    url: https://learn.microsoft.com/azure/architecture/patterns/circuit-breaker
+    type: official
+  - title: Fallbacks, retries and timeouts (LiteLLM proxy docs)
+    url: https://docs.litellm.ai/docs/proxy/reliability.md
+    type: official
+last_verified: 2026-11-05
+status: published
+author: agent
+reading_minutes: 9
+---
+
+## In 3 lines
+
+- **What it is:** Three jobs that keep an AI app usable. **Latency** is how long a user waits. **Scaling** is handling more users. **Reliability** is still working when something breaks.
+- **Why it matters:** A model writes its answer one **token** (a word or part of a word) at a time. Providers, the companies that run the models, cap how much you can send each minute. They also sometimes go down.
+- **Example:** A support bot streams its answer so text appears in under a second. It waits and retries when the provider says "slow down". It switches to a backup model during an outage.
+
+## Think of it like…
+
+<Analogy>
+Think of a busy pizza shop on a Friday night. The waiter brings garlic bread right away, so nobody minds waiting for the pizza. The kitchen can only bake so many pizzas per hour, so new orders queue. If the main oven breaks, a backup oven keeps food coming.
+
+**Where the comparison breaks:** A pizza oven never tells you to come back in 20 seconds. An AI provider sometimes does, in a header on its "too many requests" reply.
+</Analogy>
+
+## Real-world example
+
+An online shoe store runs an AI support assistant. On a big sale day three things go wrong. Answers take 15 seconds to appear, so customers close the chat. Then the provider starts returning "too many requests" errors. Later the provider has a short outage, and the assistant shows a blank error.
+
+They fix each problem. They turn on **streaming**, so words show up as the model writes them. They tell the model to keep answers short. Their code now waits and retries when it hits the limit. Finally, they route requests through their **AI gateway**, one central service between apps and models. The gateway switches to a backup model when the main one fails.
+
+## How it works
+
+### 1. Measure the right kind of slow
+
+Microsoft's Azure OpenAI docs split response time into parts.
+
+```text
+total time = time to first token + (time between tokens × tokens generated)
+```
+
+- **Time to first token** is how long until the first word arrives.
+- **Time between tokens** is the average gap between one token and the next.
+
+So the length of the answer drives most of the wait, unless the prompt is huge. The docs say each input token adds little time compared with each generated token. They also warn you to check token counts before blaming the system. A slower answer is often just a longer answer.
+
+### 2. Make it feel fast, then make it fast
+
+**Streaming** sends the answer in small pieces as the model writes it. Claude's API does this with **server-sent events**, a standard way for a server to push updates over one open connection. Microsoft's docs note the catch: streaming does not shorten the total time. It only makes the first words appear sooner. That matters for chat, and much less for a background job.
+
+To cut the real time:
+
+- **Ask for fewer output tokens.** Set a low maximum answer length and use stop sequences, text that tells the model to stop.
+- **Use a smaller, faster model** for simple tasks (see the model choice lesson).
+- **Separate workloads.** Microsoft's docs suggest separate deployments (separate copies of the model service) for each workload, so short chat calls do not wait behind long reports.
+
+### 3. Live within your quota
+
+A **rate limit** caps how much you can send in a set time. Claude's API measures **requests per minute (RPM)**, **input tokens per minute (ITPM)** and **output tokens per minute (OTPM)**. Go over any of them and you get an **HTTP 429** error, the web's "too many requests" code.
+
+Two details from Anthropic's docs matter for design:
+
+- **Limits refill all the time, not on the minute.** The docs say 60 requests per minute might be enforced as 1 per second. So a sudden burst can fail even when the minute's total looks fine.
+- **Sharp jumps in overall usage can be limited too.** The docs advise raising traffic gradually.
+
+For most Claude models, input tokens read from the prompt cache (saved prompt text the provider reuses) do not count toward the input limit. So caching also lets you handle more traffic, not just pay less. Responses carry **headers**, small labels on the reply, that show how much limit you have left.
+
+### 4. Retry the right errors, the right way
+
+| Error | What it means | Retry? |
+|---|---|---|
+| 429 rate limit | You sent too much too fast | Yes, after the retry-after wait, or with backoff |
+| 429 spend cap | You hit your monthly spending cap | No, it keeps failing until access resumes |
+| 500 server error | Something broke at the provider | Yes, with backoff (see below) |
+| 529 overloaded | The service is busy for everyone | Yes, with backoff |
+| 400 or 401 | Bad request, bad key, or your own spend limit | No, fix the request first |
+
+**Exponential backoff** means waiting longer after each failure: say 1 second, then 2, then 4. **Jitter** adds a small random amount to each wait, so thousands of clients do not all retry at the same moment. AWS's guide for Claude recommends both. On a 429, an optional **retry-after** header gives the number of seconds to wait. Anthropic's errors page says its official code libraries retry twice by default and honor that header.
+
+Also set a **timeout**, the longest you will wait before giving up. Anthropic suggests streaming, or batch jobs, for very long requests, especially ones over 10 minutes. With streaming, an error can arrive after the reply has already started. So your code must check for error messages inside the stream, too.
+
+### 5. Plan for the provider going down
+
+A **fallback** sends the request to a backup model when the main one fails. LiteLLM's gateway docs let you set different fallbacks by error type. Examples include general errors, prompts too long for the model, and requests blocked by a content filter. It also puts a failing model on a short "cooldown" so traffic avoids it.
+
+A **circuit breaker** stops calling a service that keeps failing. Microsoft's Architecture Center describes three states:
+
+```text
+CLOSED  --too many failures-->  OPEN  --timer ends-->  HALF-OPEN
+  ^                                                       |
+  +------------------ trial requests succeed -------------+
+  (a trial fails: go back to OPEN)
+```
+
+Half-open lets a few trial requests through. While open, like an open switch, nothing flows: calls fail at once. Your app can then switch to a fallback, or show a clear "try again soon" message.
+
+## Common mistakes
+
+- **Streaming and calling the job done** — users see text sooner, but the total time stays the same. Also cut answer length and use smaller models.
+- **Retrying every error** — retrying a bad API key or a spending cap only wastes time and adds load. Retry only temporary errors, such as rate-limit 429s and 5xx server errors, with backoff and jitter.
+- **Retrying instantly in a tight loop** — many clients retrying at once can keep a busy service down. Respect retry-after, back off, and cap the number of tries.
+- **Planning capacity on the minute total alone** — limits refill all the time, so bursts fail early. Smooth traffic, ramp up slowly, and watch the limit headers.
+- **No backup when the provider fails** — one outage takes your whole feature down. Use a gateway with fallbacks and a circuit breaker, and test the backup model's quality first.
+
+## Remember this
+
+<Remember>
+- Answer length drives most of the wait; streaming makes the first words arrive sooner but does not cut total time.
+- Rate limits cover requests and tokens per minute and refill all the time, so smooth bursts and read the limit headers.
+- Retry only temporary errors, with backoff and jitter, and use timeouts, fallbacks and circuit breakers for outages.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "After turning on streaming, users say the bot feels faster, but your logs show total response time did not change. Why?",
+      options: ["Streaming is broken", "Streaming shows the first words sooner but does not shorten the full answer", "Streaming only works for short prompts", "The logs measure the wrong model"],
+      answer: 1,
+      why: "Streaming improves the time to first token. Total time still depends mostly on how many tokens the model writes."
+    },
+    {
+      q: "Your limit is 60 requests per minute. You send 30 requests in the same second and some fail with 429. What explains this?",
+      options: ["The provider is down", "Limits refill continuously, so a burst can exceed the limit even under the minute total", "429 means a bad API key", "You hit your monthly spending cap"],
+      answer: 1,
+      why: "Anthropic's docs say a per-minute limit can be enforced at a steady rate, such as one per second. Smooth out bursts."
+    },
+    {
+      q: "Which error should your code NOT retry automatically?",
+      options: ["529 overloaded", "429 rate limit with a retry-after header", "500 server error", "401 invalid API key"],
+      answer: 3,
+      why: "A bad key will fail every time until someone fixes it. The others are often temporary and can pass after a wait."
+    },
+    {
+      q: "What does a circuit breaker add that retries alone do not?",
+      options: ["It makes the model answer faster", "It stops calling a failing service for a while, so requests fail fast and can go to a fallback", "It lowers token prices", "It removes rate limits"],
+      answer: 1,
+      why: "Retries keep trying. A circuit breaker notices repeated failures and stops trying for a while, which protects both your app and the struggling service."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [LLMOps: monitoring AI systems in production](/docs/ai-architect/operations/llmops-and-observability) and [The AI gateway](/docs/ai-architect/building-blocks/ai-gateway)
+- Related: [Managing AI cost](/docs/ai-architect/operations/ai-cost-and-finops) and [Choosing a model](/docs/ai-architect/foundations/choosing-a-model)
+- Sources are listed below with the date they were last checked.
