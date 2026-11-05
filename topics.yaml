@@ -337,7 +337,7 @@ items:
     title: "Guardrails: input, output and action checks"
     why: "Where to place safety checks in the architecture and what each catches."
     priority: 2
-    status: in_review
+    status: published
     notes: "Link the harness-engineering guardrails lesson if published."
 
   - id: ai-governance-frameworks
@@ -381,7 +381,7 @@ items:
     title: "Latency, scaling and reliability for AI apps"
     why: "Users leave slow apps; models fail and rate-limit."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Streaming, caching, fallbacks, timeouts, quotas."
 
   - id: deployment-options

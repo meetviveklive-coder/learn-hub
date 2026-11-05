@@ -44,3 +44,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-11-04 | new-lesson | vector-databases-and-embeddings written, reviewer fixes applied, checks + build pass, PR opened; integration-patterns marked published | claude/lesson-vector-databases-and-embeddings
 2026-11-04 | new-lesson | privacy-and-data-residency written, reviewer fixes applied, checks + build pass, PR opened; vector-databases-and-embeddings marked published | claude/lesson-privacy-and-data-residency
 2026-11-05 | new-lesson | guardrails-architecture written, reviewer fixes applied, checks + build pass, PR opened; privacy-and-data-residency marked published | claude/lesson-guardrails-architecture
+2026-11-05 | new-lesson | latency-scaling-and-reliability written, reviewer fixes applied, checks + build pass, PR opened; guardrails-architecture marked published | claude/lesson-latency-scaling-and-reliability
