@@ -1,4 +1,4 @@
 {
   "title": "Security and governance",
-  "pages": ["ai-security-threats", "ai-governance-frameworks"]
+  "pages": ["ai-security-threats", "ai-governance-frameworks", "guardrails-architecture"]
 }
