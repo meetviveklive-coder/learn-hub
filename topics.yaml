@@ -381,7 +381,7 @@ items:
     title: "Latency, scaling and reliability for AI apps"
     why: "Users leave slow apps; models fail and rate-limit."
     priority: 2
-    status: in_review
+    status: published
     notes: "Streaming, caching, fallbacks, timeouts, quotas."
 
   - id: deployment-options
@@ -390,7 +390,7 @@ items:
     title: "Where AI runs: cloud APIs, private cloud, on-premise and open-weight models"
     why: "A core architecture decision driven by data, cost and control."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Vendor-neutral first; name AWS/Azure/Google only as examples, from their official architecture centres."
 
   - id: ai-architecture-decision-records
