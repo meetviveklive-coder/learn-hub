@@ -1,0 +1,188 @@
+---
+title: "Documenting AI decisions: ADRs and design docs"
+description: How architects write down big design choices, with a short decision record for an AI system, so others can follow and challenge them later.
+domain: ai-architect
+level: intermediate
+order: 2
+prerequisites: [what-does-an-ai-architect-do, deployment-options]
+tags: [adr, architecture-decision-record, design-doc, documentation, governance, ai-architect]
+sources:
+  - title: Architecture decision record (Microsoft Azure Well-Architected Framework)
+    url: https://learn.microsoft.com/en-gb/azure/well-architected/architect-role/architecture-decision-record
+    type: official
+  - title: Using architectural decision records to streamline technical decision-making (AWS Prescriptive Guidance, PDF)
+    url: https://docs.aws.amazon.com/pdfs/prescriptive-guidance/latest/architectural-decision-records/architectural-decision-records.pdf
+    type: official
+  - title: Architecture decision records overview (Google Cloud Architecture Center)
+    url: https://docs.cloud.google.com/architecture/architecture-decision-records
+    type: official
+  - title: "Nygard's ADR format, 2011 (arc42 FAQ, C-9-3)"
+    url: https://faq.arc42.org/questions/C-9-3/
+    type: article
+  - title: Design Docs at Google (Malte Ubl, Industrial Empathy, Jul 2020)
+    url: https://www.industrialempathy.com/posts/design-docs-at-google/
+    type: article
+last_verified: 2026-11-06
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** An architecture decision record (ADR) is a short note that says what a team decided, why, and what it gave up. A design doc is a longer plan written before building.
+- **Why it matters:** Without a record, people forget the reasons, argue the same point again, or quietly undo a choice that had a good reason.
+- **Example:** "ADR-007: We send support chats to an EU-only cloud model." The reason: customer data must stay in the EU.
+
+## Think of it like…
+
+<Analogy>
+A ship's logbook records each change of course, the time, and the reason, such as "storm to the north". Nobody tears out old pages. If the captain turns back, that is a new entry.
+
+**Where the comparison breaks:** A logbook mostly records what happened, while an ADR also lists the options the team rejected and the costs it accepted.
+</Analogy>
+
+## Real-world example
+
+An online shoe store builds an AI helper that summarises customer support chats. The team argues for a week about where the model should run. In the end, they pick a cloud model limited to EU data centres and write a one-page ADR.
+
+A year later, a new engineer asks, "Why not a cheaper global endpoint?" An **endpoint** is the web address the app calls to reach the model. Instead of a new week of debate, the team points to the ADR. It shows the data rule, the options they compared, and the higher price they accepted. When a new EU-hosted model arrives, they write ADR-012, mark it as replacing ADR-007, and keep both.
+
+## How it works
+
+**1. Learn the two document types.**
+
+- **Architecture decision** — a design choice that shapes the system's structure or key qualities, such as security or speed, or that is hard to reverse. Microsoft calls these "architecturally significant".
+- **ADR** — one short record per decision. All the ADRs together form a **decision log**.
+- **Design doc** — a longer plan the main authors write before coding. It covers how the whole system will work and why.
+
+**2. Know the classic ADR shape.** In 2011, Michael Nygard proposed five parts:
+
+| Part | What goes in it |
+|---|---|
+| Title | A number and a short phrase, like "ADR-007: EU-only model endpoint" |
+| Context | The forces at play: tech, politics, people, the project. They may pull against each other. |
+| Decision | What the team will do |
+| Status | Proposed, accepted, then later deprecated (no longer recommended) or superseded (replaced) |
+| Consequences | Everything that follows, good, bad and neutral |
+
+Newer guides add more. Microsoft suggests listing the options considered and a **confidence level**, meaning how sure the team was. A low-confidence choice is a hint to revisit it sooner. Amazon Web Services (AWS) adds a "rejected" status, so a turned-down idea is not argued again.
+
+**3. Follow the life cycle.** AWS describes a simple process:
+
+1. Anyone on the team drafts an ADR and becomes its owner. Its status is "proposed".
+2. At a review, everyone first reads it quietly for about 10 to 15 minutes and adds comments.
+3. The team accepts it, rejects it, or sends it back with action points (tasks to fix first).
+4. After that, nobody edits it. To change the decision, write a new ADR and mark the old one "superseded".
+
+Microsoft gives the same rule: the log is **append-only**, meaning you only add, never rewrite. This keeps the history of the team's thinking. AWS also advises wording the decision firmly, as "We use…", not "We should…".
+
+**4. Store it where people work.** Google suggests keeping ADRs next to the code, in the same **version control** system (a tool like Git that tracks every change to files). A shared wiki is easier for non-engineers to reach. Some teams keep the source in Git and copy key decisions to the wiki.
+
+**5. See a short ADR for an AI decision.** A few words first. A **token** is a small chunk of text; cloud models charge per token. A **GPU** (graphics processing unit) is the chip that runs models fast. A **self-hosted open model** is one you download and run on your own servers. **Lock-in** means switching vendors later would be hard.
+
+```text
+ADR-007: Use an EU-only cloud endpoint for chat summaries
+Status: Accepted (2026-03-02) · Owner: platform team
+Context: Support chats contain names and order details.
+  Policy says customer data must stay in the EU.
+  Chat numbers jump up and down; we have no GPU staff.
+Options:
+  A. Global cloud endpoint   – cheapest, but data may leave the EU
+  B. EU-only cloud endpoint  – meets policy, but a higher token price
+  C. Self-hosted open model  – full control, needs GPU skills we lack
+Decision: We use option B.
+Consequences:
+  + Meets data policy with no new hardware
+  - Higher token cost; fewer models offered in the EU
+  - Lock-in to one vendor's EU region for now
+Confidence: Medium. Revisit if a cheaper EU option or a GPU team appears.
+```
+
+Notice what an AI decision adds: a named model or endpoint, a data rule, and a reason to revisit. AI models and offers change fast, so a **revisit trigger** (the event that should reopen the question) saves the next team guesswork. The "Confidence" line follows Microsoft's advice. The revisit trigger is a habit this lesson suggests; neither is in Nygard's format.
+
+**6. Know when a design doc fits better.** In a 2020 post on design docs at Google, Malte Ubl lists their usual parts. They are context and scope, goals and non-goals, the design, alternatives considered, and cross-cutting concerns (issues that touch every part, such as security and privacy). He calls "alternatives considered" one of the most important parts.
+
+A large project's doc might run 10 to 20 pages; a small change can use a 1 to 3 page "mini" doc. He also warns that design docs drift out of date, and changes often land in separate add-on docs. This lesson's suggestion: keep each key decision in its own ADR so it stays easy to find and current.
+
+Here is the difference in short:
+
+- **Size:** An ADR is short. A design doc is often many pages.
+- **Scope:** An ADR covers one decision. A design doc covers a whole system or feature.
+- **Timing:** You draft an ADR as a proposal, then the team accepts or rejects it. You write a design doc before building starts.
+- **Changes:** A new ADR replaces an old one. A design doc gets updates or add-on docs.
+
+## Common mistakes
+
+- **Editing an accepted ADR** — you erase why the team once chose differently. Write a new ADR and mark the old one superseded.
+- **Recording only the winner** — readers cannot tell if you weighed other paths. List the options you rejected and why.
+- **Hiding the downsides** — a decision with no stated costs looks like a sales pitch, and later readers cannot judge it. Write the bad and neutral consequences too.
+- **Writing an ADR for every small choice** — the log turns into noise. Keep ADRs for choices that shape structure or are hard to reverse.
+- **Storing ADRs in a private folder** — nobody finds them when it counts. Keep them next to the code or in a shared wiki, linked from the main docs.
+
+## Remember this
+
+<Remember>
+- An ADR records one big decision: context, decision, status and consequences, plus the options you turned down.
+- ADRs are append-only: never edit an accepted one; write a new ADR that supersedes it.
+- A design doc plans a whole system before building; ADRs keep each key decision current afterwards.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Your team accepted ADR-004 to use one model vendor. Six months later you switch vendors. What should you do?",
+      options: [
+        "Edit ADR-004 so it names the new vendor",
+        "Delete ADR-004 to avoid confusion",
+        "Write ADR-015 for the switch and mark ADR-004 superseded",
+        "Just mention the switch in a team chat"
+      ],
+      answer: 2,
+      why: "ADRs are append-only. A new record that supersedes the old one keeps the history of why the team first chose differently. Editing hides that history."
+    },
+    {
+      q: "Which choice most deserves an ADR?",
+      options: [
+        "The colour of a button on the admin page",
+        "Whether customer data may be sent to a model outside the country",
+        "The name of a variable in one script",
+        "Which day the team meeting happens"
+      ],
+      answer: 1,
+      why: "An ADR is for decisions that shape the system or are hard to reverse. Where sensitive data goes affects security, law and cost; the others are small and easy to change."
+    },
+    {
+      q: "Why list the options you rejected?",
+      options: [
+        "So readers see the trade-offs and do not reopen the same debate",
+        "Because a template demands it, even though no one reads it",
+        "To make the record longer",
+        "So the rejected options can be built later without review"
+      ],
+      answer: 0,
+      why: "Rejected options show what was weighed. A later reader can see the old reasons and check whether they still hold, instead of starting from zero."
+    },
+    {
+      q: "What is the main difference between a design doc and an ADR?",
+      options: [
+        "A design doc is always shorter",
+        "A design doc plans a whole system; an ADR records one decision",
+        "Only an ADR lists alternatives",
+        "An ADR covers a whole system"
+      ],
+      answer: 1,
+      why: "Design docs cover a system or feature before building and can run many pages. ADRs are short and cover one decision. Both should list alternatives."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [What does an AI technical architect do?](/docs/ai-architect/foundations/what-does-an-ai-architect-do)
+- Read first: [Where AI runs: cloud APIs, private cloud and on-premise](/docs/ai-architect/delivery/deployment-options)
+- Related: [Choosing a model: capability, cost, speed and risk](/docs/ai-architect/foundations/choosing-a-model)
+- Related: [AI governance frameworks: NIST AI RMF, ISO 42001, EU AI Act](/docs/ai-architect/security-governance/ai-governance-frameworks)
+- Sources are listed below with the date they were last checked.
