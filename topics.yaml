@@ -390,7 +390,7 @@ items:
     title: "Where AI runs: cloud APIs, private cloud, on-premise and open-weight models"
     why: "A core architecture decision driven by data, cost and control."
     priority: 2
-    status: in_review
+    status: published
     notes: "Vendor-neutral first; name AWS/Azure/Google only as examples, from their official architecture centres."
 
   - id: ai-architecture-decision-records
@@ -399,7 +399,7 @@ items:
     title: "Documenting AI architecture: decision records and design docs"
     why: "How architects record and defend decisions so others can follow them."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Show a short ADR example for an AI decision."
 
   - id: from-pilot-to-production

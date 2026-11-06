@@ -1,4 +1,7 @@
 {
   "title": "Delivery",
-  "pages": ["deployment-options"]
+  "pages": [
+    "deployment-options",
+    "ai-architecture-decision-records"
+  ]
 }
