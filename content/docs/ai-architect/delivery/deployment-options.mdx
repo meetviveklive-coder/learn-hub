@@ -1,0 +1,163 @@
+---
+title: "Where AI runs: cloud APIs, private cloud and on-premise"
+description: The four places an AI model can run, from a shared cloud API to your own data centre, and how data, cost and control decide between them.
+domain: ai-architect
+level: intermediate
+order: 1
+prerequisites: [choosing-a-model, privacy-and-data-residency]
+tags: [deployment, cloud, on-premise, open-weight, self-hosting, data-residency, ai-architect]
+sources:
+  - title: The NIST Definition of Cloud Computing, SP 800-145 (NIST, 2011)
+    url: https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-145.pdf
+    type: official
+  - title: Dual-Use Foundation Models with Widely Available Model Weights (NTIA, Jul 2024)
+    url: https://www.ntia.gov/issues/artificial-intelligence/open-model-weights-report
+    type: official
+  - title: Deployment types for Microsoft Foundry Models (Microsoft Learn)
+    url: https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/deployment-types
+    type: official
+  - title: Model execution strategies for AI workloads (AWS Prescriptive Guidance)
+    url: https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-serverless/model-execution-strategies.html
+    type: official
+  - title: Gemini is now available anywhere, including on-premises (Google Cloud Blog, Aug 2025)
+    url: https://cloud.google.com/blog/topics/hybrid-cloud/gemini-is-now-available-anywhere
+    type: official
+  - title: "What's the difference between closed, open-source and open-weight AI? (The Conversation via PBS NewsHour, Jul 2026)"
+    url: https://pbs.org/newshour/science/whats-the-difference-between-closed-open%e2%80%91source-and-open-weight-ai-a-researcher-explains
+    type: article
+last_verified: 2026-11-06
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** A deployment option is the place where an AI model actually runs: a vendor's shared cloud, a reserved slice of a cloud, your own cloud servers, or your own building.
+- **Why it matters:** That choice decides where your data travels, how you pay, how much work your team carries, and which models you can use at all.
+- **Example:** A bank uses a cloud API for marketing copy, but runs a downloaded model in its own data centre to read loan files.
+
+## Think of it like…
+
+<Analogy>
+Getting a meal can mean ordering delivery, booking a private room at a restaurant, renting a kitchen, or cooking at home. Each step down gives you more control over ingredients and privacy. It also gives you more shopping, cooking and washing up.
+
+**Where the comparison breaks:** You can cook any dish at home, but some top AI models are never handed out, so "cooking at home" may limit which models you get.
+</Analogy>
+
+## Real-world example
+
+A hospital group wants AI to summarise doctors' notes and to draft patient newsletters. The newsletters hold no patient data, so the team calls a cloud model through its normal internet API. It pays per use and ships in weeks.
+
+The doctors' notes are different. Local rules say patient records must stay in the country, and the security team wants no outside company to see them. So the architect picks a downloadable model and runs it on servers the hospital controls. That path costs more staff time, but the notes never leave the building.
+
+## How it works
+
+**1. Learn the key words.**
+
+- **API (application programming interface)** — a way for one program to send requests to another over a network. A cloud model API takes your text and returns the model's answer.
+- **Token** — a small chunk of text, often part of a word. Cloud model APIs usually charge per token.
+- **Model weights** — the huge list of numbers a model learns during training. Whoever holds the weights can run the model.
+- **Closed model** — the vendor keeps the weights secret, so you can only use the model through the vendor's service.
+- **Open-weight model** — the weights are published for anyone to download. That is not the same as **open source**: training data is usually missing, and the license may still limit use. For example, the Open Source Initiative says the license for LLaMA, Meta's model released in 2023, was not open source because it banned commercial reuse.
+- **Inference** — running a trained model to get an answer. This is the part you deploy.
+- **On-premise** ("on-prem") — servers in a data centre (a building full of servers) that your company runs, not a cloud vendor's.
+- **Air-gapped** — a system with no connection to the outside internet.
+
+**2. Know the general cloud terms.** The US standards body NIST defined four cloud types in 2011. A **public cloud** is open to anyone. A **private cloud** serves one organisation only, and it can sit on-premise or with a vendor. A **community cloud** serves a group with shared needs, and a **hybrid cloud** joins two or more of these. In AI terms, options A and B below are public cloud, while C and D are usually private.
+
+**3. See the four main options for AI.**
+
+| Option | Who runs the model | What you pay for | Best when |
+|---|---|---|---|
+| A. Shared cloud API | Vendor, on shared servers | Tokens used | You need top closed models, fast |
+| B. Cloud API with region or reserved capacity | Vendor, with limits you choose | Tokens, or a reserved block of capacity | You need data to stay in an area, or steady speed |
+| C. Self-hosted in your cloud | Your team, on rented GPUs | The cloud servers you rent | You want an open-weight model with full control |
+| D. On-premise or air-gapped | Your team, or a vendor on your site | Your own hardware and building | Data may not leave your site at all |
+
+A GPU (graphics processing unit) is the chip that runs AI models quickly.
+
+**4. Read real examples of each option.**
+
+- **Option A and B — Microsoft Foundry.** Azure, Microsoft's cloud, groups data centres into *regions*, and groups regions into larger *geographies*, often one country or area. "Global" deployments may process requests in any Azure region. "Data Zone" deployments keep processing inside the US, the EU area or Asia-Pacific. "Standard" keeps it inside one chosen geography. In the main types, stored data stays in the chosen geography. You can pay per token, or reserve fixed capacity called provisioned throughput units (PTUs) for steadier speed.
+- **Vendor model vs your own model — Amazon Web Services (AWS).** AWS guidance says Amazon Bedrock offers vendor models with no servers or GPUs to manage, paid per token. SageMaker Serverless Inference instead hosts a model you trained yourself. You get full control over it, but you must train and package it first.
+- **Option D — Google.** In August 2025, Google made its closed Gemini models generally available (ready for full production use) on Google Distributed Cloud air-gapped. Google manages the model endpoint, but it runs inside the customer's or a partner's data centre. So "closed model" no longer always means "public cloud only".
+
+**5. Weigh open weights carefully.** A 2024 report from the US National Telecommunications and Information Administration (NTIA) noted that open weights let you run a model without sharing your data with a third party. It also noted risks, such as misuse by others. For an architect, the practical trade-off is simple. You gain privacy and control, but you now own security updates, adding servers when load grows, monitoring and safety checks that a vendor would otherwise handle.
+
+**6. Decide with four questions.**
+
+```text
+1. Data:    May this data leave our network? Our country?
+2. Model:   Is the model we need closed, or can we download it?
+3. Load:    Is usage spiky (pay per token) or steady and high (reserve or own)?
+4. Team:    Can we run GPUs, updates and 24/7 support ourselves?
+```
+
+Most companies end up **hybrid**: a cloud API for low-risk work and a private option for sensitive data. An **AI gateway**, one front door for all model calls, can route each request to the right place.
+
+## Common mistakes
+
+- **Assuming "on-prem" means "safer"** — your own servers still need patching, access control and monitoring. Self-host only if your team can secure it as well as a vendor would.
+- **Calling every open-weight model "open source"** — licenses can ban some uses, and training data is often missing. Have someone read the license before you build on it.
+- **Comparing only the token price** — self-hosting adds GPUs, idle time and staff. Compare total cost at your real usage level.
+- **Picking one option for everything** — low-risk and high-risk work have different needs. Route each use case to the option that fits it.
+- **Missing the processing region** — a "global" cloud deployment can process data in another country even when storage stays local. Check both before you sign.
+
+## Remember this
+
+<Remember>
+- AI can run in four places: shared cloud API, cloud API with region or reserved limits, self-hosted in your cloud, or on-premise.
+- Open-weight means you can download and run the model; it does not always mean open source.
+- More control means more work: data rules, model choice, usage pattern and team skills decide the option.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A company must keep customer chats inside the EU but wants a vendor-run model. Which option fits best?",
+      options: ["A shared global cloud API", "A cloud API with an EU data zone or region", "An air-gapped server", "Any open-weight model"],
+      answer: 1,
+      why: "Region-limited cloud deployments keep processing inside an area while the vendor still runs the model. A shared global API may process data anywhere, and an air-gapped server is not a vendor-run cloud service."
+    },
+    {
+      q: "What does 'open-weight' tell you about a model?",
+      options: [
+        "Its training data is public",
+        "Anyone may use it for any purpose",
+        "Its learned numbers can be downloaded and run",
+        "It is free to run in the cloud"
+      ],
+      answer: 2,
+      why: "Open-weight means the weights are published. Training data and license freedoms are separate questions, so it is not automatically open source."
+    },
+    {
+      q: "Usage is low and spiky, and the data is not sensitive. Which choice usually makes most sense?",
+      options: ["Buy GPUs for the office", "Reserve fixed cloud capacity", "Pay per token on a cloud API", "Self-host on rented GPUs 24/7"],
+      answer: 2,
+      why: "With spiky, low usage, paying only for tokens avoids idle servers. Reserved or owned capacity pays off when load is steady and high."
+    },
+    {
+      q: "Why might a team choose self-hosting even though it adds work?",
+      options: [
+        "Self-hosted models never need updates",
+        "Data does not have to be shared with a model vendor",
+        "It always costs less than an API",
+        "It gives access to every closed model"
+      ],
+      answer: 1,
+      why: "The main gain is control: no model vendor sees your data. Updates are still needed, cost depends on usage, and many closed models cannot be self-hosted."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Choosing a model: capability, cost, speed and risk](/docs/ai-architect/foundations/choosing-a-model)
+- Read first: [Privacy, PII and data residency for AI systems](/docs/ai-architect/data/privacy-and-data-residency)
+- Related: [The AI gateway: one front door for every model](/docs/ai-architect/building-blocks/ai-gateway)
+- Related: [Managing AI cost: tokens, caching and budgets](/docs/ai-architect/operations/ai-cost-and-finops)
+- **What may change:** Cloud deployment types and on-premise offers change often. Re-check the vendor pages before relying on them.
+- Sources are listed below with the date they were last checked.
