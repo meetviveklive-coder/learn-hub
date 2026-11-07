@@ -1,0 +1,168 @@
+---
+title: "From pilot to production: scaling AI across a company"
+description: Why many AI pilots never reach real users, and the metrics, shared platform and people work that get them there.
+domain: ai-architect
+level: intermediate
+order: 3
+prerequisites: [enterprise-ai-reference-architecture, llmops-and-observability, ai-cost-and-finops]
+tags: [pilot, proof-of-concept, scaling, platform, change-management, metrics, ai-architect]
+sources:
+  - title: Gartner predicts 30% of generative AI projects will be abandoned after proof of concept by end of 2025 (Gartner press release, Jul 2024)
+    url: https://www.gartner.com/en/newsroom/press-releases/2024-07-29-gartner-predicts-30-percent-of-generative-ai-projects-will-be-abandoned-after-proof-of-concept-by-end-of-2025
+    type: article
+  - title: "The state of AI in 2026: On the road to ROI (McKinsey, Aug 2026)"
+    url: https://www.mckinsey.com/no/our-insights/the-state-of-ai
+    type: article
+  - title: "Moving past gen AI's honeymoon phase: Seven hard truths for CIOs to get from pilot to scale (McKinsey, May 2024)"
+    url: https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/moving-past-gen-ais-honeymoon-phase-seven-hard-truths-for-cios-to-get-from-pilot-to-scale
+    type: article
+  - title: Overcoming two issues that are sinking gen AI programs (McKinsey, Jun 2025)
+    url: https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/overcoming-two-issues-that-are-sinking-gen-ai-programs
+    type: article
+  - title: Plan for AI adoption (Microsoft Cloud Adoption Framework)
+    url: https://learn.microsoft.com/en-ca/azure/cloud-adoption-framework/ai/plan
+    type: official
+  - title: The Prosci ADKAR Model (Prosci)
+    url: https://www.prosci.com/methodology/adkar
+    type: official
+last_verified: 2026-11-07
+status: published
+author: agent
+reading_minutes: 9
+---
+
+## In 3 lines
+
+- **What it is:** A **pilot** is a small trial of an AI tool with a few users. **Production** means the tool runs every day for real users, with support, a budget and **monitoring** (constant checks that it still works well).
+- **Why it matters:** Many pilots impress in a demo, then stall. The gap is rarely the model; it is unclear value, rising cost, risk controls and people not changing how they work.
+- **Example:** A support team's AI reply helper works for 10 agents. It reaches 400 agents only after a bigger trial proves time saved, the tool moves onto a shared platform and everyone gets trained.
+
+## Think of it like…
+
+<Analogy>
+A dish can wow eight guests at a chef's tasting dinner. Serving it in 50 restaurants is a different job. You need a fixed recipe, steady suppliers, a known cost per plate and cooks trained to make it the same way every night.
+
+**Where the comparison breaks:** A dish stays the same once the recipe is fixed, but an AI system keeps changing as models, data and user habits shift, so you never stop watching it.
+</Analogy>
+
+## Real-world example
+
+An online shoe store builds a pilot that drafts replies to customer emails. Ten support agents try it for a month and love it. Leaders want it for all 400 agents, but nobody can say how much time it really saved, what it costs per email, or who fixes it when it breaks.
+
+So the team pauses and does three things. First, it measures the old way: the average time to answer an email before AI. Then it runs a larger trial with 50 agents. Second, it moves the helper onto the company's shared AI platform, which already handles logins, logging and safety checks. Third, it trains agents and names a "champion" in each team: a respected user who helps others and passes on problems. It also checks usage every week. Only then does it roll out to everyone, one region at a time.
+
+## How it works
+
+**1. Know why pilots stall.** **Generative AI** is AI that creates new text, images or code, like a chatbot that writes replies. In 2024, the research firm Gartner predicted that at least 30% of generative AI projects would be dropped after the **proof of concept** stage by the end of 2025. A proof of concept (PoC) is a quick test that asks, "Can this work at all?" Gartner named four reasons:
+
+- Poor data quality.
+- Weak risk controls (checks that stop harmful or wrong output).
+- Costs that keep climbing.
+- Unclear business value.
+
+Notice that none of these is "the model is not smart enough". They are about data, safety, money and value.
+
+**2. Pick few use cases, and set success metrics first.** A **use case** is one specific job for AI, like "draft email replies". McKinsey's 2024 advice to tech leaders is to cut down on experiments and scale only ideas that are doable and matter to the business. Microsoft's adoption guide says to score each use case on business impact, technical difficulty, resources needed and fit with company goals. Then define success metrics for each one.
+
+A **success metric** is a number that shows whether the tool helps, such as minutes per email. A **baseline** is that number before AI. Without a baseline, you cannot prove a gain. A **KPI** (key performance indicator) is a success metric that leaders track over time.
+
+**3. Use the pilot to learn, not just to impress.** Microsoft suggests starting with internal projects that do not face customers, to limit risk. It also says to write down development time, testing cycles and problems you hit, then use those notes to plan. It advises adding 20 to 30% extra time to first estimates.
+
+**4. Pass a production gate.** A **gate** is a checklist the project must pass before going wider. This lesson suggests a simple one built from earlier lessons:
+
+| Question | What "yes" looks like |
+|---|---|
+| Does it help? | Metric beats the baseline in a larger trial |
+| Can we afford it? | Known cost per task and a monthly budget |
+| Is it safe? | Guardrails (automatic safety checks on input and output), rules for who may use what data, and a review by risk staff |
+| Can we run it? | Monitoring, an owner, and a plan for when it fails |
+| Will people use it? | Training done, and usage tracked each week |
+
+**5. Build once, reuse many times.** Teams that build every AI tool from scratch repeat the same slow work. In 2025, McKinsey wrote that "the key to scale in tech is maximizing reuse." They suggest a shared **platform**: one set of checked, ready-made parts that every team can use. Their list includes a self-service portal and automatic responsible-AI guardrails. Other common parts, in this lesson's view, are an **AI gateway** (one front door that all apps use to reach models), a search service for company documents and shared logging. In a separate 2024 article, McKinsey estimated that reusable code can make new AI use cases 30 to 50% faster to build.
+
+```text
+Without a platform:   Team A → own login, own logs, own safety checks
+                      Team B → own login, own logs, own safety checks
+
+With a platform:      Team A ─┐
+                      Team B ─┼─→ shared gateway · logging · guardrails · document search
+                      Team C ─┘
+```
+
+**6. Plan the people side.** **Change management** is the work of helping people adopt a new way of working. McKinsey's 2024 rule of thumb: for every $1 spent building a model, spend about $3 on change management. So the people side can cost more than the tech.
+
+One popular model for this is Prosci's **ADKAR**. It names five things each person needs: Awareness of why the change is happening, Desire to take part, Knowledge of how, Ability to do it, and Reinforcement so it sticks. If adoption stalls, ask which step is missing.
+
+**7. Redesign the work, then measure again.** In McKinsey's 2026 survey, about 6% of respondents were "AI high performers". They said AI drives at least 5% of their **EBIT** (earnings before interest and taxes, a common profit measure) and has a significant impact. Nearly three-quarters of them said they had deeply redesigned their workflows around AI. Only about a quarter of other respondents said that. High performers were also twice as likely to have a defined way to measure AI's impact.
+
+## Common mistakes
+
+- **Starting with no baseline** — you cannot prove the tool saved anything, so funding stops. Measure the old way before the pilot begins.
+- **Running dozens of pilots at once** — effort spreads thin and none reaches production. Rank use cases and push a few all the way.
+- **Building each tool from scratch** — every team repeats the same security and logging work and the same reviews. Put shared parts on one platform and reuse them.
+- **Treating launch as the finish line** — people go back to old habits and usage fades. Budget for training, champions and follow-up.
+- **Adding AI to an unchanged process** — you get a faster step inside a slow process. Rethink the whole workflow around what the AI now does.
+
+## Remember this
+
+<Remember>
+- Most pilots stall on value, cost, risk and people, not on the model itself.
+- Set a baseline and success metrics before the pilot, then pass a production gate before going wider.
+- Scale with a shared platform for reuse and real change management: train, support, measure.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A pilot got great feedback, but leaders refuse to fund a rollout. What was most likely missing?",
+      options: [
+        "A bigger model",
+        "A baseline and success metric that prove the gain",
+        "A longer pilot with the same 10 users",
+        "A nicer user interface"
+      ],
+      answer: 1,
+      why: "Good feedback is not proof. Without a 'before' number to compare against, nobody can show the business value. Gartner lists unclear value as one of four reasons projects are dropped. Cost and risk matter too, but even a cheap, safe tool needs proof that it helps."
+    },
+    {
+      q: "Why does a shared AI platform help a company scale?",
+      options: [
+        "It removes the need for any security review",
+        "It makes every model cheaper to call",
+        "New use cases reuse ready, approved parts instead of rebuilding them",
+        "It lets each team pick a different set of tools"
+      ],
+      answer: 2,
+      why: "Shared parts like a gateway, logging and guardrails are built and approved once. Each new project is smaller. Reviews still happen, but they cover less new ground."
+    },
+    {
+      q: "Staff understand why the company wants a new AI tool, and they know how to use it. But from day one they never wanted to switch. Which ADKAR step is weak?",
+      options: ["Knowledge", "Desire", "Ability", "Reinforcement"],
+      answer: 1,
+      why: "They know why (Awareness) and how (Knowledge and Ability), but they never wanted to take part. That is Desire. Reinforcement is about keeping a change going after people adopt it. Fix Desire by showing what is in it for them, not by more training."
+    },
+    {
+      q: "What did McKinsey's 2026 survey find most AI high performers had done?",
+      options: [
+        "Bought the most expensive model",
+        "Run more pilots than anyone else",
+        "Redesigned their workflows around AI",
+        "Avoided measuring AI's impact"
+      ],
+      answer: 2,
+      why: "Nearly three-quarters of high performers said they had deeply redesigned workflows, versus about a quarter of others. They were also twice as likely to measure impact."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [The layers of an enterprise AI system](/docs/ai-architect/foundations/enterprise-ai-reference-architecture).
+- Read first: [LLMOps: monitoring AI systems in production](/docs/ai-architect/operations/llmops-and-observability).
+- Read first: [Managing AI cost: tokens, caching and budgets](/docs/ai-architect/operations/ai-cost-and-finops).
+- Related: [The AI gateway: one front door for every model](/docs/ai-architect/building-blocks/ai-gateway).
+- Related: [Guardrails: input, output and action checks](/docs/ai-architect/security-governance/guardrails-architecture).
+- Related: [Documenting AI decisions: ADRs and design docs](/docs/ai-architect/delivery/ai-architecture-decision-records).
+- Sources are listed below with the date they were last checked.

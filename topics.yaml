@@ -399,7 +399,7 @@ items:
     title: "Documenting AI architecture: decision records and design docs"
     why: "How architects record and defend decisions so others can follow them."
     priority: 2
-    status: in_review
+    status: published
     notes: "Show a short ADR example for an AI decision."
 
   - id: from-pilot-to-production
@@ -408,5 +408,5 @@ items:
     title: "From pilot to production: scaling AI across a company"
     why: "Why many AI pilots never ship, and the architecture and process that fixes it."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Cover success metrics, platform reuse, change management."

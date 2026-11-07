@@ -2,6 +2,7 @@
   "title": "Delivery",
   "pages": [
     "deployment-options",
-    "ai-architecture-decision-records"
+    "ai-architecture-decision-records",
+    "from-pilot-to-production"
   ]
 }
