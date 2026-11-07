@@ -1,0 +1,154 @@
+---
+title: "Responsible AI: fairness, transparency, accountability"
+description: Turn three big AI principles into design rules you can test, documents you can show, and review steps with a named owner.
+domain: ai-architect
+level: intermediate
+order: 4
+prerequisites: [ai-governance-frameworks]
+tags: [responsible-ai, fairness, transparency, accountability, model-cards, ai-architect]
+sources:
+  - title: OECD AI Principles overview (OECD.AI)
+    url: https://oecd.ai/en/ai-principles
+    type: official
+  - title: "NIST SP 1270: Towards a Standard for Identifying and Managing Bias in Artificial Intelligence"
+    url: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.Sp.1270.pdf
+    type: official
+  - title: Fairness in machine learning - Fairlearn user guide
+    url: https://fairlearn.org/main/user_guide/fairness_in_machine_learning.html
+    type: official
+  - title: Model Cards for Model Reporting (Mitchell et al.)
+    url: https://arxiv.org/abs/1810.03993v2
+    type: paper
+  - title: Datasheets for Datasets (Gebru et al.)
+    url: https://arxiv.org/abs/1803.09010v2
+    type: paper
+last_verified: 2026-11-07
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Responsible AI in practice means turning values like fairness, transparency and accountability into design rules, tests, documents and sign-offs.
+- **Why it matters:** A principle on a poster changes nothing. A rule with a test and an owner can stop a harmful system before it ships.
+- **Example:** "Be fair" becomes "approval rates for each age group must stay within a set gap, checked before launch and every month."
+
+## Think of it like…
+
+<Analogy>
+Think of a building code. "Buildings should be safe" is a value. The code turns it into checks: exits every so many meters, wiring that passes inspection, and an inspector who signs off. Responsible AI does the same for values like fairness.
+
+**Where the comparison breaks:** Building codes have exact numbers set by law. For AI fairness, your team often has to choose the measure and the limit itself.
+</Analogy>
+
+## Real-world example
+
+In this made-up example, an online store adds an AI model that decides which shoppers see a "pay later" offer. The offer lets shoppers split a purchase into payments. Shoppers who do not see it lose a real benefit.
+
+The team writes three rules. **Fairness:** compare offer rates and error rates (how often the model gets it wrong) across age groups before launch, and keep the gap under a limit they agreed on. **Transparency:** publish a short document on what the model is for and how it was tested. Tell shoppers why they did or did not get the offer. **Accountability:** name one manager who owns the model, log every decision, and give shoppers a way to ask a human to review it.
+
+At the pre-launch review, the test shows shoppers over 60 get the offer far less often. The owner blocks the launch until the team finds the cause: the training data (the past examples the model learned from) had very few older shoppers.
+
+## How it works
+
+### Where the principles come from
+
+The **Organisation for Economic Co-operation and Development (OECD)** is an international group of governments. It adopted its AI Principles in 2019 and updated them in May 2024. Its five principles about values include fairness (under human rights and democratic values), transparency and explainability, and accountability. **Explainability** means being able to say why the system gave a result. Many company and government frameworks use similar words. The hard part is what comes next.
+
+### The three principles as design work
+
+| Principle | Plain meaning | Design requirement | Proof you can show |
+|---|---|---|---|
+| **Fairness** | The system does not harm some groups more than others. | Measure results for each group, not just the overall average. Set a limit for the gap. | A test report with results per group. |
+| **Transparency** | People can find out what the system does and how it was built. | Document the data and the model. Tell users when AI affects them, and why. | A datasheet and a model card (both explained below), and a user notice. |
+| **Accountability** | A named person answers for the system and can fix it. | Assign an owner. Log decisions. Add an appeal path and a sign-off gate: a step where the owner must approve before launch. | An owner's name, logs, and a signed review. |
+
+### Fairness: first name the harm
+
+The Fairlearn guide (Fairlearn is an open-source fairness toolkit) judges fairness by its impact on people. It lists four kinds of harm:
+
+- **Allocation harm:** the system gives or holds back a chance, a resource or information, like a loan or a job interview.
+- **Quality-of-service harm:** the system works worse for some people, like speech recognition that misses certain accents.
+- **Stereotyping harm:** the system repeats stereotypes, for example search autocomplete that finishes a query with a stereotype.
+- **Erasure harm:** the system acts as if a group does not exist.
+
+Then measure with a **disaggregated** test, meaning results split by group. The model cards paper asks for exactly this: report results per group, so problems in one group are not hidden. For example, a model can be 95% accurate overall but only 70% accurate for shoppers over 60.
+
+Bias does not only come from data, either. NIST's bias report (NIST is the US standards agency) names three categories of bias:
+
+- **Systemic:** unfair habits and rules of institutions.
+- **Statistical and computational:** samples that do not match the real population.
+- **Human:** thinking errors in the people who build or use the system.
+
+### Transparency: two documents
+
+- A **datasheet for datasets** records why a dataset was made, what it contains, how it was collected, and what it should be used for. The idea copies the spec sheets that come with electronic parts.
+- A **model card** is a short document that ships with a model. It states the intended use, how the model was tested, and how it performs for different groups.
+
+### Accountability: review steps with owners
+
+```text
+1. Idea      → impact check: who could be harmed, and which harm type?
+2. Design    → write rules with metrics and limits; name the owner
+3. Build     → datasheet + model card; per-group tests
+4. Launch    → review gate: owner signs off, or blocks
+5. Run       → monitor per-group results; handle appeals; re-review on change
+```
+
+Each step leaves a record. When something goes wrong, you can trace who decided what, and why.
+
+## Common mistakes
+
+- **Writing values with no tests** — "we value fairness" cannot pass or fail. Turn each value into a metric, a limit and a check date.
+- **Only checking the average** — a model can be 95% accurate overall and fail one group badly. Always split results by group.
+- **Expecting one perfect fairness metric** — Fairlearn notes that two common metrics, demographic parity and equalized odds, sometimes cannot both be met. No math settles which is right. Pick the measure that fits the harm, and write down why in a short decision record.
+- **Owners in name only** — if the owner cannot block a launch, nobody is accountable. Give the owner real power at the review gate.
+- **Reviewing once and forgetting** — data and users change after launch. Re-run per-group tests on a schedule and after every model change.
+
+## Remember this
+
+<Remember>
+- Each principle needs a design requirement, a test or document as proof, and a named owner.
+- Fairness starts by naming the harm (allocation, quality of service, stereotyping, erasure), then measuring results per group.
+- Datasheets and model cards make AI transparent; logs, appeals and a sign-off gate make it accountable.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A team says its model is 94% accurate, so it is fair. What is the best reply?",
+      options: ["Agreed, 94% is high", "Split the results by group; the average can hide a group it fails", "Use a bigger model", "Fairness cannot be measured at all"],
+      answer: 1,
+      why: "Disaggregated tests show results per group. A high average can hide poor results for a small group. Fairness is hard to measure perfectly, but per-group tests still catch real problems."
+    },
+    {
+      q: "A speech app understands some accents much worse than others. No one is denied a loan or job. Which harm is this?",
+      options: ["Allocation harm", "Erasure harm", "Quality-of-service harm", "No harm"],
+      answer: 2,
+      why: "Quality-of-service harm means the system works worse for some people. Allocation harm is about giving or withholding chances or resources, which is not happening here."
+    },
+    {
+      q: "Which document states a model's intended use and how it performs for different groups?",
+      options: ["A datasheet for datasets", "A model card", "A system prompt", "A privacy policy"],
+      answer: 1,
+      why: "A model card ships with the model and reports intended use and test results, including per group. A datasheet describes the dataset, not the model."
+    },
+    {
+      q: "Which setup gives real accountability?",
+      options: ["A values page on the website", "A named owner who can block launch, plus logs and an appeal path", "A committee that meets once a year with no veto", "Letting the model explain itself"],
+      answer: 1,
+      why: "Accountability needs a person who answers for the system and has the power to stop it, with records to trace decisions. A values page or a powerless committee changes nothing."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [AI governance frameworks](/docs/ai-architect/security-governance/ai-governance-frameworks)
+- Related: [Guardrails](/docs/ai-architect/security-governance/guardrails-architecture)
+- Related: [LLMOps and monitoring](/docs/ai-architect/operations/llmops-and-observability)
+- Related: [Decision records](/docs/ai-architect/delivery/ai-architecture-decision-records)
+- Sources are listed below with the date they were last checked.

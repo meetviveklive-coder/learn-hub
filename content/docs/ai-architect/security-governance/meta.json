@@ -1,4 +1,9 @@
 {
   "title": "Security and governance",
-  "pages": ["ai-security-threats", "ai-governance-frameworks", "guardrails-architecture"]
+  "pages": [
+    "ai-security-threats",
+    "ai-governance-frameworks",
+    "guardrails-architecture",
+    "responsible-ai-in-practice"
+  ]
 }
