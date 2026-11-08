@@ -1,0 +1,134 @@
+---
+title: "Workflows vs agents: patterns for combining model calls"
+description: Five simple ways to combine AI model calls, and how to pick the simplest one that does the job before building a full agent.
+domain: ai-architect
+level: intermediate
+order: 5
+prerequisites: [the-agent-loop, subagents-maker-checker]
+tags: [agents, workflows, patterns, orchestration, ai-architect]
+sources:
+  - title: Building effective agents (Anthropic Engineering)
+    url: https://www.anthropic.com/engineering/building-effective-agents
+    type: official
+  - title: Choose a design pattern for your agentic AI system (Google Cloud Architecture Center)
+    url: https://docs.cloud.google.com/architecture/choose-design-pattern-agentic-ai-system
+    type: official
+last_verified: 2026-11-08
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** A **model call** is one request sent to an AI model and its reply. A **workflow** links model calls in an order your code decides; an **agent** lets the model decide its own next step.
+- **Why it matters:** Workflows are cheaper, faster and more predictable, so you should reach for an agent only when the steps truly can't be planned ahead.
+- **Example:** Sorting support emails into "refund" or "tech help" is a workflow; fixing a bug by running tests, reading the errors and trying again until they pass suits an agent.
+
+## Think of it like…
+
+<Analogy>
+A workflow is a recipe card: chop, then fry, then plate, in that order every time. An agent is a chef handed a fridge and told "make dinner". The chef decides what to cook, tastes as they go, and changes the plan.
+
+**Where the comparison breaks:** A real chef rarely gets stuck repeating the same step forever, but an agent can, so you must give it a clear point to stop.
+</Analogy>
+
+## Real-world example
+
+An online shoe store wants AI help with customer emails. The first idea is a big agent with every tool attached. It is slow, costly and hard to debug, because its path changes on every email.
+
+The architect looks closer. Most emails fall into three groups: order status, returns and product questions. So the team builds a **routing** workflow. One model call labels the email as order status, returns, product question or "complex". Plain code then sends it to a **prompt** (the written instructions sent to the model) made for that group.
+
+A few emails are messy, like "two orders, one late, one wrong size, and I moved house". Only emails labeled "complex" go to an agent that can look up orders and plan its own steps. The common cases stay fast and predictable. The rare hard cases still get handled.
+
+## How it works
+
+Anthropic's guide uses **agentic systems** as the umbrella name. It splits them into two kinds:
+
+- **Workflow:** models and tools follow code paths you wrote in advance.
+- **Agent:** the model directs its own process and picks its own tools as it goes.
+
+Both are built from one block, the **augmented LLM**. A **large language model (LLM)** is the kind of AI behind chatbots. "Augmented" means it also has retrieval (looking things up), tools and memory.
+
+### Five workflow patterns
+
+| Pattern | How it works | Use it when |
+|---|---|---|
+| **Prompt chaining** | Each call works on the last call's output. Code can check results once between steps (a "gate") and move on. | The task splits into fixed steps, like outline → check → draft. |
+| **Routing** | One call sorts the input, then code sends it to a prompt written for that group, or to a smaller, cheaper model. | Inputs fall into clear groups that are easy to tell apart. |
+| **Parallelization** | Several calls run at once and code combines the results. *Sectioning* splits the work; *voting* runs the same task several times. | Parts are independent, or several opinions raise confidence. |
+| **Orchestrator-workers** | A lead model breaks the task into pieces at **run time** (while the task runs, not when you write the code), hands them to worker calls and merges the results. | You can't know the pieces in advance, like edits across an unknown number of files. |
+| **Evaluator-optimizer** | One call writes an answer; another judges it and gives feedback, in a loop. | You have clear criteria, and feedback measurably improves the result. |
+
+Orchestrator-workers looks like parallelization. The difference is who plans the pieces: your code in parallelization, the model in orchestrator-workers. Evaluator-optimizer differs from a chain's gate because it loops back with feedback until the answer passes. It is the [maker/checker](/docs/ai-agents/patterns/subagents-maker-checker) idea applied to model calls.
+
+### When a full agent fits
+
+Anthropic notes that, in practice, an agent is often just an LLM using tools in a loop, reading the result of each action to decide the next. An orchestrator plans pieces and merges them; an agent keeps acting, checking and replanning. Agents suit open-ended problems where you can't predict or hard-code the number of steps. The price is higher cost and errors that can build on each other. So agents need a **stop condition**, such as a maximum number of steps, plus testing in a **sandbox**, a walled-off test environment where mistakes can't harm real data or users.
+
+### Climb the ladder one rung at a time
+
+```text
+1. One model call (with retrieval and good examples)
+        │ not good enough?
+        ▼
+2. A workflow (chain, route, parallel, orchestrate, evaluate)
+        │ steps truly unpredictable?
+        ▼
+3. An agent (model picks steps; stop condition; sandbox tests)
+```
+
+Anthropic's advice is to find the simplest solution that works and add complexity only when it clearly improves results. Google Cloud's guide makes a similar point about multi-agent designs. A fixed sequential order can cut cost and delay, while letting a model coordinate the steps adds model calls, cost and delay.
+
+## Common mistakes
+
+- **Starting with a full agent** — you pay more, wait longer and lose predictability for tasks a fixed workflow could do. Try one call, then a workflow, and move up only when tests show you need to.
+- **A loop with no exit** — an evaluator loop or agent with a vague stop rule can run forever and burn money. Set a maximum number of rounds and a clear pass test.
+- **Routing on fuzzy groups** — if the sorting call often picks the wrong group, every later step is wrong too. Use routing only when groups are clearly different, and test the sorter on its own.
+- **Hiding the steps inside a framework** — a **framework** (a library that wraps these patterns) can hide the actual prompts and make bugs hard to find. Anthropic suggests starting with direct **API** calls (requests sent from your own code straight to the model provider's service) and learning what any framework does underneath.
+
+## Remember this
+
+<Remember>
+- In a workflow your code decides the steps; in an agent the model decides them.
+- The five workflow patterns are prompt chaining, routing, parallelization, orchestrator-workers and evaluator-optimizer.
+- Start with the simplest option and add model-driven steps only when tests prove they help, always with a stop condition.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A team translates every product description into French, then has a second call check the tone. The steps never change. Which pattern is this?",
+      options: ["Prompt chaining", "Orchestrator-workers", "A full agent", "Voting"],
+      answer: 0,
+      why: "The steps are fixed and each call uses the last one's output. Orchestrator-workers would only fit if a model had to decide the pieces at run time. It isn't evaluator-optimizer because the check doesn't loop back to rewrite."
+    },
+    {
+      q: "What is the key difference between parallelization and orchestrator-workers?",
+      options: ["Only parallelization uses tools", "In orchestrator-workers a model decides the subtasks at run time", "Parallelization always costs less", "Orchestrator-workers runs one call at a time"],
+      answer: 1,
+      why: "Both can run pieces side by side. In parallelization your code fixes the pieces in advance; in orchestrator-workers the lead model chooses them."
+    },
+    {
+      q: "Your evaluator-optimizer loop sometimes runs 40 rounds and costs a lot. What should you add first?",
+      options: ["A bigger model", "More tools", "A maximum number of rounds and a clear pass test", "A second evaluator"],
+      answer: 2,
+      why: "Loops need an exit rule. A bigger model or another evaluator adds cost without fixing the missing stop condition."
+    },
+    {
+      q: "When does a full agent make the most sense?",
+      options: ["When the steps are the same every time", "When inputs fall into three clear groups", "When the number of steps can't be predicted ahead of time", "Whenever you want the newest approach"],
+      answer: 2,
+      why: "Agents earn their extra cost on open-ended tasks. Fixed steps suit chaining, and clear groups suit routing."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [The agent loop](/docs/ai-agents/foundations/the-agent-loop) and [Sub-agents and the maker/checker pattern](/docs/ai-agents/patterns/subagents-maker-checker).
+- Related: [Putting agents to work safely in a company](/docs/ai-architect/building-blocks/agents-in-the-enterprise).
+- Related: [Managing AI cost](/docs/ai-architect/operations/ai-cost-and-finops).
+- Sources are listed below with the date they were last checked.

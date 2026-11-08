@@ -418,7 +418,7 @@ items:
     title: "Workflows vs agents: patterns for combining model calls"
     why: "Architects should pick the simplest pattern that works (chaining, routing, parallel, orchestrator-workers, evaluator loop) before reaching for a full agent."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Suggested primary source: Anthropic's 'Building effective agents' engineering post; verify pattern names there. Link the-agent-loop and subagents-maker-checker."
 
   - id: shipping-ai-changes-safely
