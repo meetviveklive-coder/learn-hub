@@ -355,7 +355,7 @@ items:
     title: "Responsible AI in practice: fairness, transparency, accountability"
     why: "Turns principles into design requirements and review steps."
     priority: 3
-    status: queued
+    status: published
 
   - id: llmops-and-observability
     domain: ai-architect
