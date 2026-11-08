@@ -355,7 +355,7 @@ items:
     title: "Responsible AI in practice: fairness, transparency, accountability"
     why: "Turns principles into design requirements and review steps."
     priority: 3
-    status: queued
+    status: in_review
 
   - id: llmops-and-observability
     domain: ai-architect
@@ -408,5 +408,5 @@ items:
     title: "From pilot to production: scaling AI across a company"
     why: "Why many AI pilots never ship, and the architecture and process that fixes it."
     priority: 2
-    status: in_review
+    status: published
     notes: "Cover success metrics, platform reuse, change management."

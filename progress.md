@@ -48,3 +48,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-11-06 | new-lesson | deployment-options written, reviewer fixes applied, checks + build pass, PR opened; latency-scaling-and-reliability marked published | claude/lesson-deployment-options
 2026-11-06 | new-lesson | ai-architecture-decision-records written, reviewer fixes applied, checks + build pass, PR opened; deployment-options marked published | claude/lesson-ai-architecture-decision-records
 2026-11-07 | new-lesson | from-pilot-to-production written, reviewer fixes applied, checks + build pass, PR opened; ai-architecture-decision-records marked published | claude/lesson-from-pilot-to-production
+2026-11-07 | new-lesson | responsible-ai-in-practice written, reviewer fixes applied, checks + build pass, PR opened; from-pilot-to-production marked published | claude/lesson-responsible-ai-in-practice
