@@ -408,5 +408,33 @@ items:
     title: "From pilot to production: scaling AI across a company"
     why: "Why many AI pilots never ship, and the architecture and process that fixes it."
     priority: 2
-    status: in_review
+    status: published
     notes: "Cover success metrics, platform reuse, change management."
+
+  # Proposed by agent 2026-11-08 (queue was empty) — owner to review/reorder.
+  - id: agent-workflow-patterns
+    domain: ai-architect
+    topic: building-blocks
+    title: "Workflows vs agents: patterns for combining model calls"
+    why: "Architects should pick the simplest pattern that works (chaining, routing, parallel, orchestrator-workers, evaluator loop) before reaching for a full agent."
+    priority: 2
+    status: queued
+    notes: "Suggested primary source: Anthropic's 'Building effective agents' engineering post; verify pattern names there. Link the-agent-loop and subagents-maker-checker."
+
+  - id: shipping-ai-changes-safely
+    domain: ai-architect
+    topic: operations
+    title: "Shipping AI changes safely: versioning prompts and models"
+    why: "A prompt edit or model upgrade is a release; without versioning, regression evals and rollback, quality silently drops."
+    priority: 2
+    status: queued
+    notes: "Cover prompt/model version pinning, regression evals before release, canary or shadow rollout, rollback, and vendor model deprecations (cite official deprecation pages). Link llmops-and-observability and evaluating-agents."
+
+  - id: capstone-ai-system-design
+    domain: ai-architect
+    topic: delivery
+    title: "Capstone: designing one AI system end to end"
+    why: "Ties the whole track together by walking one generic case through every layer and decision, so the owner can rehearse the architect role."
+    priority: 3
+    status: queued
+    notes: "Generic scenario (e.g. a support assistant for an online store). Mostly links to existing lessons; cite official reference architectures for any vendor example. May need splitting if over 1,200 words."
