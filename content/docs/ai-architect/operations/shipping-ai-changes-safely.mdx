@@ -1,0 +1,146 @@
+---
+title: "Shipping AI changes safely: versioning prompts and models"
+description: Why a prompt edit or model upgrade is a release, and how pinning, regression tests, canary rollouts and rollback keep quality from silently dropping.
+domain: ai-architect
+level: intermediate
+order: 4
+prerequisites: [evaluating-agents, llmops-and-observability]
+tags: [releases, versioning, evals, canary, rollback, deprecation, ai-architect]
+sources:
+  - title: Model IDs and versions (Claude Platform Docs)
+    url: https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions
+    type: official
+  - title: Model deprecations (Claude Platform Docs)
+    url: https://platform.claude.com/docs/en/about-claude/model-deprecations
+    type: official
+  - title: Deprecations (OpenAI API docs)
+    url: https://developers.openai.com/api/docs/deprecations
+    type: official
+  - title: "Chapter 16: Canarying Releases (Google SRE Workbook)"
+    url: https://sre.google/workbook/canarying-releases/
+    type: official
+last_verified: 2026-11-08
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Treating every prompt edit and model change as a software release: versioned, tested, rolled out slowly and easy to undo.
+- **Why it matters:** AI output can get worse without any error message, so a small change can quietly break answers for thousands of users in **production** (the live app real people use).
+- **Example:** A team tests a new prompt on 200 saved questions, sends it to 5% of users first, and switches back in one click when complaints rise.
+
+## Think of it like…
+
+<Analogy>
+Think of a restaurant changing its secret sauce. A careful chef writes down each recipe version, tastes the new one against the old, and serves it at one table before the whole room. If diners frown, the old recipe is still on the shelf.
+
+**Where the comparison breaks:** A cook decides when the recipe changes, but an AI vendor can retire your model on its own schedule, so some changes are forced on you.
+</Analogy>
+
+## Real-world example
+
+An online shoe store runs a support assistant. A developer tweaks the **prompt**, the written instructions sent to the model, to make replies friendlier. It looks fine on three test chats, so it goes live for everyone.
+
+Two days later, refund requests jump. The friendlier prompt also made the assistant promise refunds it had no right to give. Nobody can say exactly what changed, because the old prompt was never saved.
+
+The architect fixes the process, not just the prompt. Prompts now live in version control with the code. Every change must pass a saved test set first. New versions reach a small slice of users before everyone, and the previous version stays one switch away.
+
+## How it works
+
+Four things can change an AI app's behavior: the prompt, the model, the tools and data it uses, and the provider's own systems. A safe release process covers each one, so version tool definitions and data sources the same way you version prompts.
+
+### 1. Version and pin everything
+
+- **Prompts:** store them in **version control** (a system like Git that records every change and who made it). Give each release a version number and log which version answered each request.
+- **Models:** a **model ID** is the exact model name your code sends with each request. A **snapshot** is a frozen copy of a model at one point in time. **Pin** a fixed ID instead of a moving name. For some older Claude models, Anthropic offers **aliases**, short names that point to the newest dated snapshot of that version; for 4.6 and later, the short ID is itself fixed. Its docs say the model behind a given ID stays constant for that ID's lifetime, and updates ship under new IDs.
+- **Watch the edges:** the same docs warn that systems around the model, like the request router, safety filters and sampling logic, can still change and occasionally cause small differences. So pinning reduces surprises; it doesn't remove them.
+
+### 2. Test before release (regression evals)
+
+A **regression** is something that used to work and now doesn't. An **eval** (short for evaluation) is a scored test. A **regression eval** reruns a fixed set of saved test cases against the new version and compares scores with the old one. Include past failures, like the refund promise, so they can never sneak back.
+
+### 3. Roll out slowly (canary)
+
+Google's SRE Workbook calls a **canary** a partial, time-limited deployment of a change, plus checking how it does. **SRE** stands for Site Reliability Engineering, a way of running reliable services that started at Google. A small slice of users or servers, the canary, gets the new version. Everyone else, the **control** group, keeps the old one, and you compare the two.
+
+The workbook stresses splitting measured numbers, like error rate, by group. Its example: a 20% error rate on a 5% canary shows up as only about 1% overall. It also describes **traffic teeing**: copying real user requests to the new version and throwing its answers away, so users never see them.
+
+### 4. Make rollback cheap
+
+**Rollback** means switching back to the last good version. If prompt and model versions are just settings, rollback is a settings change, not an emergency rebuild. The workbook says a failing canary should be paused and rolled back, or escalated to a human.
+
+### 5. Plan for forced changes (deprecation)
+
+Providers retire old models. In Anthropic's terms, **deprecated** means still working but scheduled for removal, and **retired** means requests fail. OpenAI calls that final stage **shutdown**.
+
+- **Anthropic:** at least 60 days' notice to active users before retiring a publicly released model. Partner clouds like Amazon Bedrock set their own dates.
+- **OpenAI:** at least 6 months for generally available (fully launched) models. Preview models, early test versions, may get much shorter notice, such as 2 weeks.
+- **Both:** email active users and list dates on a docs page.
+
+Both advise testing the replacement well before the cutoff. Treat that migration as a normal release: pin, eval, canary, rollback.
+
+```text
+change prompt/model ─→ regression eval ─fail→ fix
+                              │ pass
+                              ▼
+                    canary (small slice) ─worse→ roll back
+                              │ same or better
+                              ▼
+                       full rollout, keep old version ready
+```
+
+## Common mistakes
+
+- **Editing prompts live in a dashboard** — no history means no way to know what broke or to undo it. Keep prompts in version control and log the version per request.
+- **Using a moving model name in production** — the model can change under you without a code change. Pin a specific ID and upgrade on purpose.
+- **Testing on a handful of chats** — three good examples prove little. Keep a saved test set that grows with every bug you find.
+- **Watching only the overall numbers** — a canary problem can hide inside averages. Compare canary and control side by side.
+- **Ignoring deprecation emails** — a retired model makes requests fail, and preview models may get only weeks of notice. Track retirement dates and start migrations early.
+
+## Remember this
+
+<Remember>
+- A prompt edit or model change is a release, so version it, test it and keep the old one ready.
+- Pin specific model IDs and rerun a saved regression test set before every change.
+- Roll out to a small canary group first, compare it with the control group, and roll back fast if it is worse.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Why is pinning a specific model ID safer than using an alias in production?",
+      options: ["Pinned models are always cheaper", "An alias can start pointing to a newer model without any code change", "Aliases are slower to respond", "Pinned models never get retired"],
+      answer: 1,
+      why: "An alias follows the newest snapshot of its version, so behavior can shift silently. Pinned IDs still get retired eventually, so you must also track deprecations."
+    },
+    {
+      q: "Your canary gets a new prompt on 5% of traffic. Overall error rate rises only slightly. What should you check?",
+      options: ["Nothing, a small rise is noise", "The error rate of the canary group compared with the control group", "The model's price page", "Whether the prompt is longer"],
+      answer: 1,
+      why: "A large problem in a small group looks tiny in the overall average. Comparing the two groups shows the real difference."
+    },
+    {
+      q: "What makes a regression eval useful?",
+      options: ["It uses new random questions each time", "It reruns the same saved cases, including past failures, on old and new versions", "It only checks response speed", "It replaces canary rollouts"],
+      answer: 1,
+      why: "Fixed cases let you compare versions fairly and catch old bugs coming back. It works before release; a canary still checks real traffic after."
+    },
+    {
+      q: "Your provider deprecates the model you use. What is the best first step?",
+      options: ["Wait until requests fail", "Switch all traffic to the replacement today", "Test the replacement on your regression set, then canary it", "Remove the AI feature"],
+      answer: 2,
+      why: "Providers advise testing the replacement on your own tasks early. Switching everything at once skips the checks that catch quality drops."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents) and [LLMOps: monitoring AI systems in production](/docs/ai-architect/operations/llmops-and-observability).
+- Related: [Latency, scaling and reliability for AI apps](/docs/ai-architect/operations/latency-scaling-and-reliability).
+- Related: [Choosing a model](/docs/ai-architect/foundations/choosing-a-model).
+- Sources are listed below with the date they were last checked.

@@ -1,4 +1,4 @@
 {
   "title": "Operations",
-  "pages": ["llmops-and-observability", "ai-cost-and-finops", "latency-scaling-and-reliability"]
+  "pages": ["llmops-and-observability", "ai-cost-and-finops", "latency-scaling-and-reliability", "shipping-ai-changes-safely"]
 }
