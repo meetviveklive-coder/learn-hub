@@ -1,0 +1,152 @@
+---
+title: "Permission-aware RAG: users only see what they're allowed to"
+description: How an AI search assistant filters documents by each user's access rights, keeps those rights in sync, and avoids leaks through summaries.
+domain: ai-architect
+level: intermediate
+order: 5
+prerequisites: [rag-architecture, privacy-and-data-residency]
+tags: [rag, access-control, security-trimming, acl, retrieval, ai-architect]
+sources:
+  - title: Security filters for trimming results in Azure AI Search (Microsoft Learn)
+    url: https://learn.microsoft.com/azure/search/search-security-trimming-for-azure-search
+    type: official
+  - title: Document-level access control in Azure AI Search (Microsoft Learn)
+    url: https://learn.microsoft.com/azure/search/search-document-level-access-overview
+    type: official
+  - title: Document-level access controls for Amazon S3 data sources (Amazon Bedrock docs)
+    url: https://docs.aws.amazon.com/bedrock/latest/userguide/kb-managed-ds-s3-acl.html
+    type: official
+  - title: Filtering on user context (Amazon Kendra docs)
+    url: https://docs.aws.amazon.com/kendra/latest/dg/user-context-filter.html
+    type: official
+  - title: "LLM08:2025 Vector and Embedding Weaknesses (OWASP GenAI Security Project)"
+    url: https://genai.owasp.org/llmrisk/llm082025-vector-and-embedding-weaknesses/
+    type: official
+last_verified: 2026-11-09
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Permission-aware retrieval means the AI only searches the documents the current user is allowed to open.
+- **Why it matters:** If the search step ignores access rights, the AI can quote a salary sheet or legal memo to anyone who asks.
+- **Example:** An intern and the finance head ask the same question; each gets an answer built only from the files they can each open.
+
+## Think of it like…
+
+<Analogy>
+Think of a library with a locked archive room. A helpful librarian fetches books for you. A good librarian first checks your library card, then only fetches books from rooms your card opens. A careless one fetches anything and reads it aloud.
+
+**Where the comparison breaks:** A librarian checks your card on the spot. A search index often uses a copy of your access rights, so the copy can be out of date.
+</Analogy>
+
+## Real-world example
+
+A mid-sized company builds an internal assistant using **retrieval-augmented generation (RAG)**. In RAG, the system searches company documents for relevant pieces and hands them to a language model to write an answer. The documents come from a shared drive, a wiki and an HR folder.
+
+In the first version, every document goes into one **search index**, a database built for fast lookup. A sales rep asks, "What bonus did the sales team get last year?" The index finds an HR spreadsheet with each person's bonus. The model summarizes it, names included. The rep could never open that file directly, but the AI showed it anyway.
+
+The fix keeps each document's **access control list (ACL)**, the list of users and groups allowed to read it, next to the document in the index. Every search now filters by the rep's identity. The HR file never reaches the model, so the model cannot leak it.
+
+## How it works
+
+### The pipeline
+
+```text
+1. Ingest     Source systems (drive, wiki, HR)
+              → copy each document AND its ACL into the index
+2. Sign in    User signs in → app looks up their verified groups
+3. Search     App searches the index with a filter:
+              "only chunks this user or their groups may read"
+4. Answer     Only the allowed chunks go to the model
+```
+
+In short: copy the permissions in, filter every search, and send only what passed to the model. A **chunk** is a short piece of a document that the index stores and searches.
+
+1. **Ingest permissions with content.** When you index a document, also store who may read it. Some services can copy ACLs from the source system for you. In Azure this exists only in preview features. Otherwise you write the ACLs into the index yourself.
+2. **Verify who the user is.** The app signs the user in and finds their groups on the server. The search service usually does not do this for you.
+3. **Filter during the search.** The search runs with a filter on the user and their groups, so blocked chunks never come back. Bedrock calls this "pre-retrieval filtering."
+4. **Send only allowed chunks to the model.** Anything filtered out never enters the **prompt**, the text sent to the model, so the model cannot repeat it.
+
+### The products in this lesson
+
+The examples come from three cloud search services. **Azure AI Search** is Microsoft's search service. **Amazon Bedrock Knowledge Bases** and **Amazon Kendra** are search services from Amazon Web Services (AWS). AWS says Kendra no longer accepts new customers and points to Bedrock instead.
+
+### Two ways to apply the filter
+
+| Approach | How it works | Example from official docs |
+|---|---|---|
+| App-built filter | Your app adds a **security filter**, a "user or group is in this list" condition, to each query. The service only compares names and trusts what you send. | Azure AI Search security filters (generally available) |
+| Token-based check | Your app passes the user's sign-in token. The service reads the user and groups from it and compares them. | Azure AI Search ACL/RBAC scopes and SharePoint ACLs (preview); Amazon Kendra user tokens (not in GenAI Enterprise Edition indexes) |
+
+A **token** is a signed proof of who the user is, issued at sign-in. **Generally available** means fully released. **Preview** means an early release that may still change. Microsoft calls the app-built filter pattern **security trimming**: removing results the user may not see.
+
+### What the docs warn about
+
+- **A filter cannot check identity.** It only matches names, so it cannot tell if a user is lying. Azure says the identity in a security filter is "just a string." AWS says Bedrock's ACL filtering is "not a security boundary." Kendra says its user filter "isn't an authentication or authorization control." Your app must prove who the user is first.
+- **Copied permissions go stale.** For its built-in ACL features, Azure says source changes appear only after the next sync, such as the next **indexer** run. An indexer is the scheduled job that copies content and permissions into the index. If a folder's sharing changes, the index keeps the old ACL until that run.
+- **Defaults differ.** In Kendra, a document with no ACL is public. In Bedrock's ACL-enabled sources on Amazon S3 (AWS file storage), a document with no ACL is not indexed at all. So a missing ACL exposes the file to everyone in one tool and hides it from everyone in the other.
+- **Shared stores leak.** A **vector database** finds text by meaning, using lists of numbers called embeddings. OWASP's 2025 Top 10 entry for vector stores warns about "context leakage between users" who share one. It recommends permission-aware stores and splitting data by user group.
+
+### Leaks through summaries and caches
+
+Filtering raw documents is not enough if you store **derived** text: text the system made from documents, like a pre-built summary or a cached answer. Suppose a nightly job summarizes all HR files into one "HR digest" and indexes it with no ACL. The digest now carries secrets to everyone.
+
+A safe rule (this lesson's advice, not from one vendor's docs) is to give derived text only the access that every source allows. If a summary uses an HR-only file and a public wiki page, only HR may read it. Treat answer caches the same way: cache per user or per permission group, never for everyone.
+
+## Common mistakes
+
+- **Filtering after the model answers** — the model has already read the secret and may hint at it. Filter at search time so restricted text never enters the prompt.
+- **Trusting a group list sent by the browser** — a user could edit it and claim to be in HR. Look up groups on the server from a verified sign-in.
+- **Syncing content often but permissions rarely** — someone who lost access keeps it in the index. Sync ACLs at least as often as content, and test that removed access disappears.
+- **Indexing summaries and caches with no ACL** — derived text spreads restricted facts to everyone. Limit it to users allowed to read all its sources, or don't store it.
+- **Not testing with real roles** — Bedrock says ACL problems "fail closed," so files silently go missing instead of raising an error. Run test queries as several roles and check what appears and what is hidden.
+
+## Remember this
+
+<Remember>
+- Store each document's access list in the index and filter every search by the signed-in user's verified groups.
+- A search filter is not authentication (proving who the user is); your app must do that first.
+- Permissions in the index are a copy, so sync them often and limit summaries and caches to users allowed to read all their sources.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Why is it better to filter documents at search time instead of checking the model's answer afterwards?",
+      options: ["Search-time filters are cheaper to write", "Restricted text never reaches the model, so it cannot leak it", "Models ignore restricted text anyway", "Answer checks are not allowed in RAG"],
+      answer: 1,
+      why: "If the model never sees a restricted chunk, it has nothing to repeat. An answer check has to catch every rewording, which is much harder."
+    },
+    {
+      q: "Your app sends the user's group list to Azure AI Search as a security filter. What does the search service do with it?",
+      options: ["Verifies the user's identity with the sign-in provider", "Matches the strings against each document's stored groups", "Asks the user to sign in again", "Ignores it unless the document is marked secret"],
+      answer: 1,
+      why: "Microsoft says the identity is just a string used for matching. Proving who the user is stays your app's job."
+    },
+    {
+      q: "At 9 a.m., a team removes Sam from a shared folder. The indexer copies ACLs into the index at midnight. What can happen in between?",
+      options: ["Nothing; the change applies instantly", "The assistant may still use that folder's files to answer Sam", "The index deletes the folder", "Sam is locked out of everything"],
+      answer: 1,
+      why: "The index holds a copy of each document's ACL. Until the next sync, the copy still lists Sam as allowed."
+    },
+    {
+      q: "A nightly job writes one summary of all HR files and indexes it with no access list. What is the risk?",
+      options: ["The summary will be too long", "Restricted HR facts become visible to every user", "The HR files get deleted", "The model refuses to read summaries"],
+      answer: 1,
+      why: "Derived text carries the facts of its sources. Only users allowed to read every source should see it."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [RAG architecture](/docs/ai-architect/building-blocks/rag-architecture)
+- Read first: [Privacy and data residency](/docs/ai-architect/data/privacy-and-data-residency)
+- Related: [Guardrails](/docs/ai-architect/security-governance/guardrails-architecture)
+- Related: [Evaluating RAG](/docs/ai-architect/operations/evaluating-rag-systems)
+- Sources are listed below with the date they were last checked.
