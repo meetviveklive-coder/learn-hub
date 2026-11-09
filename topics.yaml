@@ -446,7 +446,7 @@ items:
     title: "Evaluating RAG: retrieval quality vs answer quality"
     why: "RAG is the core enterprise pattern, but no lesson covers measuring search quality, grounding and answer quality separately."
     priority: 2
-    status: in_review
+    status: published
     notes: "Primary sources: Ragas paper and docs, Microsoft Foundry RAG evaluators. Link rag-architecture, evaluating-agents and llmops-and-observability."
 
   - id: permission-aware-retrieval
@@ -455,7 +455,7 @@ items:
     title: "Permission-aware RAG: users only see what they're allowed to"
     why: "Enterprise search fails audits if the AI shows documents a user couldn't open themselves."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Cover document-level security trimming at query time, syncing access lists, and leakage via summaries. Cite official search-service docs (e.g. Azure AI Search security filters, Amazon Bedrock/Kendra access control). Link rag-architecture and privacy-and-data-residency."
 
   - id: structured-outputs-and-validation

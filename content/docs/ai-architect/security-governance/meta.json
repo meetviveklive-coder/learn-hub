@@ -4,6 +4,7 @@
     "ai-security-threats",
     "ai-governance-frameworks",
     "guardrails-architecture",
-    "responsible-ai-in-practice"
+    "responsible-ai-in-practice",
+    "permission-aware-retrieval"
   ]
 }
