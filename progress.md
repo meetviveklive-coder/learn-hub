@@ -52,3 +52,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-11-08 | new-lesson | no queued item without an open PR; proposed 3 ai-architect topics; responsible-ai-in-practice marked published (PR #48 merged); merged main to fix conflict | claude/queue-proposed-topics
 2026-11-08 | new-lesson | agent-workflow-patterns written, reviewer fixes applied, checks + build pass, PR opened (owner-requested run) | claude/lesson-agent-workflow-patterns
 2026-11-08 | new-lesson | shipping-ai-changes-safely written, reviewer fixes applied, checks + build pass, PR opened (owner-requested); agent-workflow-patterns marked published | claude/lesson-shipping-ai-changes-safely
+2026-11-09 | new-lesson | evaluating-rag-systems written, reviewer fixes applied, checks + build pass, PR opened (owner-requested); 3 proposed topics added to queue; shipping-ai-changes-safely marked published | claude/lesson-evaluating-rag-systems

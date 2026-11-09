@@ -1,0 +1,142 @@
+---
+title: "Evaluating RAG: retrieval quality vs answer quality"
+description: How to test a RAG system in two halves, checking whether it found the right documents and whether the answer stayed true to them.
+domain: ai-architect
+level: intermediate
+order: 5
+prerequisites: [rag-architecture, evaluating-agents]
+tags: [rag, evals, retrieval, faithfulness, groundedness, llm-as-judge, ai-architect]
+sources:
+  - title: "Ragas: Automated Evaluation of Retrieval Augmented Generation (Es et al., 2023)"
+    url: https://arxiv.org/abs/2309.15217v1
+    type: paper
+  - title: Retrieval-Augmented Generation (RAG) evaluators (Microsoft Foundry docs)
+    url: https://learn.microsoft.com/en-us/azure/foundry/concepts/evaluation-evaluators/rag-evaluators
+    type: official
+  - title: Faithfulness (Ragas docs)
+    url: https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/
+    type: official
+  - title: Context Recall (Ragas docs)
+    url: https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_recall/
+    type: official
+  - title: Context Precision (Ragas docs)
+    url: https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_precision/
+    type: official
+  - title: Answer Relevancy (Ragas docs)
+    url: https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/answer_relevance/
+    type: official
+last_verified: 2026-11-09
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Testing a RAG system in two halves: did it find the right documents, and did the answer stick to them?
+- **Why it matters:** A bad answer can come from bad search or from a model that ignored good search results. One overall score can't tell you which part to fix.
+- **Example:** A leave-policy bot gives a wrong answer. Tests show search never found the policy page, so the team fixes search, not the prompt.
+
+## Think of it like…
+
+<Analogy>
+Think of a student writing a report from library books. A teacher can grade two things. First, did the student pick the right books? Second, does the report match what those books say? A great writer with the wrong books still gets it wrong.
+
+**Where the comparison breaks:** A teacher grades by hand, but RAG tests often use another AI model as the grader, and that grader can make mistakes too.
+</Analogy>
+
+## Real-world example
+
+An online shoe store builds a **RAG** assistant. RAG, short for retrieval-augmented generation, means code first searches the store's documents, then gives the best pieces to a **model**, an AI that writes text, along with the question. Customers ask about returns and shipping.
+
+Users report wrong answers about return windows. The team writes 100 test questions, each with a **reference answer**, a correct answer written by a person. They score the search step and the answer step separately.
+
+Search scores are low for return questions. The return policy sits inside one huge page, so search rarely picks the right part. The team splits documents into smaller **chunks**, the pieces search returns, and reruns the tests. Scores rise, and they never touched the **prompt**, the instructions sent to the model.
+
+## How it works
+
+A RAG system has two parts. The **retriever** searches your documents and returns chunks. The **generator** is the model that writes an answer from those chunks. Microsoft's Foundry docs make the same split. They call checks on the search step **process evaluation**, and checks on the final answer **system evaluation**.
+
+### 1. Build a test set
+
+Each test case holds a question and a reference answer. For the most exact search tests, people also label which documents are relevant to each question. Microsoft's Document Retrieval evaluator needs these labels. Ragas, an open-source testing library, notes that labeling exact passages takes a long time. So its default context recall check, which uses a model, compares against the reference answer instead.
+
+### 2. Score the retriever
+
+- **Context recall:** Did search find everything needed? Ragas splits the reference answer into **claims**, single short statements. The score is the share of claims the retrieved chunks support, from 0 to 1. It needs a reference answer.
+- **Context precision:** Are the useful chunks near the top of the results? A model judges each chunk as useful or not by comparing it with the reference answer. Ragas then rewards results that rank useful chunks above useless ones.
+- **Ranking scores:** With human labels, Microsoft's evaluator reports ranking scores such as **NDCG** (normalized discounted cumulative gain), which measures how close the order is to a perfect order.
+
+Microsoft suggests using labeled tests for a **parameter sweep**: try different chunk sizes, search types (such as vector or semantic search) and numbers of results, then keep the best settings.
+
+### 3. Score the answer
+
+- **Faithfulness** (Microsoft's similar check is **groundedness**; both make sure the answer adds nothing outside the chunks): Does every claim in the answer come from the retrieved chunks? Ragas splits the answer into claims and counts the share the chunks support. It checks against the chunks only, not against the real world.
+- **Answer relevance:** Does the answer address the question? Ragas has a model guess three questions the answer seems to reply to. If the answer is on topic, those guesses should look like the real question. Its docs say this check ignores factual accuracy.
+- **Completeness** (Microsoft's Response Completeness): Does the answer cover everything in the reference answer? This check needs a reference answer.
+
+### 4. Read the scores together
+
+- **Low recall:** search missed key facts. Change how documents are split into chunks, or change search settings.
+- **Good recall, low faithfulness:** the model added facts not in the chunks. Fix the prompt or try another model.
+- **Good recall and faithful, low relevance:** the answer sticks to the chunks but doesn't fully address the question. It may be off topic, incomplete or padded. Fix the prompt.
+
+### 5. Know the grader's limits
+
+Most of these checks use an **LLM as judge**, meaning another large language model does the grading. The Ragas paper tested three checks against human judgments on a dataset built from 50 Wikipedia pages. Faithfulness agreed with humans 95% of the time, answer relevance 78%. **Context relevance**, how much retrieved text is actually needed, was hardest at 70%, especially with long contexts. Context recall and precision came later and were not part of that test. So spot-check the grader against people before you trust its scores.
+
+Faithfulness and answer relevance don't need a reference answer. So you can also run them on real user questions after launch, as part of monitoring.
+
+## Common mistakes
+
+- **Scoring only the final answer** — you can't tell if search or the model failed. Score the retriever and the answer separately.
+- **Treating faithful as correct** — an answer can match a wrong or outdated chunk perfectly. Also check completeness against reference answers, and keep documents current.
+- **Trusting the AI grader blindly** — judge models make mistakes, especially on long text. Compare a sample of its grades with human grades.
+- **Tuning on a tiny test set** — five questions can't show a real change. Build a set that covers your main question types and grows with each bug.
+- **Changing several settings at once** — you won't know which change helped. Change one setting, rerun the same tests and compare.
+
+## Remember this
+
+<Remember>
+- Test RAG in two halves: did search find the right chunks, and did the answer stay true to them?
+- Context recall needs a reference answer; faithfulness checks the answer against retrieved chunks, not the real world.
+- AI graders can be wrong, so check a sample against human judgment before trusting the scores.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Context recall is high, but faithfulness is low. What is the most likely problem?",
+      options: ["Search missed the key documents", "The model added claims that are not in the retrieved chunks", "The test set is too large", "The chunks are ranked in the wrong order"],
+      answer: 1,
+      why: "High recall means search found what was needed. Low faithfulness means the answer went beyond those chunks, so look at the prompt or model, not search."
+    },
+    {
+      q: "An answer gets a perfect faithfulness score. What does that prove?",
+      options: ["The answer is true in the real world", "Every claim in the answer is supported by the retrieved chunks", "Search found every relevant document", "Users liked the answer"],
+      answer: 1,
+      why: "Faithfulness only compares the answer with the retrieved chunks. If a chunk is wrong or outdated, a faithful answer is wrong too."
+    },
+    {
+      q: "Why does Ragas's default context recall check use a reference answer instead of labeled passages?",
+      options: ["Labeling exact passages takes a long time", "Reference answers are always shorter", "Passages cannot be labeled", "Reference answers are more accurate than passages"],
+      answer: 0,
+      why: "Marking the exact passages for every question is slow work. A person-written reference answer is easier to make and still shows which facts search should find."
+    },
+    {
+      q: "You want to pick the best chunk size for your documents. What is the best approach?",
+      options: ["Ask users which size they prefer", "Run the same labeled test set with each chunk size and compare retrieval scores", "Pick the largest size so nothing is missed", "Only check the final answer's relevance"],
+      answer: 1,
+      why: "This is a parameter sweep: change one setting, rerun fixed tests and compare. Bigger chunks are not always better: the Ragas paper notes models handle very long context less well."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [RAG architecture](/docs/ai-architect/building-blocks/rag-architecture) and [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents).
+- Related: [LLMOps: monitoring AI systems in production](/docs/ai-architect/operations/llmops-and-observability).
+- Related: [Shipping AI changes safely](/docs/ai-architect/operations/shipping-ai-changes-safely).
+- Sources are listed below with the date they were last checked.
