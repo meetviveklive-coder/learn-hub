@@ -1,0 +1,162 @@
+---
+title: "Capstone: designing one AI system end to end"
+description: Walk one support assistant through every decision in this track, from the problem to the running system, and see how the lessons fit together.
+domain: ai-architect
+level: advanced
+order: 4
+prerequisites: [enterprise-ai-reference-architecture, rag-architecture, guardrails-architecture, from-pilot-to-production]
+tags: [capstone, system-design, reference-architecture, ai-architect]
+sources:
+  - title: Generative AI Lens (AWS Well-Architected Framework)
+    url: https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lens.html
+    type: official
+  - title: Baseline Microsoft Foundry chat reference architecture (Azure Architecture Center)
+    url: https://learn.microsoft.com/en-us/azure/architecture/ai-ml/architecture/baseline-microsoft-foundry-chat
+    type: official
+  - title: Choose a design pattern for your agentic AI system (Google Cloud Architecture Center)
+    url: https://docs.cloud.google.com/architecture/choose-design-pattern-agentic-ai-system
+    type: official
+last_verified: 2026-11-08
+status: published
+author: agent
+reading_minutes: 9
+---
+
+## In 3 lines
+
+- **What it is:** A walk-through of one AI system, a support assistant for an online store, from first question to running in production.
+- **Why it matters:** Each earlier lesson covers one decision; an architect has to make all of them together and keep them consistent.
+- **Example:** Choosing a smaller model to save cost means re-running your tests, re-checking your guardrails and rolling the change out carefully.
+
+## Think of it like…
+
+<Analogy>
+Designing a whole AI system is like planning a house. The kitchen, wiring and plumbing are separate skills, but the plan has to fit them together. Put the sink on the wrong wall and the pipes, the cabinets and the budget all change.
+
+**Where the comparison breaks:** A house stays put once built, but an AI system keeps changing as models, data and users change, so the plan is never truly finished.
+</Analogy>
+
+## Real-world example
+
+An online shoe store gets thousands of support emails and chats each week. Most ask where an order is, how to return shoes, or which size to buy. Staff spend hours on the same answers, and customers wait a day for a reply.
+
+Leadership asks for "an AI assistant". The architect's job is to turn that wish into a design the team can build, run, secure and pay for. The rest of this lesson follows the decisions in order. Each one links to the lesson that covers it in depth.
+
+## How it works
+
+Cloud providers publish two kinds of help. **Reference architectures** are example designs, like Microsoft's below. Review checklists are lists of questions to test a design. AWS's Generative AI Lens is a checklist. It applies the six areas, called **pillars**, of the AWS Well-Architected Framework to AI apps. They are operational excellence (running it well day to day), security, reliability, performance efficiency (speed and good use of resources), cost optimization and sustainability (energy and resource use). Use them as a final check. The decisions themselves come in roughly this order.
+
+### 1. Frame the problem and the success measure
+
+Start with the outcome, not the tool. Here: answer common questions instantly and hand hard cases to people. Pick numbers you can measure before building. For example, most order-status questions answered in under a minute, with no rise in refunds given by mistake. See [From pilot to production](/docs/ai-architect/delivery/from-pilot-to-production).
+
+### 2. Build, buy or customize
+
+A packaged help-desk add-on might cover basic answers. The store needs its own order data and return rules, so it builds on a model **API** (a service your code calls over the internet) plus its own documents and order data. See [Build, buy, or customize?](/docs/ai-architect/foundations/build-buy-or-customize).
+
+### 3. Pick the simplest pattern
+
+In a **routing** workflow, a first step sorts each message into a group and sends it to a prompt written for that group. Most messages fall into clear groups, so routing fits. Only messy, multi-part cases go to an **agent**, a model that decides for itself which steps and tools to use. Google Cloud's guide notes that predictable tasks may not need an agent at all. See [Workflows vs agents](/docs/ai-architect/building-blocks/agent-workflow-patterns).
+
+### 4. Ground answers in company knowledge
+
+Return rules and size guides live in documents. **Retrieval-augmented generation (RAG)** finds the right passages and gives them to the model, so answers follow the store's actual policy. See [RAG architecture](/docs/ai-architect/building-blocks/rag-architecture) and [Is your data ready for AI?](/docs/ai-architect/data/data-readiness-for-ai).
+
+### 5. Connect to real systems, with tight permissions
+
+The agent reads orders through a narrow **tool**, a small function it can call, such as "look up order". It can only *draft* refunds, and a staff member approves each one. Google Cloud's guide calls this human-in-the-loop: a person gives final approval for critical actions. See [Connecting AI to existing systems](/docs/ai-architect/building-blocks/integration-patterns) and [Putting agents to work safely](/docs/ai-architect/building-blocks/agents-in-the-enterprise).
+
+### 6. Choose the model and where it runs
+
+Test two or three models on your own examples for quality, speed and cost. Routing lets small models, which are cheaper and faster but less capable, handle easy groups. Customer data rules decide which hosting options are allowed. See [Choosing a model](/docs/ai-architect/foundations/choosing-a-model), [Where AI runs](/docs/ai-architect/delivery/deployment-options) and [Privacy and data residency](/docs/ai-architect/data/privacy-and-data-residency).
+
+### 7. Put controls around it
+
+An **AI gateway** gives every model call one front door for API keys (passwords that let your code use a model), usage limits and logs. **Guardrails** check inputs, outputs and actions, for example blocking hidden instructions in customer emails. See [The AI gateway](/docs/ai-architect/building-blocks/ai-gateway), [Guardrails](/docs/ai-architect/security-governance/guardrails-architecture) and [AI-specific security threats](/docs/ai-architect/security-governance/ai-security-threats).
+
+### 8. Plan to run it
+
+Trace every request, meaning record each step it takes. Run **evals**, automatic tests that score answers on saved examples. Track cost, and set budgets and time limits. Treat every prompt or model change as a release: test it, then send it to a few users first. See [LLMOps](/docs/ai-architect/operations/llmops-and-observability), [Managing AI cost](/docs/ai-architect/operations/ai-cost-and-finops), [Latency and reliability](/docs/ai-architect/operations/latency-scaling-and-reliability) and [Shipping AI changes safely](/docs/ai-architect/operations/shipping-ai-changes-safely).
+
+### 9. Govern and document
+
+Check fairness and transparency, map the system to the rules that apply, and write a short decision record (what was chosen and why) for each big choice. See [Responsible AI](/docs/ai-architect/security-governance/responsible-ai-in-practice), [AI governance frameworks](/docs/ai-architect/security-governance/ai-governance-frameworks) and [Documenting AI decisions](/docs/ai-architect/delivery/ai-architecture-decision-records).
+
+### The design on one page
+
+```text
+customer (chat or email)
+   │
+   ▼
+web app ─→ input guardrails ─→ AI gateway (keys, limits, logs)
+                                   │
+                                   ▼
+                         router (sorts each message)
+                     ┌─────────────┴─────────────┐
+                     ▼                           ▼
+            easy group                   complex case
+            small model + RAG            agent + order system (read-only)
+            (store documents)            drafts refund → staff approve
+                     └─────────────┬─────────────┘    before money moves
+                                   ▼
+                        output guardrails ─→ reply to customer
+
+monitoring, cost tracking, evals and audit logs cover every box
+```
+
+### How a real blueprint compares
+
+Microsoft's baseline Microsoft Foundry chat architecture follows a similar flow. A web front end sits behind a **web application firewall**, a filter that inspects incoming traffic. The app calls an agent, which picks tools, searches a store of company documents, then calls the model. The agent saves each conversation before replying. The services talk over private network links, so traffic avoids the public internet. Different vendor, many of the same layers. One difference: every request goes to the agent, with no cheap routing step.
+
+## Common mistakes
+
+- **Starting from the model** — teams pick a model first and design around it, then get stuck when it changes. Start from the problem and success measure; the model is a swappable part.
+- **Designing each layer alone** — a cheaper model or new tool affects tests, guardrails and cost. Review changes against the whole one-page design.
+- **Skipping the "run it" plan** — a demo works without monitoring or rollback, but production fails quietly. Plan tracing, evals and rollback (switching back to the last good version) before launch.
+- **No written decisions** — six months later, nobody remembers why the agent can't issue refunds. Record each major choice in a short decision record.
+
+## Remember this
+
+<Remember>
+- Start with the problem and a measurable success target, then pick the simplest pattern that meets it.
+- Ground answers in company knowledge, keep tool permissions narrow, and put guardrails and a gateway around every model call.
+- Plan monitoring, cost, safe releases and written decisions before launch, and check the whole design whenever one part changes.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "What should be the architect's first step when leadership asks for 'an AI assistant'?",
+      options: ["Pick the newest model", "Define the problem and how success will be measured", "Build a RAG index", "Write the system prompt"],
+      answer: 1,
+      why: "The goal and success measure drive every later choice. Picking a model first locks you into a part that will likely change."
+    },
+    {
+      q: "Most messages fall into three clear groups; a few are messy, multi-part cases that need order lookups. Which design fits best?",
+      options: ["One large agent for everything", "A routing workflow, with an agent only for complex cases", "No AI, only templates", "A new custom-trained model"],
+      answer: 1,
+      why: "Routing handles the common, predictable cases cheaply. An agent's extra cost is worth it only for the messy cases."
+    },
+    {
+      q: "The team swaps to a cheaper model. What else should they check?",
+      options: ["Nothing, the model is separate", "Only the price", "Re-run the evals, re-check guardrails, release to a few users first", "Only the guardrails"],
+      answer: 2,
+      why: "One change ripples through the system. Treating the swap as a release catches quality drops before all users see them."
+    },
+    {
+      q: "Why does the agent only draft refunds instead of issuing them?",
+      options: ["Drafting is faster", "It limits the damage if the agent is wrong or tricked", "Models cannot call payment systems", "Refunds need RAG"],
+      answer: 1,
+      why: "Narrow permissions plus human approval keep a fooled or mistaken agent from moving money. Models can call such systems, which is exactly the risk."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [The layers of an enterprise AI system](/docs/ai-architect/foundations/enterprise-ai-reference-architecture).
+- Related: [What does an AI technical architect do?](/docs/ai-architect/foundations/what-does-an-ai-architect-do).
+- Every other lesson in this track is linked in the steps above.
+- Sources are listed below with the date they were last checked.
