@@ -53,3 +53,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-11-08 | new-lesson | agent-workflow-patterns written, reviewer fixes applied, checks + build pass, PR opened (owner-requested run) | claude/lesson-agent-workflow-patterns
 2026-11-08 | new-lesson | shipping-ai-changes-safely written, reviewer fixes applied, checks + build pass, PR opened (owner-requested); agent-workflow-patterns marked published | claude/lesson-shipping-ai-changes-safely
 2026-11-08 | new-lesson | capstone-ai-system-design written, reviewer fixes applied, checks + build pass, PR opened (owner-requested); shipping-ai-changes-safely marked published | claude/lesson-capstone-ai-system-design
+2026-11-09 | new-lesson | evaluating-rag-systems written, reviewer fixes applied, checks + build pass, PR opened (owner-requested); 3 proposed topics added to queue; capstone-ai-system-design marked published (PR #52 merged) | claude/lesson-evaluating-rag-systems
