@@ -1,0 +1,168 @@
+---
+title: "Structured outputs: JSON that other systems can trust"
+description: How to make an AI model return data in a fixed shape, check it in your own code, and decide what happens when it still doesn't fit.
+domain: ai-architect
+level: intermediate
+order: 6
+prerequisites: [tools-and-function-calling, integration-patterns]
+tags: [structured-outputs, json-schema, validation, integration, ai-architect]
+sources:
+  - title: Structured outputs (Claude API docs)
+    url: https://platform.claude.com/docs/en/build-with-claude/structured-outputs
+    type: official
+  - title: Structured model outputs (OpenAI API docs)
+    url: https://developers.openai.com/api/docs/guides/structured-outputs
+    type: official
+  - title: Getting started step by step (JSON Schema)
+    url: https://json-schema.org/learn/getting-started-step-by-step
+    type: official
+  - title: Validation (Instructor docs)
+    url: https://python.useinstructor.com/concepts/validation
+    type: article
+last_verified: 2026-11-09
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** A **structured output** is a model reply that follows a fixed data shape, usually **JSON** (a simple text format of named fields and values), instead of free text.
+- **Why it matters:** A customer relationship management (CRM) system or an order system can't read a friendly paragraph. It needs exact fields, or it breaks or stores bad data.
+- **Example:** A model reads a return email and replies `{"order_id": "A1042", "reason": "wrong_size"}`, which code can save straight into the returns system.
+
+## Think of it like…
+
+<Analogy>
+Asking a model for free text is like asking a friend to "tell me about the parcel." Structured output is handing them a printed form with labeled boxes. They can only write in the boxes, and some boxes only allow a tick from a short list.
+
+**Where the comparison breaks:** A form can't tell if the answer in a box is true, and neither can a schema. You still have to check the facts yourself.
+</Analogy>
+
+## Real-world example
+
+An online shoe store gets hundreds of return emails a day. The team wants AI to turn each email into a return record in its order system.
+
+At first they just ask the model to "reply in JSON." Most replies work. But some arrive wrapped in a chatty sentence. Others name a field `orderId` instead of `order_id`, or invent a reason like "felt weird." The import job (the script that loads records into the order system) crashes a few times a week.
+
+The architect makes three changes. First, the request includes a **schema**: a written rule for which fields must appear and what type each one is. Second, the store's own code checks every reply against business rules, such as "this order exists." Third, any reply that fails twice goes to a human review queue instead of the database.
+
+## How it works
+
+### Step 1: Describe the shape with JSON Schema
+
+**JSON Schema** is a standard way to describe what a piece of JSON must look like. A program called a **validator** takes a schema and some JSON, and reports whether the JSON passes. Common keywords include `type` (`string` for text, `number`, `boolean` for true/false, and so on), `properties` (the field names), `required` (fields that must be present) and `enum` (a fixed list of allowed values).
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "order_id": { "type": "string" },
+    "reason": { "type": "string", "enum": ["wrong_size", "damaged", "changed_mind", "other"] },
+    "refund_requested": { "type": "boolean" },
+    "refund_amount": { "type": "number", "minimum": 0 }
+  },
+  "required": ["order_id", "reason", "refund_requested", "refund_amount"],
+  "additionalProperties": false
+}
+```
+
+`additionalProperties: false` means "no extra fields allowed."
+
+### Step 2: Ask the provider to enforce it
+
+A **provider** is the company whose model you call, through its **API** (the web interface programs use to send requests). Several providers, including Anthropic (Claude) and OpenAI, can make the reply follow your schema. You send the schema with the request, and the provider limits the model so it can only write a reply that fits. Claude's docs note the first request with a new schema is slower while it gets ready.
+
+| Provider (examples) | Schema for the reply | Schema for tool inputs |
+|---|---|---|
+| Claude API | `output_config.format` with a `json_schema` | `strict: true` on a tool |
+| OpenAI API | `text.format` with a `json_schema` and `strict: true` (Responses API; Chat Completions uses `response_format`) | `strict: true` on a function |
+
+Each provider supports only part of JSON Schema. OpenAI's docs say every field must be listed as required and extra fields must be switched off. To make a field optional there, allow `null` as its type, such as `["string", "null"]`. Claude's software kit helpers remove limits such as `minimum` from the schema they send and add them to the field description. The API then doesn't enforce them, though some helpers check them after the reply arrives. Check your provider's current list before you design a schema.
+
+Older "JSON mode" features only promised valid JSON, not your fields. OpenAI recommends structured outputs over JSON mode wherever possible.
+
+### Step 3: Check what came back anyway
+
+The reply fits almost always, but both providers name cases where it may not. To spot them, read the **stop reason** or **status**: a label in the response that says why the model stopped writing (finished, refused, or hit the length limit).
+
+- **Refusal:** the model declines the request. Claude sets the stop reason to `refusal`; OpenAI returns a separate `refusal` field.
+- **Cut off:** the reply hit the token limit (a **token** is a small chunk of text) and stopped halfway, so the JSON is incomplete. Claude's docs suggest retrying with a higher limit.
+- **Small slips:** Claude's docs warn an `enum` value may differ only in capital letters, so compare those without caring about case.
+
+Then run your own **business rules**. These are checks a schema can't express. Examples: "the order exists" and "the refund isn't more than the price paid."
+
+### Step 4: Retry, then fall back
+
+```text
+model reply
+   │
+   ▼
+stop reason / status? ──cut off──► retry with higher limit ──fail──► human queue
+   │            └──────refused───────────────────────────────────► human queue
+   │finished
+   ▼
+schema passes? ──no──► re-ask with the error ──fail──► human queue
+   │yes
+   ▼
+business rules pass? ──no──► human queue (a re-ask can't create a missing order)
+   │yes
+   ▼
+save to order system
+```
+
+When code **parses** a reply, it reads the JSON text into separate fields. A **re-ask** sends a validation error back to the model and asks it to fix the reply. Libraries such as Instructor (a Python library) do this for you and raise an error once the retry limit is reached. Always cap retries. A **fallback** is the safe path you take when retries run out, such as a human queue or a default "needs review" status.
+
+## Common mistakes
+
+- **Trusting "reply in JSON" in the prompt alone** → replies drift in field names and format, and imports break. Use the provider's schema feature as well.
+- **Treating a valid shape as a true answer** → a perfectly shaped reply can still hold a made-up order number. Check facts against your own systems before you save anything.
+- **Ignoring the stop reason** → a refused or cut-off reply gets parsed as if it were complete. Read the stop reason or status first, every time.
+- **Retrying forever** → each retry costs money and time, and a broken input may never pass. Set a small limit and a clear fallback.
+- **Packing every rule into the schema** → providers skip some keywords, so a rule can quietly vanish. Keep important rules in your own validation code.
+
+## Remember this
+
+<Remember>
+- A schema fixes the shape of the reply; it does not make the content true.
+- Check the stop reason or status, then the schema, then your business rules, in that order.
+- Cap retries and always have a fallback, such as a human review queue.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "The model returns a reply that perfectly matches your schema, with order_id \"A9999\". What should your code do next?",
+      options: ["Save it, because the schema was enforced", "Check that order A9999 exists before saving", "Ask the model if it is sure", "Switch to JSON mode"],
+      answer: 1,
+      why: "A schema guarantees shape, not truth. Asking the model again can't prove the order exists; only your own systems can."
+    },
+    {
+      q: "Why should you read the stop reason or status before parsing a structured reply?",
+      options: ["It tells you how much the call cost", "A refusal or a token-limit cut-off can produce a reply that doesn't match the schema", "It shows which model version answered"],
+      answer: 1,
+      why: "Both Claude and OpenAI document refusals and cut-off replies as cases where output may not fit the schema."
+    },
+    {
+      q: "Your schema says refund_amount needs a minimum of 0. Where is the safest place to enforce that rule?",
+      options: ["Only in the schema sent to the provider", "Only in the prompt", "In your own validation code, even if it is also in the schema", "Nowhere; models don't send negative numbers"],
+      answer: 2,
+      why: "Some providers or their software kits don't enforce limits like minimum; Claude's helpers remove them from the schema they send. Your own code is the check you control."
+    },
+    {
+      q: "A reply fails validation twice in a row. What is the best next step?",
+      options: ["Retry with no limit", "Send it to a fallback such as a human review queue", "Save it anyway with a warning", "Delete the email"],
+      answer: 1,
+      why: "Endless retries cost money and may never succeed. A capped retry plus a clear fallback keeps bad data out without losing the request."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Tools and function calling](/docs/ai-agents/foundations/tools-and-function-calling) and [Connecting AI to existing systems](/docs/ai-architect/building-blocks/integration-patterns).
+- Related: [Guardrails: input, output and action checks](/docs/ai-architect/security-governance/guardrails-architecture).
+- Related: [Shipping AI changes safely](/docs/ai-architect/operations/shipping-ai-changes-safely).
+- Sources are listed below with the date they were last checked.
