@@ -436,7 +436,7 @@ items:
     title: "Capstone: designing one AI system end to end"
     why: "Ties the whole track together by walking one generic case through every layer and decision, so the owner can rehearse the architect role."
     priority: 3
-    status: queued
+    status: published
     notes: "Generic scenario (e.g. a support assistant for an online store). Mostly links to existing lessons; cite official reference architectures for any vendor example. May need splitting if over 1,200 words."
 
   # Proposed by agent 2026-11-09 (queue was empty); owner approved starting them 2026-11-09.
