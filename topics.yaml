@@ -455,7 +455,7 @@ items:
     title: "Permission-aware RAG: users only see what they're allowed to"
     why: "Enterprise search fails audits if the AI shows documents a user couldn't open themselves."
     priority: 2
-    status: in_review
+    status: published
     notes: "Cover document-level security trimming at query time, syncing access lists, and leakage via summaries. Cite official search-service docs (e.g. Azure AI Search security filters, Amazon Bedrock/Kendra access control). Link rag-architecture and privacy-and-data-residency."
 
   - id: structured-outputs-and-validation
@@ -464,5 +464,5 @@ items:
     title: "Structured outputs: getting JSON that other systems can trust"
     why: "Connecting AI to CRM/ERP systems needs schema-checked output, with a retry or fallback when it doesn't fit."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Cover JSON Schema, provider structured-output features (cite official docs), validation, retries and fallbacks. Link tools-and-function-calling and integration-patterns."
