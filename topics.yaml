@@ -474,7 +474,7 @@ items:
     title: "Red-teaming AI systems before launch"
     why: "The security lesson lists threats, but no lesson shows how to test for them before go-live."
     priority: 2
-    status: in_review
+    status: published
     notes: "Primary sources: Microsoft Learn red-teaming planning guide, Microsoft AI Red Team '100 products' paper, NIST AI 600-1, OWASP GenAI Red Teaming Guide. Link ai-security-threats, guardrails-architecture, evaluating-agents."
 
   - id: multi-tenant-ai-architecture
@@ -483,7 +483,7 @@ items:
     title: "Multi-tenant AI: keeping each customer's data, quotas and costs apart"
     why: "Shared AI platforms must isolate customers' data, prompts, rate limits and spend; no lesson covers this yet."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Cite official cloud SaaS/multi-tenant AI guidance (e.g. AWS, Azure architecture centres). Link ai-gateway, permission-aware-retrieval and ai-cost-and-finops."
 
   - id: fine-tuning-when-and-how

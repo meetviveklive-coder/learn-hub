@@ -1,4 +1,4 @@
 {
   "title": "Building Blocks",
-  "pages": ["rag-architecture", "ai-gateway", "agents-in-the-enterprise", "integration-patterns", "agent-workflow-patterns", "structured-outputs-and-validation"]
+  "pages": ["rag-architecture", "ai-gateway", "agents-in-the-enterprise", "integration-patterns", "agent-workflow-patterns", "structured-outputs-and-validation", "multi-tenant-ai-architecture"]
 }
