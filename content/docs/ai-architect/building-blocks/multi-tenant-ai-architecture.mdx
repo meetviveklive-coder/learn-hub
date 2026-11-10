@@ -1,0 +1,149 @@
+---
+title: "Multi-tenant AI: keeping customers' data and costs apart"
+description: How one shared AI platform serves many customers while keeping each one's data, usage limits and bills separate.
+domain: ai-architect
+level: intermediate
+order: 7
+prerequisites: [ai-gateway, permission-aware-retrieval]
+tags: [multi-tenancy, saas, isolation, rate-limits, cost, ai-architect]
+sources:
+  - title: Multitenancy and Foundry Models (Azure Architecture Center)
+    url: https://learn.microsoft.com/azure/architecture/guide/multitenant/service/openai
+    type: official
+  - title: Design a secure multitenant RAG inferencing solution (Azure Architecture Center)
+    url: https://learn.microsoft.com/azure/architecture/ai-ml/guide/secure-multitenant-rag
+    type: official
+  - title: Silo, pool, and bridge models (AWS Well-Architected SaaS Lens)
+    url: https://docs.aws.amazon.com/wellarchitected/latest/saas-lens/silo-pool-and-bridge-models.html
+    type: official
+  - title: Enforcing tenant isolation (AWS Prescriptive Guidance)
+    url: https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-multitenant/enforcing-tenant-isolation.html
+    type: official
+  - title: Application inference profiles (Amazon Bedrock docs)
+    url: https://docs.aws.amazon.com/bedrock/latest/userguide/cost-mgmt-application-inference-profiles.html
+    type: official
+last_verified: 2026-11-10
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** A **multi-tenant** AI platform is one system that serves many customers. Each customer is called a **tenant**.
+- **Why it matters:** Tenants share models, servers and databases, so one mistake can leak data, slow everyone down, or send the wrong bill.
+- **Example:** A help-desk software company adds an AI assistant for 500 client companies, and each client must only ever see its own tickets.
+
+## Think of it like…
+
+<Analogy>
+An apartment building is multi-tenant. Everyone shares the roof, the pipes and the elevator, but each flat has its own lock, its own water meter and its own bill. If one family runs every tap at once, the building should stop them before the others lose pressure.
+
+**Where the comparison breaks:** Walls in a building are physical. In software, the "walls" are rules in code, and one missing rule can open every door at once.
+</Analogy>
+
+## Real-world example
+
+A help-desk software company sells to 500 businesses. It adds an AI assistant that answers questions using each business's past support tickets. All tenants share one model deployment and one search index, which keeps costs low.
+
+In testing, things go wrong. One search query forgets the tenant filter, so a tenant's answer quotes another tenant's ticket. A large client runs a bulk job and uses up the shared model limit, so small clients get errors. At month end, nobody can say which client used how much AI.
+
+The architect fixes all three. The platform now reads the tenant from the login token, never from the request text. Every search carries a tenant filter, and tests try to break it. A **gateway** (one central entry point for all AI calls) sets a token limit per tenant and records each tenant's usage.
+
+## How it works
+
+### Step 1: Pick an isolation model
+
+AWS names three ways to share resources:
+
+| Model | What it means. | Good for. |
+|---|---|---|
+| **Silo.** | Each tenant gets its own resources, such as its own database. | Strict rules and a few large tenants. |
+| **Pool.** | Tenants share the same resources. | Many small tenants and low cost. |
+| **Bridge.** | Some parts are silo, and others are pool. | Parts with different needs. |
+
+Microsoft's guide for Azure AI lists finer options. Two are useful to know. In one, tenants share an AI account, but each gets its own **model deployment** (a separately set-up copy of a model with its own settings and limits). In the other, the tenant brings its own AI account. That suits a tenant with a **fine-tuned model**, which is a model given extra training on that tenant's own examples.
+
+### Step 2: Get the tenant ID from trusted code
+
+The **tenant ID** is the label that says which customer a request belongs to. Read it from the **signed login token** (a digital pass your login system issues, which users can't change without it being detected). An **API key** (a secret code a program sends with each call) also works if each key maps to one tenant. Never accept a tenant ID the user typed, and never let the model decide it. Microsoft's guide says code, not models, must enforce tenant IDs.
+
+### Step 3: Keep data apart
+
+- **Search data:** A **search index** is the store the assistant searches for useful text. Use one index per tenant, or one shared index where *every* query carries a tenant filter. The filter must run before any text reaches the **prompt** (the text sent to the model).
+- **Saved chats:** Microsoft notes that its Responses API (a feature that lets Microsoft, the AI provider, store chat history for you) does not split stored state by tenant. Store chat IDs under the tenant in your own database, or keep history yourself.
+- **Caches:** A **semantic cache** reuses answers to similar questions. Include the tenant ID in the cache key, or one tenant may get another's cached answer.
+
+### Step 4: Keep usage fair
+
+A **noisy neighbor** is a tenant whose heavy use slows down everyone else. Put a per-tenant limit on **tokens per minute** (how much text a tenant can send and receive each minute) at the gateway. AWS also suggests limits by tier, so basic plans get tighter limits than premium plans.
+
+### Step 5: Track cost per tenant
+
+Record tokens used, model and tenant ID for every call, then add them up per tenant. Cloud tools help. Amazon Bedrock lets you tag an **application inference profile** (a named shortcut to one model). Your app calls the profile instead of the model, and the profile's tags appear on the bill. AWS's docs note a catch: each profile covers only one model, so the number of profiles grows quickly.
+
+```text
+User login ─► App (tenant ID from token)
+                 │
+                 ▼
+             AI gateway ── per-tenant token limit, usage log
+                 │
+       ┌─────────┴─────────┐
+       ▼                   ▼
+ Search (tenant filter)  Model
+```
+
+Every request carries a trusted tenant ID through each layer.
+
+## Common mistakes
+
+- **Trusting a tenant ID sent by the client** → anyone can change it and read another tenant's data. Take it from the verified login token.
+- **Counting on the model to refuse** → if another tenant's data reached the prompt, the leak already happened. Microsoft's guide treats a test that "passes" only because the model refused as a failure.
+- **Forgetting the cache and chat history** → a shared cache or saved chat can leak across tenants even when search is filtered. Add the tenant ID to every key.
+- **One shared limit for everyone** → one busy tenant blocks the rest. Set limits per tenant at the gateway.
+- **Adding cost tracking later** → you can't bill or price fairly without past usage data. Log tenant ID and tokens from day one.
+
+## Remember this
+
+<Remember>
+- The tenant ID comes from trusted code, such as a login token, never from the user or the model.
+- Silo isolates by giving each tenant its own resources; pool shares them; bridge mixes both.
+- Every shared part (search, cache, chat history, rate limits, bills) needs its own tenant boundary.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Where should your app get the tenant ID for a request?",
+      options: ["From a field the user fills in", "From the verified login token", "By asking the model which customer this is", "From the question text"],
+      answer: 1,
+      why: "A signed token can't be changed by the user. User fields and model guesses can be faked or wrong."
+    },
+    {
+      q: "A test sends tenant A's question, and tenant B's document reaches the prompt, but the model refuses to share it. Did the test pass?",
+      options: ["Yes, nothing leaked to the user", "No, the data crossed the tenant boundary", "Only if it happens rarely"],
+      answer: 1,
+      why: "Isolation failed the moment B's data reached the prompt. The refusal was luck, not a control."
+    },
+    {
+      q: "A bank customer needs its data in its own database, while small customers share one. Which model is that?",
+      options: ["Silo", "Pool", "Bridge", "Gateway"],
+      answer: 2,
+      why: "Bridge mixes silo and pool. Pure silo would give every tenant its own database."
+    },
+    {
+      q: "One tenant's bulk job causes errors for all other tenants. What fixes this most directly?",
+      options: ["A bigger model", "A per-tenant token limit at the gateway", "A longer prompt", "A shared cache"],
+      answer: 1,
+      why: "Per-tenant limits stop one noisy neighbor from using up the shared capacity."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [The AI gateway](/docs/ai-architect/building-blocks/ai-gateway) and [Permission-aware RAG](/docs/ai-architect/security-governance/permission-aware-retrieval).
+- Related: [AI cost and FinOps](/docs/ai-architect/operations/ai-cost-and-finops).
+- Sources are listed below with the date they were last checked.
