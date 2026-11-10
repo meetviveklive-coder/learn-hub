@@ -5,6 +5,7 @@
     "ai-governance-frameworks",
     "guardrails-architecture",
     "responsible-ai-in-practice",
-    "permission-aware-retrieval"
+    "permission-aware-retrieval",
+    "ai-red-teaming"
   ]
 }
