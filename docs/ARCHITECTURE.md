@@ -14,7 +14,7 @@ Frontend: Fumadocs (Next.js App Router), Fumadocs MDX, Tailwind (bundled with Fu
 Backend: None
 Database: Git repository (MDX + YAML + JSON)
 Authentication: None (public site)
-Storage: Git; browser localStorage for review schedule
+Storage: Git; browser localStorage for review schedule and learning-path progress
 Hosting: Vercel Hobby (personal, non-commercial)
 CI: GitHub Actions (free for public repos) — deterministic checks only, no AI
 Agents: Claude Code scheduled tasks on claude.ai (Pro subscription)
@@ -28,6 +28,7 @@ Analytics: None in MVP (Vercel Web Analytics optional later)
 - Built-in search.
 - Custom MDX components: `<Quiz>`, `<Remember>`, `<Analogy>`. Level/minutes/verified badges, sources list and "Mark as learned" render automatically from frontmatter.
 - `/review` page (client component, localStorage).
+- `/path` page: the AI Technical Architect learning path. Ordered cross-track stages in `lib/learning-path.ts` (owner-edited); progress ticks in localStorage (`lib/path-progress.ts`), and lessons marked learned count as done. Unknown slugs fail the build; AI Architect lessons not yet listed appear in a "New" stage automatically. `tests/learning-path.test.ts` checks every lesson exists and prerequisites come first.
 
 ### Content
 - `content/docs/<domain>/<topic>/<lesson>.mdx`

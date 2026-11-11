@@ -16,6 +16,7 @@ export function baseOptions(): BaseLayoutProps {
     },
     links: [
       { text: 'Lessons', url: '/docs' },
+      { text: 'Architect path', url: '/path' },
       { text: 'Review today', url: '/review' },
     ],
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
