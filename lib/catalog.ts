@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import type { Folder, Node } from 'fumadocs-core/page-tree';
 import { source, DOMAINS } from './source';
+import { PATH_STAGES, NEW_LESSONS_STAGE, pathUrl } from './learning-path';
 
 export type Domain = (typeof DOMAINS)[number];
 
@@ -75,4 +76,29 @@ export function getQueued(domain: Domain, limit = 3): QueueItem[] {
   } catch {
     return [];
   }
+}
+
+export type ResolvedStage = { id: string; title: string; goal: string; lessons: LessonCard[] };
+
+/**
+ * The AI Architect learning path with lesson data filled in.
+ * Throws on an unknown lesson so a typo fails the build instead of silently dropping a step.
+ * AI Architect lessons missing from the list are appended in a "new" stage.
+ */
+export function getLearningPath(): ResolvedStage[] {
+  const all = getAllLessons();
+  const byUrl = new Map(all.map((l) => [l.url, l]));
+  const stages = PATH_STAGES.map((s) => ({
+    id: s.id,
+    title: s.title,
+    goal: s.goal,
+    lessons: s.lessons.map((p) => {
+      const lesson = byUrl.get(pathUrl(p));
+      if (!lesson) throw new Error(`learning path: unknown lesson "${p}" in stage "${s.id}"`);
+      return lesson;
+    }),
+  }));
+  const listed = new Set(PATH_STAGES.flatMap((s) => s.lessons.map(pathUrl)));
+  const extra = all.filter((l) => l.domain === 'ai-architect' && !listed.has(l.url));
+  return extra.length ? [...stages, { ...NEW_LESSONS_STAGE, lessons: extra }] : stages;
 }

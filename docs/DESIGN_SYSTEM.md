@@ -47,7 +47,8 @@ Quiz options are radio-style buttons, full-width, large tap target (≥ 44px tal
 - Lesson cards (`LessonTile`): title, description, level pill, minutes.
 
 ## 11. Navigation
-Header: site title, search, theme toggle, GitHub link, "Review today".
+Header: site title, search, theme toggle, GitHub link, "Architect path", "Review today".
+Learning path (`/path`): progress card (sticky from `sm` up) with bar, "Continue" button and reset; numbered stages, each lesson a card with a real checkbox (keyboard-usable, labelled), domain badge, level and minutes.
 Sidebar: Domain → Topic → Lesson (from folders + `meta.json`), ordered as a learning path.
 Mobile: Fumadocs default drawer.
 Lesson footer: previous/next lesson + prerequisites.
