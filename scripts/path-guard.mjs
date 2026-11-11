@@ -2,7 +2,8 @@
 // Fails if an agent branch (claude/*) changes files outside the allowed paths.
 // Usage: node scripts/path-guard.mjs <head-branch> <file...>
 const [branch, ...files] = process.argv.slice(2);
-const ALLOWED = [/^content\/docs\//, /^topics\.yaml$/, /^progress\.md$/];
+// lib/learning-path.ts: agents slot each new lesson into the learning path (AGENTS.md §5).
+const ALLOWED = [/^content\/docs\//, /^topics\.yaml$/, /^progress\.md$/, /^lib\/learning-path\.ts$/];
 
 if (!branch?.startsWith('claude/')) {
   console.log(`path-guard: branch "${branch}" is not an agent branch — skipped`);

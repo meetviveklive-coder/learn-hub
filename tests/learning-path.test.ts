@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parse as parseYaml } from 'yaml';
@@ -12,6 +12,20 @@ const ordered = PATH_STAGES.flatMap((s) => s.lessons);
 describe('learning path data', () => {
   it('every lesson exists', () => {
     for (const p of ordered) expect(existsSync(file(p)), p).toBe(true);
+  });
+
+  it('includes every lesson on the site', () => {
+    const root = join(process.cwd(), 'content/docs');
+    const walk = (d: string): string[] =>
+      readdirSync(d).flatMap((f) => {
+        const p = join(d, f);
+        return statSync(p).isDirectory() ? walk(p) : f.endsWith('.mdx') && f !== 'index.mdx' ? [p] : [];
+      });
+    const onPath = new Set(ordered);
+    const missing = walk(root)
+      .map((f) => f.slice(root.length + 1, -'.mdx'.length))
+      .filter((p) => frontmatter(p).status !== 'draft' && !onPath.has(p));
+    expect(missing, 'add these to lib/learning-path.ts').toEqual([]);
   });
 
   it('has no duplicates', () => {

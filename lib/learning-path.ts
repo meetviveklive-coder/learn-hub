@@ -2,7 +2,8 @@
 // Plain data (no Fumadocs imports) so unit tests can check it against content/docs.
 // Each entry is a lesson path under /docs, e.g. 'ai-agents/foundations/what-is-an-ai-agent'.
 // Rule (enforced by tests/learning-path.test.ts): a lesson's prerequisites that are on the path
-// must appear earlier on the path.
+// must appear earlier on the path, and every published lesson must be on the path.
+// Agents add each new lesson here (AGENTS.md §5) — the only site file they may edit.
 
 export type PathStage = {
   id: string;
@@ -39,10 +40,13 @@ export const PATH_STAGES: PathStage[] = [
   {
     id: 'decisions',
     title: 'First big decisions',
-    goal: 'How to choose an approach and a model before building anything.',
+    goal: 'How to choose an approach and a model, including fast classifier models like Jev, before building anything.',
     lessons: [
       'ai-architect/foundations/build-buy-or-customize',
       'ai-architect/foundations/choosing-a-model',
+      'jev/foundations/what-is-jev',
+      'jev/foundations/discriminative-vs-generative',
+      'jev/patterns/jev-in-an-agent-loop',
       'ai-architect/foundations/fine-tuning-when-and-how',
     ],
   },

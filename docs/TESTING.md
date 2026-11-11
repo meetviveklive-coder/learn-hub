@@ -20,7 +20,7 @@ Critical functionality:
 - Prose word count ≤ 1,200.
 
 ### Path guard (agent PRs)
-For PRs whose head branch starts with `claude/`: fail if any changed file is outside `content/docs/**`, `topics.yaml`, `progress.md`.
+For PRs whose head branch starts with `claude/`: fail if any changed file is outside `content/docs/**`, `topics.yaml`, `progress.md`, `lib/learning-path.ts`.
 
 ### Schema
 Fumadocs MDX zod schema in `source.config.ts` → `next build` fails on bad frontmatter.
