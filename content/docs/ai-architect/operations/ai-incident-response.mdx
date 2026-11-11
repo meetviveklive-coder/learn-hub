@@ -1,0 +1,164 @@
+---
+title: "When AI goes wrong in production: incident response"
+description: How to spot, stop, fix and learn from harmful or wrong AI behavior in a live app, with clear roles, a kill switch and a blameless review.
+domain: ai-architect
+level: intermediate
+order: 6
+prerequisites: [llmops-and-observability, shipping-ai-changes-safely]
+tags: [incidents, kill-switch, rollback, postmortem, nist, eu-ai-act, ai-architect]
+sources:
+  - title: "Chapter 14: Managing Incidents (Google SRE Book)"
+    url: https://sre.google/sre-book/incident-response/
+    type: official
+  - title: "Chapter 15: Postmortem Culture (Google SRE Book)"
+    url: https://sre.google/sre-book/postmortem-culture/
+    type: official
+  - title: "NIST AI 600-1: Generative AI Profile"
+    url: https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf
+    type: official
+  - title: "Name it to tame it: Defining AI incidents and hazards (OECD.AI)"
+    url: https://oecd.ai/en/wonk/defining-ai-incidents-and-hazards
+    type: official
+  - title: "Article 73: Reporting of serious incidents (EU AI Act Service Desk)"
+    url: https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-73
+    type: official
+  - title: "The AI Act implementation timeline: what changes under the AI Omnibus? (Future of Privacy Forum)"
+    url: https://fpf.org/blog/the-ai-act-implementation-timeline-what-changes-under-the-ai-omnibus/
+    type: article
+last_verified: 2026-11-11
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** A planned way to spot, stop, fix and learn from an AI system that is causing harm or giving wrong results in **production** (the live app real people use).
+- **Why it matters:** AI failures often come with no error message, so without a plan a bad answer can spread for days before anyone acts.
+- **Example:** A store's support bot starts promising refunds it shouldn't; the team flips a switch that sends those chats to humans within minutes, then finds the cause.
+
+## Think of it like…
+
+<Analogy>
+Think of a fire drill at school. Everyone knows who leads, who calls for help and where to go, because they practiced before any fire. Nobody holds a meeting to decide those things while the alarm rings.
+
+**Where the comparison breaks:** A fire is obvious, but an AI incident can look like normal, confident answers, so you also need ways to notice it at all.
+</Analogy>
+
+## Real-world example
+
+An online shoe store runs an AI support assistant. One Friday evening, a customer posts a screenshot: the bot promised a full refund on worn shoes, which the store's policy does not allow. Within an hour, three more posts appear.
+
+The **on-call engineer**, whose turn it is to respond to problems, declares an incident. One person leads, one person makes changes, and one person writes updates. Within ten minutes, the team turns off refund answers and sends those chats to human agents. The rest of the bot keeps working.
+
+Next, they find the cause: a change that morning to the **prompt**, the written instructions the AI follows. They roll back to the previous prompt version. Then they check refund answers on their **saved test set**, a fixed list of test questions with known good answers. On Monday they write a **postmortem**, a written record of what happened and how to stop it happening again. The new test cases go into the release checks.
+
+## How it works
+
+### 1. Agree what counts as an incident
+
+The OECD (an international policy body) and NIST (the US standards agency) describe an **AI incident** in similar words. It is an event where an AI system's development, use or malfunction leads, directly or indirectly, to real harm. Harm covers people's health, **critical infrastructure** (like power or water), human rights or the laws that protect them, and property, communities or the environment. A **hazard** is an event that could plausibly lead to an AI incident but has not caused harm yet. Track both, plus close calls.
+
+Google's SRE book (**SRE** means Site Reliability Engineering, Google's practice for running reliable services) suggests declaring early. Declare if any one of these is true: a second team is needed, customers can see the problem, or it is still unsolved after an hour. For AI, add your own triggers, such as a spike in user complaints or a failed safety check in your monitoring.
+
+### 2. Fill clear roles
+
+The SRE book names four roles:
+
+- **Incident commander:** holds the big picture, assigns work and removes roadblocks.
+- **Operations:** the only people allowed to change the system during the incident.
+- **Communication:** the public face of the response; sends regular updates to the team and anyone affected.
+- **Planning:** files bugs, arranges handoffs and tracks temporary changes to undo later.
+
+The commander keeps one shared **incident document**, a live page of what is known, what was tried and who owns what.
+
+### 3. Stop the harm first, then find the cause
+
+The SRE book's order is: stop the damage, restore service, and keep evidence for later. For AI apps, your fastest tools are usually settings you prepared in advance:
+
+- **Kill switch:** a setting that turns the AI feature, or one risky part of it, off. NIST asks that AI systems can be deactivated when needed.
+- **Rollback:** switch back to the last good prompt or model version.
+- **Fallback:** send work to a simpler path, such as human agents or a fixed menu. NIST suggests testing these fallbacks, including manual processing.
+- **Tighter guardrails:** **guardrails** are rules that check or block inputs and outputs. Use them to block a topic or tool until the fix is ready.
+
+Keep evidence: logs, the prompt and model versions, and example bad outputs. Write down every change you make while containing the problem.
+
+### 4. Communicate and check legal duties
+
+Tell affected users what happened and what to do instead. Check early whether a law makes you report, because some clocks start when you first learn of the incident.
+
+One example is Article 73 of the **EU AI Act**, the European Union's law on AI. It covers **high-risk AI systems**, a narrow set of uses the law lists. Most store chatbots, like the shoe-store bot, are not high-risk. The **provider** is the company that builds or sells the system. It must report **serious incidents** to national authorities. That legal term is narrower than "AI incident." The deadlines:
+
+- **Usual limit:** right after linking the system to the incident, and no later than 15 days after becoming aware of it.
+- **A person died:** no later than 10 days.
+- **Serious disruption of critical infrastructure, or a "widespread infringement"** (a breach of EU law affecting several countries): no later than 2 days.
+
+A partial first report is allowed. Before telling the authorities, the provider must not change the system in ways that could hide the cause. A 2026 amending law, the AI Omnibus, delayed the main high-risk requirements to December 2027 or August 2028. Check the current dates for reporting too. This is not legal advice.
+
+### 5. Learn without blame
+
+Write a **blameless postmortem**: it looks for causes in systems and processes, not in people. It assumes people acted in good faith with the information they had. The SRE book says this makes people more willing to raise problems early. NIST's generative AI guidance also asks for after-action reviews and for tracking errors and near-misses, not just big failures. Turn each finding into a fix, like a new test case or a new alert.
+
+```text
+detect ─→ declare ─→ contain (kill switch / rollback / fallback)
+              │                 │
+              ▼                 ▼
+   check legal reporting    find cause ─→ fix + test ─→ restore
+   duties (clock may run)                                  │
+                                                           ▼
+                                  blameless postmortem ─→ new tests & alerts
+```
+
+## Common mistakes
+
+- **No off switch built in** — at 2 a.m. you cannot safely rebuild the app to disable one feature. Build kill switches and fallbacks before launch, and test them.
+- **Waiting for an error message** — a wrong but confident answer causes no error. Watch answer-quality scores from your monitoring, user complaints and safety checks too.
+- **Everyone fixing at once** — two people changing prompts at the same time hides what worked. Let only the operations role make changes.
+- **Changing the system without a record** — the bad prompt or logs may be lost, and EU high-risk providers must not hide the cause before reporting. Save versions and logs, and note every change.
+- **Blaming the person who made the change** — people then hide mistakes. Fix the process that let the change through.
+
+## Remember this
+
+<Remember>
+- An AI incident is real harm from an AI system; a hazard could plausibly lead to one. Track both.
+- Stop the harm first with a kill switch, rollback or fallback you prepared before launch, then find the cause.
+- Finish with a blameless postmortem that turns each lesson into a new test or alert.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Your bot gives harmful answers at night, and the incident is declared. What should the team do next?",
+      options: ["Find the exact cause", "Contain the harm with a kill switch, rollback or fallback", "Write the postmortem", "Retrain the model"],
+      answer: 1,
+      why: "Stopping the damage comes first. Finding the cause matters, but users keep getting hurt while you search."
+    },
+    {
+      q: "Why is an AI incident often harder to notice than a normal outage?",
+      options: ["AI apps never crash", "A wrong answer usually looks like a normal, confident reply with no error", "AI logs are always deleted", "Users never complain about AI"],
+      answer: 1,
+      why: "Normal monitoring watches for errors and downtime. A confident wrong answer passes those checks, so you also need quality and complaint signals."
+    },
+    {
+      q: "During an incident, three engineers each try a different prompt fix in production. What is the problem?",
+      options: ["It makes the bot slower", "Nobody can tell which change helped or hurt", "Prompts cannot be changed live", "It breaks the postmortem template"],
+      answer: 1,
+      why: "That is why only the operations role should change the system, one step at a time, recorded in the incident document."
+    },
+    {
+      q: "What makes a postmortem blameless?",
+      options: ["It names no causes at all", "It looks for gaps in systems and processes instead of punishing people", "It is kept secret", "It is written only for big incidents"],
+      answer: 1,
+      why: "Blameless does not mean causeless. It finds real causes but fixes the process, so people keep reporting problems early."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [LLMOps: monitoring AI systems in production](/docs/ai-architect/operations/llmops-and-observability) and [Shipping AI changes safely](/docs/ai-architect/operations/shipping-ai-changes-safely).
+- Related: [Guardrails: input, output and action checks](/docs/ai-architect/security-governance/guardrails-architecture).
+- Related: [AI governance frameworks](/docs/ai-architect/security-governance/ai-governance-frameworks) and [Red-teaming AI systems before launch](/docs/ai-architect/security-governance/ai-red-teaming).
+- Sources are listed below with the date they were last checked.
