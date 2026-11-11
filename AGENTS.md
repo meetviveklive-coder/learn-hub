@@ -20,6 +20,7 @@ When running as a scheduled task you may change ONLY:
 - `content/docs/**`
 - `topics.yaml`
 - `progress.md`
+- `lib/learning-path.ts` — only to add or move lesson entries in `PATH_STAGES` (see §5 step 5)
 Anything else (site code, config, dependencies, these docs) → write the suggestion in the PR description; do not change it.
 
 ## 4. General Rules
@@ -37,6 +38,7 @@ Anything else (site code, config, dependencies, these docs) → write the sugges
 2. Read the item's `why` and `notes`; they set the angle.
 3. Find prerequisites already on the site; link them.
 4. Decide if it fits one lesson (≤ 1,200 words). If not, split: add sub-items to `topics.yaml` and write only the first.
+5. Add the new lesson to the learning path (`/path`): insert `'<domain>/<topic>/<id>'` into the best-fitting stage of `PATH_STAGES` in `lib/learning-path.ts`, after every prerequisite it lists. Do not change anything else in that file. `npm test` fails if a lesson is missing or comes before its prerequisites.
 
 ## 6. Research
 - Prefer official docs, specs, papers, and the original author's post. Then reputable articles.
@@ -50,9 +52,10 @@ Copy `templates/lesson.mdx`. Fill every section. Follow `docs/CONTENT_STYLE.md` 
 ## 8. Validation (before opening the PR)
 1. `npm ci` (if `node_modules` missing)
 2. `npm run check:lesson -- <your file>` → fix until it passes
-3. `npm run build` → must pass
-4. Re-read the lesson as a 12th-grader: is every term defined? Does the example make sense on its own?
-5. `git diff --stat` → only allowed paths changed
+3. `npm test` → must pass (includes the learning-path checks)
+4. `npm run build` → must pass
+5. Re-read the lesson as a 12th-grader: is every term defined? Does the example make sense on its own?
+6. `git diff --stat` → only allowed paths changed
 
 ## 9. Pull request format
 Title: `lesson(<domain>): <title>`
@@ -84,4 +87,4 @@ Set the queue item `status: in_review`. When you find a merged lesson PR whose i
 Do not guess. If the queue item is unclear, the topic can't be sourced, or rules conflict: set the item `status: blocked`, add a `notes` line explaining why, log it, and stop.
 
 ## 12. Completion criteria
-Done only when: lesson passes checks, build passes, PR open with the format above, `topics.yaml` and `progress.md` updated, and nothing outside allowed paths changed.
+Done only when: lesson passes checks, tests and build pass, lesson is on the learning path, PR open with the format above, `topics.yaml` and `progress.md` updated, and nothing outside allowed paths changed.

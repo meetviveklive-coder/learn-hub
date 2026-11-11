@@ -28,7 +28,7 @@ Analytics: None in MVP (Vercel Web Analytics optional later)
 - Built-in search.
 - Custom MDX components: `<Quiz>`, `<Remember>`, `<Analogy>`. Level/minutes/verified badges, sources list and "Mark as learned" render automatically from frontmatter.
 - `/review` page (client component, localStorage).
-- `/path` page: the AI Technical Architect learning path. Ordered cross-track stages in `lib/learning-path.ts` (owner-edited); progress ticks in localStorage (`lib/path-progress.ts`), and lessons marked learned count as done. Unknown slugs fail the build; AI Architect lessons not yet listed appear in a "New" stage automatically. `tests/learning-path.test.ts` checks every lesson exists and prerequisites come first.
+- `/path` page: the AI Technical Architect learning path. Ordered cross-track stages in `lib/learning-path.ts` (owner-edited); progress ticks in localStorage (`lib/path-progress.ts`), and lessons marked learned count as done. Unknown slugs fail the build; AI Architect lessons not yet listed appear in a "New" stage automatically. `tests/learning-path.test.ts` checks every listed lesson exists, every published lesson is listed, and prerequisites come first. The new-lesson agent adds each lesson to the path in its PR.
 
 ### Content
 - `content/docs/<domain>/<topic>/<lesson>.mdx`
@@ -102,7 +102,7 @@ Analytics: None in MVP (Vercel Web Analytics optional later)
 
 ## 8. Dependency Rules
 - Lessons never import React components other than the approved MDX components.
-- Agents may edit only: `content/docs/**`, `topics.yaml`, `progress.md`. Anything else needs a human-opened PR.
+- Agents may edit only: `content/docs/**`, `topics.yaml`, `progress.md`, and `lib/learning-path.ts` (lesson entries only). Anything else needs a human-opened PR.
 - Components never fetch remote data at runtime.
 - No new npm dependencies from agent PRs.
 
