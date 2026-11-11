@@ -52,6 +52,7 @@ Learning path (`/path`): progress card (sticky from `sm` up) with bar, "Continue
 Sidebar: Domain → Topic → Lesson (from folders + `meta.json`), ordered as a learning path.
 Mobile: Fumadocs default drawer.
 Lesson footer: previous/next lesson + prerequisites.
+Lesson "Learning path" panel (`components/lesson/path-nav.tsx`): under "On this page" on wide screens (xl+), and inline after "Mark as learned" on smaller screens. Shows previous topic, a progress ring (% of the path done, lesson N of total, stage), a "Done on path" checkbox, and next topic — all in learning-path order, not sidebar order.
 
 ## 12. States
 Quiz: unanswered / correct / wrong + explanation shown.

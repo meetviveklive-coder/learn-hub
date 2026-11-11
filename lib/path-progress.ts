@@ -4,6 +4,17 @@
 
 const KEY = 'learn-hub:path:ai-architect:v1';
 
+/** Fired on window after any progress or review save, so other widgets on the page can refresh. */
+export const PROGRESS_EVENT = 'learn-hub:progress';
+
+export function notifyProgress() {
+  try {
+    window.dispatchEvent(new Event(PROGRESS_EVENT));
+  } catch {
+    // Non-browser environment: nothing to notify.
+  }
+}
+
 /** url → true (ticked) or false (explicitly unticked, overrides "Mark as learned"). */
 export type PathProgress = Record<string, boolean>;
 
@@ -20,6 +31,7 @@ export function loadProgress(): PathProgress {
 export function saveProgress(progress: PathProgress): boolean {
   try {
     window.localStorage.setItem(KEY, JSON.stringify(progress));
+    notifyProgress();
     return true;
   } catch {
     return false;

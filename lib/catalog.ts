@@ -102,3 +102,21 @@ export function getLearningPath(): ResolvedStage[] {
   const extra = all.filter((l) => l.domain === 'ai-architect' && !listed.has(l.url));
   return extra.length ? [...stages, { ...NEW_LESSONS_STAGE, lessons: extra }] : stages;
 }
+
+export type PathPosition = {
+  position: number;
+  stageTitle: string;
+  urls: string[];
+  prev: { url: string; title: string } | null;
+  next: { url: string; title: string } | null;
+};
+
+/** Where a lesson sits on the learning path, with its neighbours. Null if it is not on the path. */
+export function getPathPosition(url: string): PathPosition | null {
+  const stages = getLearningPath();
+  const flat = stages.flatMap((s) => s.lessons.map((l) => ({ url: l.url, title: l.title, stageTitle: s.title })));
+  const i = flat.findIndex((l) => l.url === url);
+  if (i === -1) return null;
+  const pick = (j: number) => (flat[j] ? { url: flat[j].url, title: flat[j].title } : null);
+  return { position: i + 1, stageTitle: flat[i].stageTitle, urls: flat.map((l) => l.url), prev: pick(i - 1), next: pick(i + 1) };
+}
