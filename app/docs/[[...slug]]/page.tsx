@@ -16,7 +16,8 @@ import { LessonBadges, OutdatedBanner, SourcesList } from '@/components/lesson/l
 import { MarkLearned } from '@/components/lesson/mark-learned';
 import { DomainOverview } from '@/components/catalog';
 import { DOMAINS } from '@/lib/source';
-import type { Domain } from '@/lib/catalog';
+import { getPathPosition, type Domain } from '@/lib/catalog';
+import { PathNav } from '@/components/lesson/path-nav';
 
 export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params;
@@ -30,9 +31,11 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
     page.slugs.length === 1 && (DOMAINS as readonly string[]).includes(page.slugs[0])
       ? (page.slugs[0] as Domain)
       : null;
+  const path = isLesson ? getPathPosition(page.url) : null;
+  const pathNav = path && <PathNav url={page.url} {...path} />;
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
+    <DocsPage toc={page.data.toc} full={page.data.full} tableOfContent={{ footer: pathNav }}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-6">
@@ -65,6 +68,7 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
         {isLesson && (
           <>
             <MarkLearned url={page.url} title={page.data.title} />
+            {path && <PathNav url={page.url} {...path} variant="inline" />}
             <SourcesList sources={page.data.sources} lastVerified={page.data.last_verified} />
           </>
         )}

@@ -1,7 +1,10 @@
 // Spaced repetition schedule stored per-browser in localStorage.
 // Intervals (days) after marking a lesson learned: 1, 3, 7, 16, 35.
 
+import { notifyProgress } from './path-progress';
+
 export const INTERVALS = [1, 3, 7, 16, 35] as const;
+
 const KEY = 'learn-hub:reviews:v1';
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -26,6 +29,7 @@ export function load(): ReviewState {
 export function save(state: ReviewState): boolean {
   try {
     window.localStorage.setItem(KEY, JSON.stringify(state));
+    notifyProgress();
     return true;
   } catch {
     return false;
