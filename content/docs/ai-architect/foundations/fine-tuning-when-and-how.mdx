@@ -1,0 +1,151 @@
+---
+title: "Fine-tuning: when it beats prompting and RAG"
+description: When extra training on your own examples is worth it, what data and costs it needs, and how to prove the tuned model is better.
+domain: ai-architect
+level: intermediate
+order: 5
+prerequisites: [build-buy-or-customize, choosing-a-model, evaluating-agents]
+tags: [fine-tuning, lora, evals, training-data, ai-architect]
+sources:
+  - title: Model optimization (OpenAI API docs)
+    url: https://developers.openai.com/api/docs/guides/model-optimization
+    type: official
+  - title: Fine-tuning best practices (OpenAI API docs)
+    url: https://developers.openai.com/api/docs/guides/fine-tuning-best-practices
+    type: official
+  - title: About supervised fine-tuning for Gemini models (Google Cloud Vertex AI docs)
+    url: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini-tuning
+    type: official
+  - title: Purchase Provisioned Throughput for a custom model (Amazon Bedrock docs)
+    url: https://docs.aws.amazon.com/bedrock/latest/userguide/custom-model-use-pt.html
+    type: official
+  - title: "LoRA: Low-Rank Adaptation of Large Language Models (Hu et al., 2021)"
+    url: https://arxiv.org/abs/2106.09685
+    type: paper
+last_verified: 2026-11-11
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Fine-tuning means training an existing AI model a bit more on your own examples, so its behavior changes for one task.
+- **Why it matters:** It can fix style, format or narrow-task problems that prompts cannot. But it costs data work, training and upkeep, so it should be a tested choice, not a default.
+- **Example:** A support team tunes a small model on 1,000 labeled tickets. It now sorts new tickets as well as a big model with a long prompt, for less money per call.
+
+## Think of it like…
+
+<Analogy>
+A prompt is like a sticky note you hand a new worker before each job. Retrieval-augmented generation (RAG) hands them the right binder page each time. Fine-tuning is sending them on a training course. After the course, they do the task well without the long note.
+
+**Where the comparison breaks:** A person who takes a course still learns news later. A tuned model only knows what was in its training, so it does not pick up new facts by itself.
+</Analogy>
+
+## Real-world example
+
+An online travel agency gets thousands of customer emails a day. It wants to tag each one with one of 12 types, like "refund" or "change date." A large model with a long prompt full of examples gets it right most of the time, but it is slow and costly at this volume.
+
+The architect first builds an eval: a fixed test set of 300 real emails with correct tags, set aside before any training. Prompting the large model scores well; a small model with the same prompt scores lower. So the team fine-tunes the small model on 2,000 other labeled emails.
+
+The tuned small model now matches the large model on the test set. Its prompt is much shorter, so each call is faster and cheaper. The team keeps RAG for refund policy questions, because those rules change every few months.
+
+## How it works
+
+### Key words first
+
+- **Weights:** the billions of numbers a model learned in training. Fine-tuning changes some of them.
+- **Labeled example:** an input paired with the answer you want, such as an email and its correct tag.
+- **Base model:** the model you start from before tuning.
+- **Baseline:** the score you get before a change, so you can compare after.
+- **Held-out test set:** real cases you keep out of training and use only for scoring.
+
+### When fine-tuning beats prompting and RAG
+
+- **Model lacks your facts, or facts change** → use RAG. You update a document, not the model.
+- **Instructions are clear and results are good** → keep prompting. It is the cheapest, with nothing to retrain.
+- **Output format or tone keeps drifting** → try fine-tuning. Training shows the pattern many times.
+- **Narrow task at high volume, like tagging** → fine-tune a smaller model. Shorter prompts and a smaller model can cut cost and delay.
+- **Task is too hard to explain in a prompt** → try fine-tuning. Examples teach what words cannot.
+
+OpenAI's guide lists these gains over prompting alone. Fine-tuning can show more examples than one prompt can fit, and it allows shorter prompts. It can also give a smaller, cheaper, faster model for one task. Google's Vertex AI docs say supervised fine-tuning suits a clear task where you already have labeled data.
+
+### Three common methods
+
+1. **Supervised fine-tuning (SFT).** You give input-and-answer pairs. The model learns to produce those answers. OpenAI lists it for classification (sorting into groups), set formats and fixing instructions the model ignores.
+2. **Preference tuning.** For each input you give a better and a worse answer. OpenAI's version is direct preference optimization (DPO), and it lists it for tone, style and focused summaries.
+3. **Low-Rank Adaptation (LoRA).** This is a cheaper way to do the training itself. The original weights stay frozen, and a small set of extra numbers learns the change. In the 2021 paper, LoRA cut the numbers that need training by about 10,000 times, compared with full fine-tuning of GPT-3. It matched or beat full fine-tuning on the models the authors tested. Google's Vertex AI tuning also produces a small add-on file, which it calls an adapter, with a size you can choose.
+
+### What it costs you
+
+- **Data work.** Collecting, cleaning and labeling examples is usually the biggest job. OpenAI says a small set of high-quality examples tends to beat a large set of poor ones. It also says the model cannot beat how often your human labelers agree with each other.
+- **Training runs.** You pay for compute (computer time) each time you train, and you will train more than once.
+- **Hosting.** Some platforms run a tuned model on dedicated capacity. Amazon Bedrock, for example, offers paid reserved capacity, called Provisioned Throughput, for custom models. It is one option, not the only one.
+- **Upkeep.** When a base model is retired, you must retune on a newer one. OpenAI says tuned models stay available only until their base model is retired.
+
+### How to prove the tuned model is better
+
+```text
+1. Build a test set from real cases ── never train on it
+2. Score the base model + best prompt ── this is your baseline
+3. Fine-tune on separate training examples
+4. Score the tuned model on the SAME test set
+5. Better? ship it   │  No? fix the data, not just add more
+```
+
+OpenAI suggests one quick check on data size. Train on all your data and on half of it, then compare. If doubling helped a lot, more data will likely help again. It is also wise to re-test nearby tasks, to catch the tuned model getting worse at them.
+
+## Common mistakes
+
+- **Tuning to teach facts** — the facts are fixed at training time and go stale. Use RAG for facts, and tuning for behavior and format.
+- **Skipping the baseline** — without a before score, you cannot show tuning helped. Score the best prompt first, on a held-out test set.
+- **Testing on training data** — the model has seen those answers, so the score looks too good. Keep the test set separate from the start.
+- **More data instead of better data** — messy or inconsistent labels teach the model to be messy. Fix label errors and gaps first, then add volume.
+- **Assuming the platform will stay** — OpenAI's docs now say it is winding down its fine-tuning platform and has closed it to new users. Keep your training data and evals portable, so you can retune elsewhere.
+
+## Remember this
+
+<Remember>
+- Fine-tune for behavior, format and narrow high-volume tasks; use RAG for facts that change.
+- The real costs are data labeling, repeated training, hosting, and retuning when the base model retires.
+- Prove it with the same held-out test set: baseline prompt first, tuned model second.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A legal team's chatbot must quote rules that change every quarter. What should they use?",
+      options: ["Fine-tune the model every quarter", "RAG: fetch the current rules with each question", "Preference tuning on old answers", "LoRA with a larger adapter"],
+      answer: 1,
+      why: "Changing facts belong in documents that RAG fetches. Fine-tuning freezes facts at training time, so the model would go stale between retraining runs."
+    },
+    {
+      q: "Why must the test set be kept apart from the training examples?",
+      options: ["Training is cheaper that way", "If the model trained on the test answers, its score looks better than it really is", "Platforms reject files that are too large", "LoRA needs two files"],
+      answer: 1,
+      why: "A model that has seen the answers can repeat them. Only unseen cases show how it will do on real new inputs."
+    },
+    {
+      q: "What does LoRA change compared with full fine-tuning?",
+      options: ["It retrains every weight from scratch", "It freezes the original weights and trains a small set of extra numbers", "It adds documents to the prompt", "It removes the need for labeled data"],
+      answer: 1,
+      why: "LoRA keeps the base weights frozen and learns a small add-on. That makes training much cheaper. It still needs the same kind of labeled examples."
+    },
+    {
+      q: "A tuned model scores no better than the baseline. What is a sensible next step?",
+      options: ["Double the data without looking at it", "Ship it anyway", "Check the training labels for errors and gaps, then retrain", "Delete the test set"],
+      answer: 2,
+      why: "OpenAI's guide puts data quality before quantity. Bad or inconsistent labels limit the model, so adding more of the same rarely helps."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Build, buy, or customize? Choosing how to use AI](/docs/ai-architect/foundations/build-buy-or-customize)
+- Read first: [Choosing a model: capability, cost, speed and risk](/docs/ai-architect/foundations/choosing-a-model)
+- Related: [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents) — how to build the test set this lesson relies on.
+- Related: [RAG architecture](/docs/ai-architect/building-blocks/rag-architecture) — the better tool for facts that change.
+- Sources are listed below with the date they were last checked.

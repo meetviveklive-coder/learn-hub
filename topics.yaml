@@ -483,7 +483,7 @@ items:
     title: "Multi-tenant AI: keeping each customer's data, quotas and costs apart"
     why: "Shared AI platforms must isolate customers' data, prompts, rate limits and spend; no lesson covers this yet."
     priority: 2
-    status: in_review
+    status: published
     notes: "Cite official cloud SaaS/multi-tenant AI guidance (e.g. AWS, Azure architecture centres). Link ai-gateway, permission-aware-retrieval and ai-cost-and-finops."
 
   - id: fine-tuning-when-and-how
@@ -492,5 +492,5 @@ items:
     title: "Fine-tuning: when it beats prompting and RAG"
     why: "Only mentioned in build-buy-or-customize; architects need data needs, cost drivers, and how to evaluate a tuned model."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Use official provider fine-tuning docs and the LoRA paper. No prices. Link build-buy-or-customize, choosing-a-model and evaluating-agents."
