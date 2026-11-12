@@ -502,7 +502,7 @@ items:
     title: "When AI goes wrong in production: incident response"
     why: "Kill switches, rollback, triage and user communication for harmful or wrong AI output; no lesson covers this end to end."
     priority: 2
-    status: in_review
+    status: published
     notes: "Primary sources: Google SRE book (managing incidents, postmortems), NIST AI 600-1 incident disclosure, OECD AI incident definitions, EU AI Act Art. 73. Link llmops-and-observability and shipping-ai-changes-safely."
 
   - id: document-and-multimodal-ai
@@ -511,7 +511,7 @@ items:
     title: "Document and multimodal AI: PDFs, images and audio"
     why: "Much enterprise data is scans, forms and calls; architects need to know how to extract and ground it before RAG."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Cite official provider docs for vision/PDF/audio input and a document-extraction service (e.g. Azure Document Intelligence, Amazon Textract). Link rag-architecture and data-readiness-for-ai."
 
   - id: ai-vendor-risk-assessment
