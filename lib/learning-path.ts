@@ -134,6 +134,7 @@ export const PATH_STAGES: PathStage[] = [
     goal: 'Where AI runs, how decisions are recorded, and one system designed end to end.',
     lessons: [
       'ai-architect/delivery/deployment-options',
+      'ai-architect/security-governance/ai-vendor-risk-assessment',
       'ai-architect/delivery/ai-architecture-decision-records',
       'ai-architect/delivery/from-pilot-to-production',
       'ai-architect/delivery/capstone-ai-system-design',

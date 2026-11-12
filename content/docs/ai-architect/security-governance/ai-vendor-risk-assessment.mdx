@@ -1,0 +1,153 @@
+---
+title: "Choosing AI vendors safely: data terms, SLAs and lock-in"
+description: Before you sign with an AI provider, check how it uses your data, what uptime it promises, how long models last, and how you would leave.
+domain: ai-architect
+level: intermediate
+order: 7
+prerequisites: [deployment-options, privacy-and-data-residency, shipping-ai-changes-safely]
+tags: [vendor-risk, third-party-risk, sla, deprecation, lock-in, procurement, ai-architect]
+sources:
+  - title: "NIST AI 600-1: AI RMF Generative AI Profile (GOVERN 6, third-party risk)"
+    url: https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf
+    type: official
+  - title: Data, privacy and security for Foundry Models sold by Azure (Microsoft Learn)
+    url: https://learn.microsoft.com/en-us/azure/foundry/responsible-ai/openai/data-privacy
+    type: official
+  - title: Gemini Online Inference Service Level Agreement (Google Cloud)
+    url: https://cloud.google.com/vertex-ai/generative-ai/sla
+    type: official
+  - title: Model deprecations (Claude Platform Docs)
+    url: https://platform.claude.com/docs/en/about-claude/model-deprecations
+    type: official
+  - title: Foundry Models lifecycle and support policy (Microsoft Learn)
+    url: https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/model-retirements
+    type: official
+last_verified: 2026-11-12
+status: published
+author: agent
+reading_minutes: 8
+---
+
+**Note:** This lesson shows what to check, using public vendor pages as examples. It is not legal advice. Contracts differ by customer, so have your legal and procurement teams read the real terms.
+
+## In 3 lines
+
+- **What it is:** Vendor risk assessment means checking an AI provider's terms before you depend on it: data use, uptime promises, model lifespan and how you could leave.
+- **Why it matters:** Your system inherits the vendor's weak spots. A model can be retired, an outage can stop your app, and your data may be stored where you did not expect.
+- **Example:** A team learns that a model it likes will retire about a year after launch, so it plans a model swap before it signs.
+
+## Think of it like…
+
+<Analogy>
+Think of renting an apartment. Before you sign, you ask who has a key, what happens if the heat breaks, how long the lease lasts, and what it costs to move out. An AI vendor review asks the same four kinds of questions about your data and your app.
+
+**Where the comparison breaks:** A lease's terms stay fixed until it ends, but AI vendors can change models and policy pages much more often, so you must re-check.
+</Analogy>
+
+## Real-world example
+
+An insurance company wants an assistant that summarizes claim files. The files hold customer names and medical notes. The architect has two cloud providers on the shortlist.
+
+She reads each provider's data page, uptime promise and model retirement policy. One provider may keep some prompts so staff can check them for misuse, unless the customer gets approval to switch that off. The other has a clear retirement calendar. She writes the answers in one table, picks a provider, and adds a backup model to the design before launch.
+
+## How it works
+
+A **vendor** is any outside company whose product your system depends on. **Third-party risk** is the chance that a vendor's choices or failures hurt you. The National Institute of Standards and Technology (NIST) covers this in its Generative AI Profile (NIST AI 600-1), in two groups of suggested actions, GOVERN 6.1 and 6.2.
+
+### Check 1: How does the vendor use your data?
+
+Ask three things. Is your data used to train the vendor's models? Who can see it? How long is it kept? **Data retention** means how long a company stores data before deleting it.
+
+Example: Microsoft says prompts sent to models it sells on Azure are not used to train foundation models (large general models that other products build on) without your permission. It also says the model makers, such as OpenAI, cannot see them. But when automated checks flag possible misuse, Microsoft may store those prompts so a person can review them. Some customers can apply to have that storage turned off.
+
+### Check 2: Where is the data processed?
+
+A **deployment** is your own setup of a model in the vendor's cloud. On Azure, the deployment type decides where prompts are processed. A "Global" deployment may process them in any geography (a large area, such as a country or group of countries) where the model runs. A "DataZone" deployment stays inside a zone, such as the United States. A standard deployment stays inside the geography you choose. Match this to your residency rules, the laws about where data may be stored (see the prerequisite lessons).
+
+### Check 3: What does the SLA really promise?
+
+A **service level agreement (SLA)** is a written promise about how well a service will run. Uptime is the share of time it works. Read the fine print, not just the headline number.
+
+Example: Google Cloud's SLA for Gemini promises 99.5% monthly uptime for its main text-generating calls, but only 95% for some short-lifespan models. If Google misses it, you get service credits, a capped discount on future bills. Credits are the only remedy. You must claim within 30 days and send logs that prove the outage. Preview features, meaning early test versions, are not covered. So an SLA pays you back a little; it does not keep your app running.
+
+### Check 4: How long will the model last?
+
+**Deprecation** means a vendor marks a model as old and sets a date to remove it. **Retirement** is that removal; after it, requests fail.
+
+| Vendor page | What it says (Nov 2026) |
+|---|---|
+| Anthropic | At least 60 days' notice before retiring a publicly released model. |
+| Microsoft Foundry: lifespan | Most generally available (finished, production-ready) models retire 18 months after launch. Those from some partners, including Anthropic, DeepSeek, Fireworks and Mistral AI, retire after 12 months. |
+| Microsoft Foundry: notice | At least 60 days for generally available models; at least 30 days for preview models. After retirement, requests return an error. |
+
+One model can be sold through several clouds. Anthropic notes that some of them, such as Amazon Bedrock (Amazon's AI model service), set their own retirement dates. So check each platform separately.
+
+### Check 5: How would you leave? (lock-in)
+
+**Lock-in** means switching vendors would cost so much that you are stuck. It grows when your code uses one vendor's special features everywhere. NIST suggests documenting where you rely too much on outside vendors or data, and naming fallback options. It also suggests testing those fallbacks, including doing the work by hand.
+
+### Make it a habit (NIST GOVERN 6)
+
+NIST AI 600-1 lists actions that turn these checks into habits:
+
+1. Keep an inventory (a full list) of approved AI vendors and every outside party that can reach your content.
+2. Put content ownership, usage rights, quality and security expectations in contracts and SLAs.
+3. Review contracts so a vendor cannot end a critical service on a whim, blame for failures is clear, and incident notice and response times are set.
+4. Write an incident plan for each vendor's AI, and practice it, for example with a drill where the vendor's service goes down.
+5. Watch the vendor's system after launch, not only before signing.
+
+## Common mistakes
+
+- **Reading the marketing page, not the terms** — summaries leave out exceptions, like data kept for safety review. Read the data, SLA and retirement pages, then the contract.
+- **Treating the SLA as a guarantee** — it only gives credits, often small and only if you claim on time. Design retries and a backup model yourself.
+- **Assuming one model has one retirement date** — the same model can retire on different dates on some clouds. Track the date for the platform you actually use.
+- **Building on preview features** — previews often have no SLA and short notice. Use generally available versions for production.
+- **No exit plan** — without a tested fallback, a price change or retirement becomes an emergency. Send all model calls through one layer, such as an AI gateway (one service that every model request passes through), and test a second model.
+
+## Remember this
+
+<Remember>
+- Check five things before signing: data use, data location, SLA terms, model lifespan, and how you would leave.
+- An SLA gives credits when uptime is missed; it does not keep your app running. Plan your own fallback.
+- Vendor terms change, so keep an inventory of AI vendors and re-check their pages regularly.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A provider misses its 99.5% uptime promise one month. What does the SLA usually give you?",
+      options: ["Automatic refund of the whole year", "Service credits, if you claim them on time with proof", "A free backup model", "Nothing, SLAs are never enforced"],
+      answer: 1,
+      why: "SLAs like Google's for Gemini on Vertex AI give credits off future bills, and only if you claim within the stated window and send logs. They do not give you a backup or a full refund."
+    },
+    {
+      q: "Your team uses a model on two different clouds. Why should you track retirement dates for each cloud separately?",
+      options: ["Retirement dates are always identical", "Some platforms set their own schedule for the same model", "Retirement only happens on the vendor's own website", "Notice periods are always exactly 60 days everywhere"],
+      answer: 1,
+      why: "Anthropic's page says some platforms, like Amazon Bedrock, set their own schedules, so the same model can retire on different dates."
+    },
+    {
+      q: "A vendor's page says prompts are not used for training. What should you still check?",
+      options: ["Nothing else matters", "Whether some prompts are stored for other reasons, like abuse review", "Whether the vendor has a mobile app", "Whether the model is the newest"],
+      answer: 1,
+      why: "Microsoft, for example, may store flagged prompts for human abuse review unless an approved customer turns it off. 'No training' does not mean 'never stored'."
+    },
+    {
+      q: "Which design choice most reduces lock-in?",
+      options: ["Using one vendor's special features everywhere in the code", "Sending model calls through one layer and testing a second model", "Signing a longer contract", "Using only preview models"],
+      answer: 1,
+      why: "One layer for model calls means a switch touches one place, and a tested backup proves the switch works. NIST suggests naming and testing fallback options."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Where AI runs](/docs/ai-architect/delivery/deployment-options).
+- Read first: [Privacy and data residency](/docs/ai-architect/data/privacy-and-data-residency).
+- Read first: [Shipping AI changes safely](/docs/ai-architect/operations/shipping-ai-changes-safely).
+- Related: [AI governance frameworks](/docs/ai-architect/security-governance/ai-governance-frameworks).
+- Related: [The AI gateway](/docs/ai-architect/building-blocks/ai-gateway).
+- Sources are listed below with the date they were last checked.
