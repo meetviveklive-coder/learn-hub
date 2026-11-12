@@ -1,0 +1,153 @@
+---
+title: "Document and multimodal AI: PDFs, images and audio"
+description: How AI systems read scans, forms, photos and calls, when to use a model directly and when to extract the data first, before it goes into RAG.
+domain: ai-architect
+level: intermediate
+order: 8
+prerequisites: [rag-architecture, data-readiness-for-ai]
+tags: [multimodal, documents, ocr, pdf, audio, extraction, ai-architect]
+sources:
+  - title: PDF support (Claude Platform docs)
+    url: https://platform.claude.com/docs/en/build-with-claude/pdf-support
+    type: official
+  - title: Images and vision (OpenAI API docs)
+    url: https://developers.openai.com/api/docs/guides/images-vision
+    type: official
+  - title: Audio understanding (Gemini API docs)
+    url: https://ai.google.dev/gemini-api/docs/audio
+    type: official
+  - title: What is Azure Document Intelligence? (Microsoft Learn)
+    url: https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/overview
+    type: official
+  - title: Analyzing documents (Amazon Textract developer guide)
+    url: https://docs.aws.amazon.com/textract/latest/dg/how-it-works-analyzing.html
+    type: official
+  - title: Block (Amazon Textract API reference)
+    url: https://docs.aws.amazon.com/textract/latest/APIReference/API_Block.html
+    type: official
+last_verified: 2026-11-12
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Multimodal AI means a model that takes more than text as input, such as images, PDF pages or audio. Document AI means tools that pull text, tables and form fields out of files.
+- **Why it matters:** Much company knowledge sits in scans, forms and recorded calls. Retrieval-augmented generation (RAG), where an app looks up your documents before the model answers, can only search them once they are clean text and fields.
+- **Example:** An insurer turns claim forms into fields with a document tool and call recordings into transcripts with an audio model, then adds both to its search index.
+
+## Think of it like…
+
+<Analogy>
+Think of a new office assistant handed a box of paper. A careful assistant first sorts and types up each page, copying form boxes into a spreadsheet. Only then can anyone search the box. Sometimes you just hand them one page and ask a quick question instead.
+
+**Where the comparison breaks:** A person notices a smudged number and asks. A model may guess a value and present it as fact, so you must add the checks yourself.
+</Analogy>
+
+## Real-world example
+
+A home insurance company gets claims in three shapes: scanned PDF forms, phone photos of damage, and recorded phone calls. The team wants an assistant that answers "What did this customer report, and what is missing?"
+
+The architect splits the work. Claim forms go through a document extraction service, which returns each field with a confidence score. A **confidence score** is the tool's own estimate of how likely a reading is correct. Low scores go to a person to check. Calls go to an audio model that writes a transcript with speaker labels. Damage photos go to a vision model, meaning a model that reads images. It writes a short description, which a human claims adjuster, the person who assesses the damage, confirms.
+
+All three outputs land as text and fields, tagged with the claim number and source file. The RAG index searches those, not the raw files. When the assistant answers, it can point back to the exact page or minute it used.
+
+## How it works
+
+### Two ways to read a file
+
+| Approach | What happens | Good for |
+|---|---|---|
+| **Send the file to a multimodal model** | You attach the PDF, image or audio to the prompt and ask a question. | One-off questions, mixed content like charts, quick prototypes. |
+| **Extract first, then use the text** | A document or audio tool turns the file into text, tables and fields. You store and index the result. | Many files, forms with fixed fields, RAG search, a saved record of what was read. |
+
+Most production systems use both. They extract once at ingest, which means when files first enter the system. Then they send a page to a model only when the extracted text is not enough.
+
+### What models can take in directly
+
+Here is what three providers' docs say today. Check again before you build, because these limits change often.
+
+A **token** is a small chunk of input, and providers charge and set limits by token count.
+
+- **PDFs (Claude):** Claude turns each page into an image and also pulls out that page's text, then reads both. This lets it answer questions about charts. The docs say each page typically uses 1,500–3,000 text tokens, plus tokens for the page image. Password-protected PDFs are not supported.
+- **Images (OpenAI):** The docs list known weak spots. These include rotated text, non-Latin scripts such as Japanese or Korean, exact positions, and counting objects. They also say the model does not read file names or metadata, which is hidden file data like the date a photo was taken.
+- **Audio (Gemini):** Gemini can transcribe, summarize and answer questions about audio, and can label different speakers. The docs say one second of audio costs 32 tokens. One prompt can hold up to 9.5 hours.
+
+### What document extraction services return
+
+Document extraction services use **OCR (optical character recognition)**, which turns pictures of letters into real text. They also find structure, such as tables and form fields.
+
+- **Azure Document Intelligence** has a Read model for printed and handwritten text. Its Layout model adds tables, checkboxes, paragraphs and their roles, such as titles and section headings. Ready-made models handle invoices, receipts and ID documents. You can also train custom models on sample documents where you marked the right answers.
+- **Amazon Textract** returns text, form data as key-value pairs, tables, signatures, and answers to plain-language queries. A **key-value pair** links a label to its value, like "Name:" → "Jane Doe". Detected items can come with a confidence score from 0 to 100 and their position on the page.
+
+### A typical ingest pipeline
+
+```text
+file arrives ──► detect type ──► extract ──────────► check ──────► store + index
+ (PDF, photo,     (form? scan?    (OCR, layout,      (confidence,   (text, fields,
+  call audio)      audio?)         transcript)        rules, human)  source page/time)
+```
+
+Each file is sorted by type, turned into text and fields, checked, then stored with a link back to its source.
+
+1. **Detect the type.** A typed PDF, a scanned form and a phone call need different tools.
+2. **Extract.** Pick the tool that fits: layout extraction for forms and tables, transcription for audio, a vision model for photos.
+3. **Check.** Send low-confidence fields to a person. Test that key fields match expected formats, such as a date in a date field.
+4. **Store with provenance.** **Provenance** is a record of where each piece came from: file, page, or time in a recording. Keep it so answers can cite their source.
+5. **Index.** Split the text into chunks, which are short passages, and add them to your RAG search index, as in the RAG lesson.
+
+## Common mistakes
+
+- **Sending every file to the model on every question** — you pay to read the same pages again and again, and answers can differ each time. Extract once at ingest and reuse the result.
+- **Trusting extracted fields without checks** — a misread digit in a policy number sends the claim to the wrong customer. Use confidence scores and format rules, and route doubtful fields to a person.
+- **Flattening tables into plain text** — rows and columns get mixed up, so the model pairs the wrong price with the wrong item. Use a layout tool that keeps table structure.
+- **Dropping the link to the source** — nobody can check where an answer came from. Store the file, page or timestamp with every chunk.
+- **Forgetting that files hold personal data** — ID scans and call recordings are full of it. Apply the same privacy and access rules as for any other personal data.
+
+## Remember this
+
+<Remember>
+- Multimodal models read PDFs, images and audio directly; document AI tools extract text, tables and fields from them.
+- For many files or RAG, extract once at ingest, check the results, then index the text.
+- Keep confidence scores and the source page or timestamp with every extracted piece.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A bank receives 50,000 scanned loan forms a month and wants the fields in its database. Which approach fits best?",
+      options: ["Ask a chat model about each form whenever someone has a question", "Extract fields once with a document extraction service, check low-confidence ones, then store them", "Index the raw scans without extraction", "Ask staff to retype every form"],
+      answer: 1,
+      why: "At this volume you want fields read once, checked and stored. Asking a model on every question repeats the cost and can give different answers. Raw scans are just images, so a text search index cannot read them."
+    },
+    {
+      q: "Textract reads a policy number with a confidence score of 62 out of 100. What should the pipeline do?",
+      options: ["Accept it, since it is above 50", "Delete the form", "Send the field to a person to check before it is used", "Ask the model to guess a better number"],
+      answer: 2,
+      why: "A confidence score is the tool's own estimate that a reading is right. Your team sets the cut-off; no source fixes one. Low scores on important fields should go to a human. Guessing again with a model hides the doubt instead of resolving it."
+    },
+    {
+      q: "Why should each extracted chunk keep its source file and page or timestamp?",
+      options: ["It makes the index smaller", "So answers can point back to where the fact came from", "Models cannot read text without it", "It improves OCR accuracy"],
+      answer: 1,
+      why: "Provenance lets a user or auditor check the original page or minute of a call. It does not change OCR quality or index size."
+    },
+    {
+      q: "A team uses a vision model to count boxes in warehouse photos for stock records. What is the risk?",
+      options: ["Vision models cannot read photos", "Provider docs say object counts may be approximate, so stock numbers could be wrong", "Photos are too large to send", "There is no risk"],
+      answer: 1,
+      why: "OpenAI's docs list counting as a known limitation, with counts possibly approximate. For records that must be exact, add a check or use another method."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [RAG architecture: giving AI your company's knowledge](/docs/ai-architect/building-blocks/rag-architecture)
+- Read first: [Is your data ready for AI?](/docs/ai-architect/data/data-readiness-for-ai)
+- Related: [Structured outputs: JSON that other systems can trust](/docs/ai-architect/building-blocks/structured-outputs-and-validation)
+- Related: [Privacy, PII and data residency for AI systems](/docs/ai-architect/data/privacy-and-data-residency)
+- Sources are listed below with the date they were last checked.

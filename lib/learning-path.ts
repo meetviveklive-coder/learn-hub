@@ -70,6 +70,7 @@ export const PATH_STAGES: PathStage[] = [
     lessons: [
       'ai-architect/building-blocks/rag-architecture',
       'ai-architect/data/data-readiness-for-ai',
+      'ai-architect/building-blocks/document-and-multimodal-ai',
       'ai-architect/data/vector-databases-and-embeddings',
       'ai-architect/data/privacy-and-data-residency',
       'ai-architect/security-governance/permission-aware-retrieval',
