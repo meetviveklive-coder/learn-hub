@@ -511,7 +511,7 @@ items:
     title: "Document and multimodal AI: PDFs, images and audio"
     why: "Much enterprise data is scans, forms and calls; architects need to know how to extract and ground it before RAG."
     priority: 2
-    status: in_review
+    status: published
     notes: "Cite official provider docs for vision/PDF/audio input and a document-extraction service (e.g. Azure Document Intelligence, Amazon Textract). Link rag-architecture and data-readiness-for-ai."
 
   - id: ai-vendor-risk-assessment
@@ -520,5 +520,5 @@ items:
     title: "Choosing AI vendors safely: data terms, SLAs and lock-in"
     why: "Before signing, architects must check data-use and retention terms, uptime commitments, deprecation policies and exit options."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Use official vendor terms/trust pages only as examples; NIST AI 600-1 third-party (GV-6) actions. No prices. Not legal advice. Link deployment-options, privacy-and-data-residency and shipping-ai-changes-safely."
