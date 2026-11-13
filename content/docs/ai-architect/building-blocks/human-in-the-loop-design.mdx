@@ -1,0 +1,153 @@
+---
+title: "Human-in-the-loop: approvals, escalation and review queues"
+description: Where to put human checkpoints in an AI system, what the reviewer should see, and how to stop approvals from turning into rubber stamps.
+domain: ai-architect
+level: intermediate
+order: 9
+prerequisites: [agents-in-the-enterprise, guardrails-architecture]
+tags: [human-in-the-loop, agents, approvals, oversight, automation-bias, ai-architect]
+sources:
+  - title: "Article 14: Human oversight (EU AI Act, AI Act Service Desk)"
+    url: https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-14
+    type: official
+  - title: "Artificial Intelligence Risk Management Framework: Generative AI Profile (NIST AI 600-1)"
+    url: https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf
+    type: official
+  - title: Human-in-the-loop (LangChain documentation)
+    url: https://docs.langchain.com/oss/python/langchain/human-in-the-loop
+    type: official
+  - title: Building effective agents (Anthropic)
+    url: https://www.anthropic.com/research/building-effective-agents
+    type: article
+last_verified: 2026-11-13
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Human-in-the-loop design decides which AI actions wait for a person, what that person sees, and what happens if nobody answers.
+- **Why it matters:** A badly placed checkpoint either lets risky actions through or floods people with requests until they approve without reading.
+- **Example:** A refund agent pays small refunds on its own but sends large ones to a review queue. There, a staff member can approve, edit the amount or reject.
+
+## Think of it like…
+
+<Analogy>
+Think of a hospital pharmacy. Most prescriptions go out after routine checks. A few risky ones need a pharmacist's sign-off, and the pharmacist sees the dose, the patient and the reason. If the pharmacist is away, the order waits or goes to a colleague. It never goes out unchecked.
+
+**Where the comparison breaks:** A pharmacist is trained for every order they sign, but an AI reviewer is often a busy staff member who starts trusting the machine too much.
+</Analogy>
+
+## Real-world example
+
+An online shoe store runs a support agent. An **agent** is an AI model that works in a loop, choosing and calling tools until a task is done. A **tool** is a function the agent can call, such as "issue refund". The earlier lesson on enterprise agents said a human should approve high-impact actions. Now the team must decide exactly how.
+
+Version one asks a staff member to approve every refund. Within a week, the queue holds hundreds of small requests. Reviewers click "approve" in two seconds each. One day they approve a large refund that a scammer talked the agent into.
+
+The architect redesigns the flow. Refunds under a set amount run on their own, with logs and daily spot checks. Larger refunds pause and go to a queue. The reviewer sees the order, the customer's message, the agent's reason and the exact amount. They can approve, change the amount or reject with a note. If nobody answers in four hours, the request **escalates**, meaning it moves up to a team lead instead of running.
+
+## How it works
+
+### 1. Decide where checkpoints go
+
+A **checkpoint** is a point where the system stops and waits for a person. Put checkpoints where an action is hard to undo or costly if wrong. Sort each tool into a tier:
+
+| Tier | Examples | Human role |
+|---|---|---|
+| Low risk, easy to undo | Search orders, draft a reply | None while it runs. Log it. |
+| Medium | Send an email, small refund | Spot-check samples afterwards. |
+| High risk or permanent | Large payment, delete data, sign a contract | Approve before it runs. |
+
+Risk is not the only reason to pause. Anthropic's guide on agents notes that an agent can also pause when it hits a blocker or needs a decision, and ask a person for help.
+
+### 2. Pause, save state, resume
+
+A pause can last minutes or days, so the system must remember where it stopped. LangChain, an open-source framework for building agents, shows a common pattern. Its human-in-the-loop middleware checks each tool call the model proposes against your rules. If the call needs review, it raises an **interrupt**, which pauses the run. A **checkpointer** saves the agent's **state**: where it is in the task and what it has done so far. In production, that should be lasting storage such as a database, so nothing is lost during the wait. Later, the reviewer's answer resumes the same run.
+
+LangChain offers four reviewer decisions:
+
+- **approve** — run the tool as proposed.
+- **edit** — change the inputs, then run it.
+- **reject** — skip the call and tell the agent why.
+- **respond** — send the person's message back as the tool's result, without running the tool. The docs warn not to use this to say "no", because the model reads the message as a success.
+
+```text
+agent proposes "refund 9,000" ─→ policy check: high tier?
+                    no ─→ run + log   │yes
+                                      ▼
+                    interrupt + save state (checkpointer)
+                                      │
+                    review queue: order, message, reason, amount
+                                      │
+          approve ─→ run │ edit ─→ run new amount │ reject ─→ agent told why
+          no answer in time ─→ escalate to team lead (never auto-approve)
+```
+
+### 3. Give the reviewer what they need
+
+The European Union's AI Act, Article 14, sets human oversight rules for **high-risk AI systems**. That is a legal category the Act defines for certain sensitive uses. Even outside that category, its list is a good design checklist. The people overseeing the system should be able to:
+
+1. Understand what it can and cannot do, and spot strange behavior.
+2. Stay aware of **automation bias**: trusting the machine's output too much.
+3. Read its outputs correctly.
+4. Decide not to use it, or ignore, override or reverse an output.
+5. Stop the system safely, for example with a stop button.
+
+### 4. Fight rubber-stamping
+
+**Rubber-stamping** means approving without really checking. NIST, the National Institute of Standards and Technology (a US government standards agency), warns that people may lean on AI too much over time, as it gets more reliable. So a reviewer who sees 300 good requests may wave through the bad 301st. Design against it. Keep queues small by gating only high-risk actions. Show the reason and the evidence, not just a "yes" button. Track approval rates and review times. A 100% approval rate with two-second reviews is a warning sign.
+
+## Common mistakes
+
+- **Approving everything** — reviewers stop reading, so the one risky request slips through. Gate only high-risk or permanent actions, and spot-check the rest.
+- **A bare "approve?" prompt** — the reviewer cannot judge what they cannot see. Show the inputs, the agent's reason and what will change.
+- **Auto-approving on timeout** — an absent reviewer becomes a silent "yes". Escalate to someone else, or cancel.
+- **Keeping paused state in memory only** — a server restart loses every waiting request. Save it with a checkpointer that writes to lasting storage, such as a database.
+- **No way to stop or reverse** — oversight without a stop button is just watching. Build pause, override and undo paths before launch.
+
+## Remember this
+
+<Remember>
+- Put human checkpoints only on actions that are risky or hard to undo; log and spot-check the rest.
+- A good review shows the evidence and allows approve, edit or reject, and an unanswered request escalates, never auto-approves.
+- Automation bias grows as AI seems more reliable, so measure how fast and how often people approve.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Reviewers approve 100% of agent requests in about two seconds each. What does this most likely mean?",
+      options: ["The agent is perfect", "Reviewers are rubber-stamping, so the checkpoint adds little safety", "The queue should include more actions", "The model needs more tools"],
+      answer: 1,
+      why: "Instant approval of everything suggests automation bias. Adding more actions to the queue would make it worse, not better."
+    },
+    {
+      q: "A high-risk request has waited in the queue past its deadline. What should the system do?",
+      options: ["Run it, since nobody objected", "Escalate it to another reviewer or cancel it", "Ask the model to decide", "Delete the log"],
+      answer: 1,
+      why: "Silence is not approval. Escalation keeps a human decision in place for a risky action."
+    },
+    {
+      q: "Why does a human-in-the-loop agent need a checkpointer?",
+      options: ["To make the model smarter", "To save the paused run so it can resume after the review", "To approve requests automatically", "To speed up tool calls"],
+      answer: 1,
+      why: "Reviews can take hours. Saved state lets the same run continue where it stopped. With lasting storage, it even survives a server restart."
+    },
+    {
+      q: "Which action is the best fit for approval before it runs?",
+      options: ["Searching a help center", "Drafting a reply that a person will send", "Permanently deleting a customer's account", "Reading an order status"],
+      answer: 2,
+      why: "Deletion is permanent and high-impact. The others are low risk or easy to undo, so logs and spot checks are enough."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Putting agents to work safely in a company](/docs/ai-architect/building-blocks/agents-in-the-enterprise) and [Guardrails: input, output and action checks](/docs/ai-architect/security-governance/guardrails-architecture).
+- Related: [Workflows vs agents: patterns for combining model calls](/docs/ai-architect/building-blocks/agent-workflow-patterns).
+- Related: [When AI goes wrong in production: incident response](/docs/ai-architect/operations/ai-incident-response).
+- Sources are listed below with the date they were last checked.
