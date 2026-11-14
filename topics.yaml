@@ -550,3 +550,40 @@ items:
     priority: 2
     status: queued
     notes: "Link from-pilot-to-production and ai-cost-and-finops. No invented benchmark numbers; cite sources for any figures."
+
+  # Emerging AI concepts — found by web search 2026-11-14; owner picked these in chat.
+  - id: a2a-protocol
+    domain: ai-agents
+    topic: tools
+    title: "A2A: how agents talk to other agents"
+    why: "MCP connects an agent to tools; A2A (Agent2Agent, now at the Linux Foundation, v1.0) connects agents to other agents across vendors. Architects need to know which to use where."
+    priority: 2
+    status: queued
+    notes: "Link mcp-basics and integration-patterns. Primary sources: a2a-protocol.org spec, Linux Foundation press release (Apr 2026). Contrast with MCP."
+
+  - id: computer-use-agents
+    domain: ai-agents
+    topic: tools
+    title: "Computer-use and browser agents"
+    why: "Agents that see a screen and click and type like a person can automate apps with no API, but they bring new safety and reliability risks."
+    priority: 2
+    status: queued
+    notes: "Use official vendor docs (e.g. Claude computer use, OpenAI computer-using agent) only for facts. Cover when to prefer an API, sandboxing and prompt injection from web pages."
+
+  - id: reasoning-models
+    domain: ai-architect
+    topic: foundations
+    title: "Reasoning models: when 'thinking' is worth the cost"
+    why: "Models that reason before answering can replace some multi-step agent chains, but cost more and respond slower. Choosing when to use them is an architecture decision."
+    priority: 2
+    status: queued
+    notes: "Link choosing-a-model and ai-cost-and-finops. Official docs on extended/adaptive thinking and reasoning effort. No benchmark numbers unless sourced."
+
+  - id: sandboxing-agent-code
+    domain: harness-engineering
+    topic: building-blocks
+    title: "Sandboxing: running agent-written code safely"
+    why: "Coding and data agents run code they wrote themselves. Isolation (containers, microVMs, network and file limits) decides how much damage a mistake or attack can do."
+    priority: 2
+    status: queued
+    notes: "Link guardrails-and-hooks and agents-in-the-enterprise. Official docs (e.g. Claude Code sandboxing) and OWASP guidance."
