@@ -1,0 +1,154 @@
+---
+title: "Agent state and memory in production"
+description: Where a production agent keeps its progress and what it remembers, who can see it, how long it stays, and how to keep it safe.
+domain: ai-architect
+level: intermediate
+order: 10
+prerequisites: [context-window-and-memory, multi-tenant-ai-architecture]
+tags: [agents, memory, state, checkpoints, privacy, ai-architect]
+sources:
+  - title: Persistence (LangGraph documentation)
+    url: https://docs.langchain.com/oss/python/langgraph/persistence
+    type: official
+  - title: Memory overview (LangChain documentation)
+    url: https://docs.langchain.com/oss/python/concepts/memory
+    type: official
+  - title: Memory tool (Claude Platform Docs)
+    url: https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool
+    type: official
+  - title: "Memory Is a Feature. It Is Also an Attack Surface (OWASP GenAI Security Project, May 2026)"
+    url: https://genai.owasp.org/2026/05/13/memory-is-a-feature-it-is-also-an-attack-surface/
+    type: article
+last_verified: 2026-11-14
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Agent memory in production is a set of stores your program owns: one for the current task's progress and one for facts that last across chats. Business facts stay in your main database.
+- **Why it matters:** The model forgets everything between calls, so where you keep memory decides what survives a crash, what leaks between users and what lasts too long.
+- **Example:** A travel agent saves each booking chat as a checkpoint under a thread ID. It also keeps "prefers aisle seats" in a per-user store that every future chat can read.
+
+## Think of it like…
+
+<Analogy>
+Think of a doctor's office. The sticky note on today's chart tracks this visit: tests ordered, what is next. The patient file holds lasting facts, like allergies. Each file sits in a drawer labeled with one patient's name, and old files get cleared out on a schedule.
+
+**Where the comparison breaks:** A doctor rarely files a stranger's note as a fact. An agent might save a hidden harmful instruction as a "fact" and obey it later.
+</Analogy>
+
+## Real-world example
+
+A travel company launches a booking agent. An **agent** is an AI model that works in a loop, choosing and calling tools until a task is done. In the demo, the chat history sits in the server's working memory (RAM), which is wiped on restart. That works for one user on one laptop.
+
+In production, three problems appear. A server restarts and every half-finished booking vanishes. A second server picks up a user's next message and has no idea what came before. And a "remember my preferences" feature saves notes in one shared file, so one customer's passport number shows up in another customer's chat.
+
+The architect splits memory into layers. Each booking chat gets a thread ID, and its progress is saved to a database after every step. Preferences go in a separate store, filed under the company and user ID. Bookings themselves stay in the booking system, not in the agent's memory. Memory files that nobody has opened in months get deleted.
+
+## How it works
+
+The earlier lesson showed that the model is **stateless**: it keeps nothing between calls. **State** is everything the agent knows about where it is: the messages so far, tool results and next steps. In production, your program saves that state outside the model, in layers.
+
+| Layer | Holds | Lifetime | Example store |
+|---|---|---|---|
+| **Short-term (thread) state** | This chat's messages and progress. | One chat. | Checkpoints in a database. |
+| **Long-term memory** | Facts about a user. | Many chats. | A database, filed by user. |
+| **System of record** | Orders and bookings. | Years. | Your business database. |
+
+A **system of record** is the database your business already trusts as the true copy. Keep facts like bookings there. Treat agent memory as a helpful copy, not the source of truth.
+
+### 1. Short-term state: threads and checkpoints
+
+LangGraph is an open-source framework (a free code library you build on) for building agents. Its docs describe a **thread**: one conversation, named by a **thread ID**. A **checkpointer** saves the agent's state for that thread as **checkpoints**, snapshots taken as the agent works. Saved checkpoints let a chat continue later, pause for human approval, and recover after a failure. Any server connected to the same checkpoint database can load the thread by its ID.
+
+The docs warn that the in-memory saver keeps checkpoints only in RAM, so a restart erases them. For production, they recommend a database-backed saver such as PostgreSQL.
+
+### 2. Long-term memory: a store with namespaces
+
+Long-term memory lives in a separate **store** shared across threads. Each item sits in a **namespace**, which works like a folder, plus a key, which works like a file name. Namespaces often include the organization and user IDs. If your code always builds the namespace from the signed-in user's IDs, one user's memories are only read back for that user.
+
+LangChain's memory guide names three kinds of memory:
+
+- **Semantic** — facts, like "prefers aisle seats".
+- **Episodic** — past events or actions, often reused as examples shown to the model.
+- **Procedural** — rules for doing tasks, such as the agent's instructions.
+
+It also compares two times to write memory. Writing **in the hot path** happens as part of answering the user, so the memory is ready at once, but it adds delay. Writing **in the background** uses a separate job, so there is no delay, but other chats may not see the newest facts for a while.
+
+### 3. You own the storage
+
+Claude's **memory tool** shows the same idea from the model side. Claude asks to view, create or edit files under a `/memories` folder. Your program carries out each request against storage you control, so you decide how long data stays. The docs make security your job:
+
+1. Check every file path so the model cannot reach files outside the memory folder. For example, `/memories/../../secrets.env` tries to climb out.
+2. Strip sensitive data before writing it.
+3. Cap file sizes.
+4. Delete memory files that have not been used in a long time.
+
+### 4. Memory is an attack surface
+
+OWASP, a nonprofit security group, publishes a Top 10 list of risks for agentic apps. Entry ASI06 (its ID in that list) is **Memory & Context Poisoning**. **Memory poisoning** means harmful text gets saved into memory and shapes the agent's later actions. A 2026 post on OWASP's site, by a co-lead of that entry, makes a key point: unlike a one-time trick, poisoned memory can keep acting in future chats. Treat memory writes like any other sensitive write.
+
+```text
+user message ─→ agent ─→ checkpoint (thread 81, step 4) ─→ database
+                  │
+                  ├─ read/write memory: org=travelco / user=u42 / prefs
+                  │      (validate, strip secrets, expire old items)
+                  └─ book seat ─→ booking system (true copy)
+```
+
+## Common mistakes
+
+- **Keeping state in server RAM** — a restart or a second server loses the chat. Save checkpoints to a database, keyed by thread ID.
+- **One shared memory file** — facts leak between users. File every memory under the organization and user ID.
+- **Treating memory as the truth** — a saved "booking confirmed" note can go stale. Look up live facts in the system of record.
+- **Saving everything forever** — old memories pile up, cost money and raise privacy risk. Set size caps and delete unused items.
+- **Trusting what gets written** — a harmful instruction saved as a "fact" keeps working later. Check and limit what the agent may write to memory.
+
+## Remember this
+
+<Remember>
+- Split agent memory into short-term thread state and long-term memory, and keep business facts in the system of record.
+- Save thread state as checkpoints in lasting storage, and file long-term memory under organization and user namespaces.
+- Your program owns memory storage, so it must check paths, strip secrets, set expiry and guard against poisoning.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Your agent loses half-finished chats whenever a server restarts. What is the best fix?",
+      options: ["Use a bigger context window (how much text the model reads at once)", "Write all chats to one shared memory file", "Ask users to repeat themselves", "Save thread state as checkpoints in a database, keyed by thread ID"],
+      answer: 3,
+      why: "Checkpoints in lasting storage survive restarts, and any server can load them by thread ID. A bigger window does not help, because the model keeps nothing between calls."
+    },
+    {
+      q: "One customer's saved preferences show up in another customer's chat. What most likely went wrong?",
+      options: ["Memories were not filed under separate user namespaces", "The model is too small", "Checkpoints were saved too often", "The agent wrote memory in the background"],
+      answer: 0,
+      why: "Filing memories under namespaces built from the organization and user IDs keeps each person's memories apart. Background writing changes timing, not who can see what."
+    },
+    {
+      q: "Why should a booking stay in the booking system rather than only in agent memory?",
+      options: ["Memory cannot hold text", "Agents cannot read databases", "The booking system is the trusted true copy, and a memory note can go stale", "Memory is always deleted after one chat"],
+      answer: 2,
+      why: "The system of record is the source of truth. Long-term memory does last across chats, but it is a helpful copy, not the truth."
+    },
+    {
+      q: "What makes memory poisoning worse than a one-time prompt trick?",
+      options: ["It only works on old models", "The harmful text is saved and can keep shaping later sessions", "It needs physical access to the server", "It only affects the current answer"],
+      answer: 1,
+      why: "Poisoned memory persists, so it can affect future chats, not just one reply."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Context window, memory, and why agents forget](/docs/ai-agents/foundations/context-window-and-memory) and [Multi-tenant AI: keeping customers' data and costs apart](/docs/ai-architect/building-blocks/multi-tenant-ai-architecture).
+- Related: [Privacy, PII and data residency for AI systems](/docs/ai-architect/data/privacy-and-data-residency).
+- Related: [Human-in-the-loop: approvals, escalation and review queues](/docs/ai-architect/building-blocks/human-in-the-loop-design).
+- Related: [AI-specific security threats](/docs/ai-architect/security-governance/ai-security-threats).
+- Sources are listed below with the date they were last checked.
