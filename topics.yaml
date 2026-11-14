@@ -548,5 +548,5 @@ items:
     title: "Measuring AI value: KPIs, baselines and business cases"
     why: "Proving return on investment (ROI) decides which pilots get funded. Architects must set baselines and metrics before launch."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Link from-pilot-to-production and ai-cost-and-finops. No invented benchmark numbers; cite sources for any figures."

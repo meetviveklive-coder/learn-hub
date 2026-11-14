@@ -138,6 +138,7 @@ export const PATH_STAGES: PathStage[] = [
       'ai-architect/security-governance/ai-vendor-risk-assessment',
       'ai-architect/delivery/ai-architecture-decision-records',
       'ai-architect/delivery/from-pilot-to-production',
+      'ai-architect/delivery/measuring-ai-value',
       'ai-architect/delivery/capstone-ai-system-design',
     ],
   },
