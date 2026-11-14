@@ -1,0 +1,154 @@
+---
+title: "Measuring AI value: KPIs, baselines and business cases"
+description: How to prove an AI system is worth its cost by choosing the right measures, recording a baseline first and comparing fairly.
+domain: ai-architect
+level: intermediate
+order: 4
+prerequisites: [from-pilot-to-production, ai-cost-and-finops]
+tags: [roi, kpis, baselines, business-case, metrics, ai-architect]
+sources:
+  - title: "KPIs for gen AI: Measuring your AI success (Google Cloud, Nov 2024)"
+    url: https://cloud.google.com/transform/gen-ai-kpis-measuring-ai-success-deep-dive
+    type: article
+  - title: "The KPIs that actually matter for production AI agents (Google Cloud, Feb 2026)"
+    url: https://cloud.google.com/transform/the-kpis-that-actually-matter-for-production-ai-agents
+    type: article
+  - title: Plan for AI adoption (Microsoft Cloud Adoption Framework)
+    url: https://learn.microsoft.com/en-ca/azure/cloud-adoption-framework/ai/plan
+    type: official
+  - title: "Generative AI at Work (Brynjolfsson, Li and Raymond, NBER Working Paper 31161)"
+    url: https://www.nber.org/papers/w31161
+    type: paper
+  - title: "Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity (METR, Jul 2025)"
+    url: https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/
+    type: paper
+  - title: "We are Changing our Developer Productivity Experiment Design (METR, Feb 2026)"
+    url: https://metr.org/blog/2026-02-24-uplift-update/
+    type: article
+last_verified: 2026-11-14
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Measuring AI value means comparing business results with the AI against a baseline without it, then subtracting what the AI costs.
+- **Why it matters:** Budgets go to projects that can prove their worth, and people's feelings about AI speed are often wrong.
+- **Example:** A support team records ticket times for a month, gives the AI assistant to some teams first, and compares them with the rest.
+
+## Think of it like…
+
+<Analogy>
+Think of a farmer testing a new fertilizer. They do not spread it on every field and hope. They treat half the field, leave half alone, and weigh both harvests. Then they check if the extra crop is worth more than the fertilizer.
+
+**Where the comparison breaks:** Fields do not change their behavior when watched, but people do. Teams may work harder simply because a new tool is being tested.
+</Analogy>
+
+## Real-world example
+
+An online shoe store adds an AI assistant that drafts replies for its support team. After two months, the manager reports that "everyone loves it". Finance asks for the savings, and nobody can answer. No one wrote down how long tickets took before the launch.
+
+For the next project, the architect plans the measurement first. The team agrees on the goal: resolve more tickets per hour without hurting customer satisfaction. They record four weeks of baseline numbers. Then they roll the tool out to one team at a time, so the other teams act as a comparison group.
+
+After eight weeks, they compare tickets per hour, satisfaction scores and the AI's full monthly cost. Now the business case rests on numbers, not on opinions.
+
+## How it works
+
+### 1. Start from a business outcome
+
+A **key performance indicator (KPI)** is a number that tracks progress toward a goal. Microsoft's planning guide says to define specific success measures when you plan each AI project. It words each use case with an expected result, such as "so resolution time drops". "Use AI in support" is not a goal. "Cut average handling time (the average time to close one ticket) without lowering satisfaction" is.
+
+### 2. Measure at several levels
+
+Google Cloud suggests five groups of KPIs. Each group answers a different question.
+
+| Group | Question | Example measure |
+|---|---|---|
+| Model quality | Are the answers good? | How often answers are accurate and grounded in the source material. |
+| System quality | Does it run well? | Speed, errors, uptime (share of time it works). |
+| Business operations | Did the work change? | Average handle time, share of chats solved without a human. |
+| Adoption | Do people use it? | How many people use it, how often, and their feedback. |
+| Business value | Was it worth it? | Productivity, cost savings, growth, customer experience. |
+
+A great model with no users creates no value. High usage with no change in the work creates none either. Each group feeds the next: quality → usage → work change → value. For AI agents, which carry out multi-step tasks on their own, Google adds **time to verify**. That is the time between the agent finishing and a person approving its work. If review takes longer than doing the task by hand, Google says friction outweighs value.
+
+### 3. Record a baseline, then compare fairly
+
+A **baseline** is the measure of how things work today, before the change. A **control group** is a group that does not get the tool, so you can see what would have happened anyway.
+
+A study by Brynjolfsson, Li and Raymond, published by NBER (the US National Bureau of Economic Research), used this method. It followed 5,179 customer support staff. The AI assistant reached staff at different times, so workers who had it could be compared with workers who did not yet have it. Workers with access solved 14% more issues per hour on average. Newer, less-skilled workers gained 34%, while the most experienced barely changed. An average can hide big differences between groups.
+
+### 4. Do not trust feelings
+
+METR, an AI research group, ran a **randomized controlled trial**: tasks were assigned by chance to "AI allowed" or "AI not allowed". In early 2025, 16 experienced developers took 19% longer with AI. Yet afterwards, they believed AI had sped them up by about 20%.
+
+METR stresses this was a snapshot of early-2025 tools in one setting. Its 2026 update found that many developers dropped out or held back tasks because they did not want to work without AI. The people who believed in AI most were missing, so METR called its newer numbers unreliable and is changing its study design. The lesson for architects is not "AI is slow". It is that surveys of how people feel are no substitute for measured results.
+
+### 5. Turn results into a business case
+
+**Return on investment (ROI)** compares the gain to the cost: (benefit − cost) ÷ cost. Count the full cost: model usage, building, support and staff time spent checking outputs. A **business case** is the argument, backed by numbers, for whether a project is worth funding. Google's agent guide suggests **cost per successful task**, which joins cost and quality in one number. For example, a run that costs 10 cents but succeeds only half the time really costs 20 cents per success.
+
+```text
+baseline (before) ──► tool to group A, not to group B
+                               │
+                               ▼
+      compare A vs B on KPIs: quality → usage → work change → value
+                               │
+                               ▼
+          benefit − full cost ──► keep, fix or stop
+```
+
+## Common mistakes
+
+- **No baseline** — without "before" numbers, nobody can prove a change. Measure for a few weeks before launch.
+- **Counting usage as value** — many logins do not mean better work. Link usage to a business outcome, such as tickets solved.
+- **Trusting surveys alone** — people can feel faster while being slower. Pair surveys with measured times and results.
+- **Ignoring part of the cost** — leaving out review time or support makes ROI look better than it is. Include every cost that the project adds.
+- **Reporting only the average** — a 14% average can hide a group that gains a lot and a group that gains little. Break results down by team or skill level.
+
+## Remember this
+
+<Remember>
+- Pick a business outcome and its KPIs before you build, and record a baseline before launch.
+- Compare against a group without the tool, and measure the chain from quality to usage to work change to value.
+- Feelings about speed can be wrong, so ROI must rest on measured results and the full cost.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A team launched an AI tool three months ago and now wants to prove its value. What is their biggest problem?",
+      options: ["The model is too old", "They have no baseline from before the launch", "They have too many users", "They measured speed"],
+      answer: 1,
+      why: "Without 'before' numbers there is nothing to compare against. A gradual rollout can still create a comparison group, but the missing baseline is the core gap."
+    },
+    {
+      q: "Developers say an AI tool makes them much faster. What should an architect do before reporting a saving?",
+      options: ["Report it, since users know best", "Count how many people logged in", "Ask the vendor for its figures", "Measure task times with and without the tool"],
+      answer: 3,
+      why: "METR's 2025 study found developers felt faster while measured times were longer. Logins show usage, not value."
+    },
+    {
+      q: "Why roll a tool out to one team at a time instead of everyone at once?",
+      options: ["Teams without the tool act as a comparison group", "It is cheaper to buy fewer licenses", "Models work better with fewer users", "It avoids the need for KPIs"],
+      answer: 0,
+      why: "Rolling out to one team at a time gives a control group, so you can separate the tool's effect from other changes happening at the same time."
+    },
+    {
+      q: "Doing a task by hand takes 10 hours a week. With the AI, staff spend 12 hours a week checking its output. What does this show?",
+      options: ["The tool creates value", "Adoption is too low", "Checking takes longer than doing it by hand, so friction outweighs value", "The model quality is perfect"],
+      answer: 2,
+      why: "If reviewing the AI's work takes longer than doing it by hand, the tool adds work instead of saving it. This is why review time belongs in the full cost."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [From pilot to production: scaling AI across a company](/docs/ai-architect/delivery/from-pilot-to-production) and [Managing AI cost: tokens, caching and budgets](/docs/ai-architect/operations/ai-cost-and-finops).
+- Related: [LLMOps: monitoring AI systems in production](/docs/ai-architect/operations/llmops-and-observability).
+- Related: [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents).
+- Sources are listed below with the date they were last checked.
