@@ -539,7 +539,7 @@ items:
     title: "Agent state and memory in production: sessions, stores and limits"
     why: "Real agents need state that survives beyond one context window and one server. Architects pick where it lives, how long it stays, and who can see it."
     priority: 2
-    status: in_review
+    status: published
     notes: "Builds on ai-agents/context-window-and-memory. Cover short-term vs long-term memory, checkpoints, retention and privacy. Official framework docs only."
 
   - id: measuring-ai-value
@@ -548,5 +548,5 @@ items:
     title: "Measuring AI value: KPIs, baselines and business cases"
     why: "Proving return on investment (ROI) decides which pilots get funded. Architects must set baselines and metrics before launch."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Link from-pilot-to-production and ai-cost-and-finops. No invented benchmark numbers; cite sources for any figures."
