@@ -558,7 +558,7 @@ items:
     title: "A2A: how agents talk to other agents"
     why: "MCP connects an agent to tools; A2A (Agent2Agent, now at the Linux Foundation, v1.0) connects agents to other agents across vendors. Architects need to know which to use where."
     priority: 2
-    status: in_review
+    status: published
     notes: "Link mcp-basics and integration-patterns. Primary sources: a2a-protocol.org spec, Linux Foundation press release (Apr 2026). Contrast with MCP."
 
   - id: computer-use-agents
@@ -567,7 +567,7 @@ items:
     title: "Computer-use and browser agents"
     why: "Agents that see a screen and click and type like a person can automate apps with no API, but they bring new safety and reliability risks."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Use official vendor docs (e.g. Claude computer use, OpenAI computer-using agent) only for facts. Cover when to prefer an API, sandboxing and prompt injection from web pages."
 
   - id: reasoning-models
