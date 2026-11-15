@@ -1,0 +1,160 @@
+---
+title: "A2A: how agents talk to other agents"
+description: A2A is an open standard that lets one AI agent find another agent, hand it a job, and track that job, even when different companies built them.
+domain: ai-agents
+level: intermediate
+order: 2
+prerequisites: [mcp-basics, integration-patterns]
+tags: [agents, a2a, mcp, protocol, interoperability]
+sources:
+  - title: Agent2Agent (A2A) Protocol Specification, version 1.0.0
+    url: https://a2a-protocol.org/latest/specification/
+    type: official
+  - title: A2A v1.0 builder's guide, part 1 - discovery, tasks and clients (Agentic AI Foundation)
+    url: https://aaif.io/blog/a2a-v1-0-a-builder-s-guide-part-1-discovery-tasks-and-clients
+    type: official
+  - title: A2A Protocol surpasses 150 organizations in its first year (Linux Foundation)
+    url: https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year
+    type: official
+  - title: a2aproject/A2A repository README (GitHub)
+    url: https://github.com/a2aproject/a2a
+    type: official
+last_verified: 2026-11-15
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Agent2Agent (A2A) is an open standard, a public set of rules anyone can use. It sets how one AI agent, a program that uses a model to plan and act, finds another agent, gives it a job, and gets the result back.
+- **Why it matters:** Companies build agents with different tools and vendors. A2A lets those agents work together without custom connector code for every pair.
+- **Example:** A store's support agent asks a shipping company's agent, "Where is order 4417?" It gets a tracked answer, even though a different company built and runs that agent.
+
+## Think of it like…
+
+<Analogy>
+Think of a general contractor who hires a plumber. The contractor checks the plumber's business card, describes the job, and waits for updates like "started" or "need a part." The contractor never sees the plumber's tools or methods, only the finished work.
+
+In A2A, your agent is the contractor and the remote agent is the plumber. The business card is called an Agent Card.
+
+**Where the comparison breaks:** A plumber's card is a loose promise. An A2A Agent Card is a machine-readable file with exact addresses and login rules, and it can carry a digital signature. Checking the signature proves the card came from its owner and wasn't changed.
+</Analogy>
+
+## Real-world example
+
+An online shoe store runs a support agent. Customers often ask where their package is. The shipping partner has its own agent that knows tracking, delays, and delivery changes.
+
+The store could call the shipper's normal API, a fixed menu of requests a program can send. Each request returns one answer and then it is done. The shipper's agent can do more. It can ask a follow-up question, wait on a warehouse check, and reply in plain words. So the store's agent hands it the whole job with A2A.
+
+The shipper's agent may use its own tools, maybe through the Model Context Protocol (MCP), to reach its database. The store's agent never sees those tools. It only sees the job, its progress, and the final answer.
+
+## How it works
+
+First, the roles. The **A2A client** is the app or agent that sends a request. The **A2A server**, also called the **remote agent**, is the agent that does the work. The remote agent is **opaque**: you see what it offers, not its memory, tools, or model.
+
+Here is a typical flow:
+
+1. **Discover.** The client fetches the remote agent's **Agent Card**. This is a JSON file listing the agent's name, skills, web address, and login rules. JSON is a common text format of names and values. A common place to find it is `https://<domain>/.well-known/agent-card.json`. Clients can also find cards in a registry, a shared directory of agents, or in their own settings.
+2. **Log in.** The card names the login methods the agent accepts, such as an API key, a secret password for programs, or OAuth 2.0, a standard login-and-permission system. The client gets its keys from the agent's owner before any A2A call, then sends them with every request. The spec requires encrypted connections in production.
+3. **Send a message.** The client sends a **message**, one turn of talk, using the `SendMessage` operation. A message holds one or more **parts**: text, a file, or structured data.
+4. **Track the task.** The remote agent creates a **task**, the unit of work with its own ID. The task moves through **states**, the labels for where a job stands, as shown below.
+5. **Get the result.** The finished output is an **artifact**, made of parts like a message. A **context ID** can group related tasks into one longer conversation.
+
+The task states fall into three groups.
+
+- **Active:** submitted or working. The job is queued or running.
+- **Interrupted:** input required or auth required (auth is short for authentication). The agent needs more information or a login. The client answers with another message.
+- **Terminal:** completed, failed, canceled, or rejected. The job is over and takes no more messages. New work needs a new task.
+
+Some tasks finish fast and some take a long time, so A2A offers three ways to follow one. The client can **poll**: ask again and again with the `GetTask` operation. It can **stream**: keep a connection open and receive updates as server-sent events, a web standard for pushing updates. Or it can use **push notifications**: the remote agent calls a webhook, a web address the client set up to receive messages. Polling always works. The Agent Card says whether the agent also supports streaming and push notifications.
+
+```text
+Store's agent (A2A client)
+   │ 1. GET /.well-known/agent-card.json
+   │ 2. SendMessage "Where is order 4417?"
+   ▼
+Shipper's agent (A2A server) ──MCP──▶ its own tools and data
+   │ task: submitted → working → input required
+   │ store's agent sends the order's zip code
+   │ task: working → completed
+   ▼
+Artifact: "Delayed one day; arrives Thursday."
+```
+
+The store talks A2A to the shipper. The shipper uses MCP privately, for its own tools.
+
+**How messages travel.** The spec defines three bindings, which are ways to carry the same messages over the web: JSON-RPC, gRPC, and HTTP with JSON. The spec says all three must behave the same.
+
+**A2A vs MCP.** The spec calls them complementary. MCP connects an agent to tools and data. A2A connects an agent to another agent that thinks and acts on its own. Use MCP, or a plain API call, when you want a function that runs and returns. Use A2A when you want to hand off a whole job to an agent that may ask questions and take time.
+
+**Who runs it.** Google created A2A in April 2025, and the Linux Foundation, a nonprofit for open-source projects, received it in June 2025. Version 1.0, frozen in March 2026, was the first stable spec. Since August 2026, the Agentic AI Foundation hosts it alongside MCP. In April 2026, the Linux Foundation reported more than 150 supporting organizations. Official code libraries, called software development kits (SDKs), exist for several languages, including Python and JavaScript.
+
+## Common mistakes
+
+- **Using A2A where MCP fits** — a remote agent adds cost, delay, and another failure point. If you only need a lookup or one action, expose it as an MCP tool instead.
+- **Trusting any Agent Card** — anyone can publish a card claiming any skill. Signing is optional. If a card is signed, check the signature. Either way, keep a list of partners you approve.
+- **Treating the reply as safe instructions** — a remote agent's text could carry prompt injection, hidden orders aimed at your model. The spec says to validate input and clean content. Treat artifacts as data and check them before acting.
+- **Waiting forever on a blocking call** — a blocking call makes your agent wait until the job ends. Long jobs may sit in "input required" or "working" for a long time. Use streaming or push notifications, and set timeouts, limits on how long you wait.
+- **Copying old tutorials** — guides from before version 1.0 use older field names. For example, a card's single `url` field became a list of interfaces. Check which version your SDK supports.
+
+## Remember this
+
+<Remember>
+- MCP connects an agent to tools; A2A connects an agent to another agent and hands it a whole job.
+- A client finds a remote agent through its Agent Card, usually at /.well-known/agent-card.json.
+- Work is a task that moves through states and ends with an artifact; follow it by polling, streaming, or push notifications.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "Your agent needs to read one row from a partner's price list. What should you reach for first?",
+      options: [
+        "A2A, because the partner is another company",
+        "An MCP tool or a plain API call, because it is one simple action",
+        "A context ID, so the row stays in memory",
+        "A push notification webhook"
+      ],
+      answer: 1,
+      why: "A2A is for handing a whole job to an agent that thinks and may take time. A single lookup is a tool call. 'Another company' alone is not a reason to use A2A."
+    },
+    {
+      q: "What does a client read first to learn a remote agent's skills, address, and login rules?",
+      options: ["The task artifact", "The Agent Card", "The agent's memory", "The MCP server list"],
+      answer: 1,
+      why: "The Agent Card is the agent's public description. A2A agents are opaque, so the client never sees their memory or internal tools. An MCP server list describes tools, not remote agents."
+    },
+    {
+      q: "A task moves to 'input required'. What does that mean?",
+      options: [
+        "The job failed and must be restarted",
+        "The remote agent needs more information before it can continue",
+        "The client must log in again",
+        "The job is done and the artifact is ready"
+      ],
+      answer: 1,
+      why: "'Input required' is an interrupted state: the job pauses until the client answers. A failed job is a terminal state, and a login request would be 'auth required'."
+    },
+    {
+      q: "Why should your agent check what a remote agent sends back before acting on it?",
+      options: [
+        "Remote agents are run by the A2A standard body, so they are pre-checked",
+        "The reply could hide prompt injection aimed at your model",
+        "Artifacts expire after one minute",
+        "A2A forbids acting on artifacts"
+      ],
+      answer: 1,
+      why: "Another agent's output is outside data. It could contain hidden instructions, so treat it as data and validate it. No central body checks each agent's replies."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Model Context Protocol (MCP) in plain words](/docs/ai-agents/tools/mcp-basics)
+- Read first: [Connecting AI to existing systems (APIs, events, MCP)](/docs/ai-architect/building-blocks/integration-patterns)
+- Related: [Subagents and maker-checker](/docs/ai-agents/patterns/subagents-maker-checker)
+- Sources are listed below with the date they were last checked.
