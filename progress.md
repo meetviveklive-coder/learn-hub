@@ -67,3 +67,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-11-14 | new-lesson | measuring-ai-value written (owner-requested in chat), reviewer fixes applied, checks + build pass, PR opened; capstone order bumped to 5; agent-state-and-memory-architecture marked published (PR #66 merged) | claude/lesson-measuring-ai-value
 2026-11-14 | queue | 4 emerging-AI topics added after web search (owner picked in chat); measuring-ai-value marked published (PR #67 merged) | claude/queue-emerging-ai-topics
 2026-11-15 | new-lesson | a2a-protocol written, reviewer fixes applied, checks + tests + build pass, PR opened | claude/lesson-a2a-protocol
+2026-11-15 | new-lesson | computer-use-agents written, reviewer fixes applied, checks + tests + build pass, PR opened; a2a-protocol marked published (PR #69 merged) | claude/lesson-computer-use-agents
