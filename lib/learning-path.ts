@@ -98,6 +98,7 @@ export const PATH_STAGES: PathStage[] = [
     lessons: [
       'ai-architect/building-blocks/ai-gateway',
       'ai-architect/building-blocks/integration-patterns',
+      'ai-agents/tools/a2a-protocol',
       'ai-architect/building-blocks/structured-outputs-and-validation',
       'ai-architect/building-blocks/agents-in-the-enterprise',
       'ai-architect/building-blocks/multi-tenant-ai-architecture',
