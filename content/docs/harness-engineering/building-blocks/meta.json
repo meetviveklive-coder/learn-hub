@@ -1,4 +1,4 @@
 {
   "title": "Building Blocks",
-  "pages": ["instruction-files", "guardrails-and-hooks"]
+  "pages": ["instruction-files", "guardrails-and-hooks", "sandboxing-agent-code"]
 }

@@ -113,6 +113,7 @@ export const PATH_STAGES: PathStage[] = [
     lessons: [
       'ai-architect/security-governance/ai-security-threats',
       'ai-architect/security-governance/guardrails-architecture',
+      'harness-engineering/building-blocks/sandboxing-agent-code',
       'ai-architect/building-blocks/human-in-the-loop-design',
       'ai-architect/security-governance/ai-red-teaming',
       'ai-architect/security-governance/ai-governance-frameworks',
