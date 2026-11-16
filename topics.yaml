@@ -567,7 +567,7 @@ items:
     title: "Computer-use and browser agents"
     why: "Agents that see a screen and click and type like a person can automate apps with no API, but they bring new safety and reliability risks."
     priority: 2
-    status: in_review
+    status: published
     notes: "Use official vendor docs (e.g. Claude computer use, OpenAI computer-using agent) only for facts. Cover when to prefer an API, sandboxing and prompt injection from web pages."
 
   - id: reasoning-models
@@ -585,5 +585,5 @@ items:
     title: "Sandboxing: running agent-written code safely"
     why: "Coding and data agents run code they wrote themselves. Isolation (containers, microVMs, network and file limits) decides how much damage a mistake or attack can do."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Link guardrails-and-hooks and agents-in-the-enterprise. Official docs (e.g. Claude Code sandboxing) and OWASP guidance."
