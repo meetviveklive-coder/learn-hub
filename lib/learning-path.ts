@@ -44,6 +44,7 @@ export const PATH_STAGES: PathStage[] = [
     lessons: [
       'ai-architect/foundations/build-buy-or-customize',
       'ai-architect/foundations/choosing-a-model',
+      'ai-architect/foundations/reasoning-models',
       'jev/foundations/what-is-jev',
       'jev/foundations/discriminative-vs-generative',
       'jev/patterns/jev-in-an-agent-loop',

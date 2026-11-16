@@ -1,0 +1,132 @@
+---
+title: "Reasoning models: when 'thinking' is worth the cost"
+description: How models that think before they answer work, what the extra thinking costs, and how to decide how much of it a task needs.
+domain: ai-architect
+level: intermediate
+order: 6
+prerequisites: [choosing-a-model, evaluating-agents]
+tags: [reasoning-models, thinking, effort, cost, latency, model-selection, ai-architect]
+sources:
+  - title: Thinking (Claude Platform docs)
+    url: https://platform.claude.com/docs/en/build-with-claude/thinking
+    type: official
+  - title: Adaptive thinking (Claude Platform docs)
+    url: https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking
+    type: official
+  - title: Effort (Claude Platform docs)
+    url: https://platform.claude.com/docs/en/build-with-claude/effort
+    type: official
+  - title: Reasoning models (OpenAI API docs)
+    url: https://developers.openai.com/api/docs/guides/reasoning
+    type: official
+last_verified: 2026-11-16
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** A **reasoning model** is an AI model that works through a problem in private steps before it writes its answer. This hidden work is often called **thinking**.
+- **Why it matters:** Thinking can lift quality on hard tasks, but you pay for every thinking **token** (a small chunk of text, about a short word) and wait longer for the reply. How much thinking to allow is a design choice.
+- **Example:** A data team lets the model think hard when it plans a tricky database query. It turns thinking down when the same model sorts emails into folders.
+
+## Think of it like…
+
+<Analogy>
+Think of a math test where you may use scrap paper. On a hard word problem, working it out on paper first saves you from silly mistakes. On "what is 7 + 5?", the scrap paper just slows you down.
+
+**Where the comparison breaks:** Your scrap paper is free, but a model's thinking is billed like the words in its answer.
+</Analogy>
+
+## Real-world example
+
+An online travel agency runs two AI features on the same model. The first plans multi-city trips: it must juggle flight times, budgets and visa rules. The second tags each customer review as positive, negative or mixed.
+
+The team tests both features at a high and a low thinking setting on 200 real cases each. Trip plans get clearly better with more thinking, so that feature keeps the high setting. Review tags score the same at both settings, so that feature drops to the low one. The tags now come back faster and cost less, with no loss in quality.
+
+## How it works
+
+1. **The model thinks first.** Before it answers, it restates the problem, tries approaches, checks its work and drops paths that fail. Anthropic's docs describe it this way.
+2. **The thinking is mostly hidden.** Neither provider shows the raw thinking to your app. Both can return a short summary instead. On newer Claude models the summary is off unless you turn it on.
+3. **You pay for it anyway.** Both providers bill thinking tokens as **output tokens**, the same as the words in the answer. You pay even for thinking you never see.
+4. **An effort setting controls how much.** Both providers offer an **effort** setting, a dial for how hard the model should work. Levels such as `low`, `medium` and `high` vary by model. For example, some OpenAI models offer a `none` level and others do not. Anthropic says effort is a guide, not an exact token count. On Claude, it also shapes the answer text and tool use, not only thinking.
+5. **The model may decide per request.** In Claude's **adaptive thinking** mode, the model chooses how much to think each time. A simple question may get no thinking at all.
+6. **A token cap covers everything.** The **output cap** (`max_tokens` on Claude, `max_output_tokens` on OpenAI) limits thinking plus the answer together. OpenAI warns the model can use up this cap on hidden thinking before it writes any answer you can see. You still pay for the thinking.
+
+```text
+Your prompt ──► [ thinking: hidden, billed as output ] ──► visible answer
+                 ▲                                          ▲
+                 effort setting: how much thinking          max output cap:
+                                                            thinking + answer
+```
+
+The effort dial sets how hard the model works, including how much it thinks. The output cap limits thinking and answer together.
+
+### When thinking is worth it
+
+| Thinking usually helps | Thinking usually wastes money |
+|---|---|
+| Math and multi-step analysis. | Classification: sorting items into groups. |
+| Tricky coding and debugging. | Fast lookups of information. |
+| Long agent tasks with many steps. | Voice replies that must be instant. |
+
+The left column lists the task types both providers name. The right column comes from OpenAI, which suggests its `none` level for these jobs on models that support it. An **agent** here means a model that takes actions with tools, step by step, until a job is done.
+
+Some teams ask a design question: could one high-effort call replace a **chain of calls**? A chain might be one call that plans, one that drafts and one that checks. The sources above make no promise here, so treat it as a test. Compare both on your own cases for cost, speed and quality.
+
+## Common mistakes
+
+- **Running every task at the highest effort** — you pay more and wait longer for little or no gain. For some models, Anthropic says its top level often adds only a small gain. Start at the level the provider recommends for your model, then test lower levels and keep them where quality holds.
+- **Setting the output cap too low** — the model can use the whole cap on thinking and return an empty or cut-off answer. Leave plenty of room, then tune it from real usage. For its models, OpenAI suggests reserving at least 25,000 tokens when you start.
+- **Judging cost by the visible answer** — a short reply can hide thousands of thinking tokens. Each response reports how many tokens it used, including thinking. Read that count.
+- **Switching effort in the middle of a conversation** — on Claude, a new effort level or thinking mode can wipe out the **prompt cache**, saved prompt work that makes repeat requests cheaper. Keep the setting steady within a conversation. Some Claude models offer a beta option to change effort per message without this cost.
+- **Asking the model to "think less" instead of lowering effort** — For Claude, Anthropic says lowering effort works more reliably than prompt wording. Use the dial first, then adjust the prompt.
+
+## Remember this
+
+<Remember>
+- Reasoning models think before they answer, and you pay for that thinking as output tokens even when it is hidden.
+- The effort setting trades quality against cost and speed, and the output cap limits thinking plus answer together.
+- Pick effort per task by testing on your own cases: use more for hard multi-step work and less for simple tasks you run many times.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A response shows a two-sentence answer, but the bill is much larger than you expected. What is the most likely reason?",
+      options: ["The provider made a billing error", "The model spent many hidden thinking tokens, which are billed as output", "Short answers cost more per word", "The prompt was cached"],
+      answer: 1,
+      why: "Thinking tokens are billed as output tokens even when you never see them. A short visible answer can sit on top of a lot of thinking."
+    },
+    {
+      q: "Which task is the weakest case for high effort?",
+      options: ["Debugging a tricky piece of code", "Tagging a huge batch of 50,000 reviews as positive, negative or mixed", "Planning a multi-step data migration", "A long agent task with many steps"],
+      answer: 1,
+      why: "Tagging is simple and repeated thousands of times, so extra thinking adds cost and delay for little gain. The other three are multi-step problems where thinking tends to help."
+    },
+    {
+      q: "Your requests to a reasoning model sometimes stop before any answer appears. What should you check first?",
+      options: ["The output token cap, because thinking may have used all of it", "The model's training date", "Whether the prompt was too short", "Whether the answer was cached"],
+      answer: 0,
+      why: "The cap covers thinking plus the answer. If the thinking uses it all, no room is left for the answer. Raise the cap if the thinking was needed, or lower effort if it was not."
+    },
+    {
+      q: "You want a Claude model to think less on simple chat turns. What is the better first step?",
+      options: ["Add 'please don't think' to the prompt", "Lower the effort setting and re-test", "Switch to the largest model", "Remove the output cap"],
+      answer: 1,
+      why: "Anthropic calls effort a calibrated control and prompt wording less reliable. Lower effort first, then check your tests still pass."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Choosing a model](/docs/ai-architect/foundations/choosing-a-model).
+- Read first: [How to tell if an agent did a good job (evals)](/docs/ai-agents/patterns/evaluating-agents).
+- Related: [Managing AI cost](/docs/ai-architect/operations/ai-cost-and-finops).
+- Related: [Latency, scaling and reliability](/docs/ai-architect/operations/latency-scaling-and-reliability).
+- Related: [Workflows vs agents](/docs/ai-architect/building-blocks/agent-workflow-patterns).
+- Sources are listed below with the date they were last checked.
