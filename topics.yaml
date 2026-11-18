@@ -576,7 +576,7 @@ items:
     title: "Reasoning models: when 'thinking' is worth the cost"
     why: "Models that reason before answering can replace some multi-step agent chains, but cost more and respond slower. Choosing when to use them is an architecture decision."
     priority: 2
-    status: in_review
+    status: published
     notes: "Link choosing-a-model and ai-cost-and-finops. Official docs on extended/adaptive thinking and reasoning effort. No benchmark numbers unless sourced."
 
   - id: sandboxing-agent-code
@@ -587,3 +587,31 @@ items:
     priority: 2
     status: published
     notes: "Link guardrails-and-hooks and agents-in-the-enterprise. Official docs (e.g. Claude Code sandboxing) and OWASP guidance."
+
+  # Emerging AI concepts — found by web search 2026-11-18 (empty-queue run); owner said go ahead in chat.
+  - id: mcp-authorization
+    domain: ai-agents
+    topic: tools
+    title: "MCP authorization: how agents get permission to act"
+    why: "The site mentions OAuth but never explains how an agent gets a scoped token bound to one server. The 2026-07-28 MCP spec prefers Client ID Metadata Documents and deprecates Dynamic Client Registration."
+    priority: 2
+    status: in_review
+    notes: "Link mcp-basics and agents-in-the-enterprise. Primary source: modelcontextprotocol.io spec 2026-07-28 (authorization, client registration, security considerations)."
+
+  - id: agentic-commerce-protocols
+    domain: martech
+    topic: commerce
+    title: "Agentic commerce: how AI agents shop and pay (UCP, ACP, AP2)"
+    why: "AI in MarTech the site lacks. Shopping agents need standard ways to browse catalogs, check out and pay for a person; several competing protocols now exist."
+    priority: 2
+    status: queued
+    notes: "New topic folder martech/commerce. Primary sources: ucp.dev specification (UCP), the ACP and AP2 official specs/repos. Link a2a-protocol and mcp-basics. No adoption numbers unless sourced."
+
+  - id: ai-search-visibility
+    domain: martech
+    topic: analytics
+    title: "AI search: how brands show up in AI answers"
+    why: "GEO hype vs official guidance. Marketers need to know what actually affects appearing in AI answers and how to measure the traffic."
+    priority: 2
+    status: queued
+    notes: "Primary source: Google Search Central 'AI features and your website' (developers.google.com/search/docs/appearance/ai-features). Label vendor GEO claims as opinions. Link event-tracking-basics."
