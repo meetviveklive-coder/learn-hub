@@ -595,7 +595,7 @@ items:
     title: "MCP authorization: how agents get permission to act"
     why: "The site mentions OAuth but never explains how an agent gets a scoped token bound to one server. The 2026-07-28 MCP spec prefers Client ID Metadata Documents and deprecates Dynamic Client Registration."
     priority: 2
-    status: in_review
+    status: published
     notes: "Link mcp-basics and agents-in-the-enterprise. Primary source: modelcontextprotocol.io spec 2026-07-28 (authorization, client registration, security considerations)."
 
   - id: agentic-commerce-protocols
@@ -604,7 +604,7 @@ items:
     title: "Agentic commerce: how AI agents shop and pay (UCP, ACP, AP2)"
     why: "AI in MarTech the site lacks. Shopping agents need standard ways to browse catalogs, check out and pay for a person; several competing protocols now exist."
     priority: 2
-    status: queued
+    status: in_review
     notes: "New topic folder martech/commerce. Primary sources: ucp.dev specification (UCP), the ACP and AP2 official specs/repos. Link a2a-protocol and mcp-basics. No adoption numbers unless sourced."
 
   - id: ai-search-visibility
