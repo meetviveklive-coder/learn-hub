@@ -104,6 +104,7 @@ export const PATH_STAGES: PathStage[] = [
       'ai-architect/building-blocks/structured-outputs-and-validation',
       'ai-architect/building-blocks/agents-in-the-enterprise',
       'ai-agents/tools/mcp-authorization',
+      'martech/commerce/agentic-commerce-protocols',
       'ai-architect/building-blocks/multi-tenant-ai-architecture',
       'ai-architect/building-blocks/agent-state-and-memory-architecture',
     ],

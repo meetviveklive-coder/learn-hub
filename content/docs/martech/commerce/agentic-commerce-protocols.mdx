@@ -1,0 +1,166 @@
+---
+title: "Agentic commerce: how AI agents shop and pay"
+description: Shopping agents need shared rules to browse a store, check out and pay for a person. UCP, ACP and AP2 are three open standards for this.
+domain: martech
+level: intermediate
+order: 1
+prerequisites: [mcp-basics, a2a-protocol]
+tags: [agents, commerce, checkout, payments, ucp, acp, ap2, protocol]
+sources:
+  - title: Universal Commerce Protocol (UCP) specification overview
+    url: https://ucp.dev/specification/overview/
+    type: official
+  - title: Universal Commerce Protocol repository README (GitHub)
+    url: https://github.com/universal-commerce-protocol/ucp
+    type: official
+  - title: Agentic Commerce Protocol (ACP) home page
+    url: https://agenticcommerce.dev/
+    type: official
+  - title: Agentic Commerce Protocol (Stripe docs)
+    url: https://docs.stripe.com/agentic-commerce/protocols/acp
+    type: official
+  - title: Universal Commerce Protocol (Stripe docs)
+    url: https://docs.stripe.com/agentic-commerce/protocols/ucp
+    type: official
+  - title: Agent Payments Protocol (AP2) specification, v0.2
+    url: https://ap2-protocol.org/ap2/specification/
+    type: official
+  - title: Google unveils new open-source standard for agentic commerce (SD Times)
+    url: https://sdtimes.com/ai/google-unveils-new-open-source-standard-for-agentic-commerce/
+    type: article
+last_verified: 2026-11-18
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** Agentic commerce means an AI agent, a program that uses an AI model to plan and act, shops and pays for a person. Open protocols, shared rule books anyone can use, set how the agent talks to stores and payment companies.
+- **Why it matters:** Without shared rules, every agent needs custom code for every store. Stores also need proof that the person really approved the purchase.
+- **Example:** You tell a chat assistant "buy these running shoes in size 9." It checks out with the shoe store and pays with a token, a stand-in for your card, instead of your real card number.
+
+## Think of it like…
+
+<Analogy>
+Think of sending a trusted friend to a shop with a signed note: "Buy one pair of size 9 running shoes, up to $120." The shop reads the note, sells the shoes, and charges your account. Your friend never holds your bank card.
+
+The shopping rules (how to ask for prices and check out) are one standard. The signed note (proof you agreed) is another.
+
+**Where the comparison breaks:** A friend uses judgment, but an agent can be tricked by hidden text on a web page, so the signed limits matter even more.
+</Analogy>
+
+## Real-world example
+
+An online shoe store wants AI assistants to sell its shoes. It publishes a small file on its website that lists what it supports: checkout, order tracking, and which payment methods it accepts.
+
+A shopper asks an assistant for size 9 running shoes. The assistant reads that file, creates a checkout, adds shipping details, and gets a payment token from the shopper's wallet. The store charges the token and sends order updates back.
+
+If the bank wants an extra security check, the store pauses the checkout. The assistant opens the store's page so the shopper can finish the check in person.
+
+## How it works
+
+Three standards cover different layers. Two cover the shopping steps. One adds proof that a person approved the payment.
+
+| Standard | Started by | What it covers |
+|---|---|---|
+| **Universal Commerce Protocol (UCP).** | Google, with Shopify, Etsy, Wayfair, Target and Walmart. Announced in January 2026. | Store discovery, catalog search, cart and checkout. Also order updates, linking the shopper's store account, and payment tokens. |
+| **Agentic Commerce Protocol (ACP).** | Stripe and OpenAI. Stripe's docs also list Meta. | Product catalogs and carts, checkout, and payment tokens. Also automatic order updates. |
+| **Agent Payments Protocol (AP2).** | Google. | Signed approvals, called mandates, that prove what the person agreed to. Designed to work with UCP. |
+
+All three are open source under the Apache 2.0 license, which lets anyone use and change them.
+
+A typical UCP purchase follows these steps:
+
+1. **Discovery.** The store publishes a profile at `/.well-known/ucp`, a fixed address on its website. The profile lists its capabilities (features), versions and payment handlers (supported ways to pay, explained in step 4).
+2. **Negotiation.** The agent sends a link to its own profile with each request. Both sides use only the features they both support.
+3. **Checkout.** The agent creates a checkout session, a record of the cart, buyer and shipping choices. The store answers with a status such as `incomplete` until every detail is filled in.
+4. **Get a token.** A payment handler is a recipe, written by a payment credential provider such as Google Pay, for turning a saved card into a token. The token is an opaque stand-in value: the agent cannot read a card number from it. The agent gets it straight from the provider.
+5. **Complete.** The agent sends the token to the store, and the store charges it through its payment provider. UCP recommends that agents never handle raw card numbers.
+6. **Escalate if needed.** If the person must act, the store returns `requires_escalation` and a `continue_url`. The agent opens that page for the person, then retries completing the checkout.
+
+UCP can run over several transports, including plain web requests (REST, the usual style of web APIs), Model Context Protocol (MCP) or Agent2Agent (A2A). MCP connects a model to tools. A2A lets agents hand jobs to each other.
+
+ACP covers similar ground. A business can publish its checkout through a normal web API or through MCP. For payment, ACP passes a token, such as Stripe's Shared Payment Token, so the agent never sees the card details. A business can accept or decline each agent or each transaction.
+
+AP2 adds proof. A mandate is a signed digital record of what the person agreed to. AP2 v0.2 defines two kinds:
+
+- **Checkout Mandate** — approves a specific checkout, tied to the store's signed checkout.
+- **Payment Mandate** — approves the payment for that checkout.
+
+When the person is present, they review and sign through a trusted surface, a screen the agent does not control. When the agent buys alone later, the person first signs an "open" mandate with limits, like a price cap. The agent then signs the final mandates, and anyone checking can test them against those limits. Signed receipts give a record that neither side can later deny, which can help if there is a dispute.
+
+## Common mistakes
+
+- **Treating the three as rivals for the same job** — AP2 does not define the checkout steps; it only signs what was agreed. Ask "which layer?" first: shopping steps (UCP or ACP) or proof of consent (AP2).
+- **Letting the agent hold real card numbers** — a tricked or buggy agent could leak them. Use tokens from a payment handler so the agent never sees the card.
+- **Skipping the human handoff** — some steps, like a bank's security check, need the person. Always support `continue_url` and open it for the buyer instead of failing.
+- **Trusting product text as instructions** — product pages and feeds are outside data. Hidden text could try to change the order. Treat it as data and enforce signed limits.
+- **Building to one version forever** — these specs are young and versioned by date (UCP, ACP) or number (AP2). Read the version in the store's profile and check the spec before each upgrade.
+
+## Remember this
+
+<Remember>
+- UCP and ACP cover the shopping steps: discover, check out, pay with a token and track the order.
+- AP2 covers proof: signed mandates show what the person approved and set limits for an agent buying alone.
+- Agents should pass tokens, never real card numbers, and hand off to the person when the store asks.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A store wants any shopping agent to find out which features it supports. What does UCP use for this?",
+      options: [
+        "A profile file at /.well-known/ucp on the store's website",
+        "A phone call to the store",
+        "A mandate signed by the shopper",
+        "The agent guesses from the product pages"
+      ],
+      answer: 0,
+      why: "Stores publish a UCP profile at a fixed address, and agents read it to negotiate features. A mandate is AP2's proof of consent, not a feature list."
+    },
+    {
+      q: "Why does the agent send a token instead of the card number?",
+      options: [
+        "Tokens make checkout faster",
+        "The token hides the card number, so a tricked or buggy agent cannot leak it",
+        "Card numbers are too long for web requests",
+        "Stores refuse to accept any payment from agents"
+      ],
+      answer: 1,
+      why: "The token is an opaque stand-in, so the agent never sees the card number. Speed is not the main reason; limiting damage from a leak is."
+    },
+    {
+      q: "Your agent should buy concert tickets later, while you sleep, for at most $80. Which AP2 idea makes this safe?",
+      options: [
+        "A continue_url",
+        "A product feed",
+        "An open mandate you sign in advance with a price limit",
+        "A Shared Payment Token with no limits"
+      ],
+      answer: 2,
+      why: "An open mandate records your limits. The agent's final mandates are checked against it. A continue_url is for handing off to a present person."
+    },
+    {
+      q: "The store replies with requires_escalation and a continue_url. What should the agent do?",
+      options: [
+        "Retry the same request until it works",
+        "Open the page so the person can finish the step, then complete the checkout",
+        "Cancel the order",
+        "Send the card number instead"
+      ],
+      answer: 1,
+      why: "Escalation means a person must act, such as passing a bank check. The agent opens the page, then retries the completion. Retrying blindly will keep failing."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Model Context Protocol (MCP) in plain words](/docs/ai-agents/tools/mcp-basics).
+- Read first: [A2A: how agents talk to other agents](/docs/ai-agents/tools/a2a-protocol).
+- Related: [MCP authorization: how agents get permission to act](/docs/ai-agents/tools/mcp-authorization).
+- Related: [Consent, cookies, and privacy rules (basics)](/docs/martech/privacy/consent-and-privacy-basics).
+- Sources are listed below with the date they were last checked.
