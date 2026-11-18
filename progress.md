@@ -70,3 +70,4 @@ Append-only. Format: `YYYY-MM-DD | task | outcome | PR url or reason`
 2026-11-15 | new-lesson | computer-use-agents written, reviewer fixes applied, checks + tests + build pass, PR opened; a2a-protocol marked published (PR #69 merged) | claude/lesson-computer-use-agents
 2026-11-16 | new-lesson | sandboxing-agent-code written, reviewer fixes applied, checks + tests + build pass, PR opened; computer-use-agents marked published (PR #70 merged) | claude/lesson-sandboxing-agent-code
 2026-11-16 | new-lesson | reasoning-models written, reviewer fixes applied, checks + tests + build pass, PR opened; sandboxing-agent-code marked published (PR #71 merged) | claude/lesson-reasoning-models
+2026-11-18 | new-lesson | queue empty on scheduled run; owner said go ahead in chat: 3 topics added, mcp-authorization written, reviewer fixes applied, checks + tests + build pass, PR opened; reasoning-models marked published (PR #72 merged) | claude/lesson-mcp-authorization

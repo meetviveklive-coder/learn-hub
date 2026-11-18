@@ -1,0 +1,157 @@
+---
+title: "MCP authorization: how agents get permission to act"
+description: How an AI agent gets a limited, checkable pass to use a remote MCP server on your behalf, using the OAuth standard.
+domain: ai-agents
+level: intermediate
+order: 4
+prerequisites: [mcp-basics, agents-in-the-enterprise]
+tags: [agents, mcp, oauth, security, authorization]
+sources:
+  - title: MCP specification 2026-07-28 - Authorization
+    url: https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization
+    type: official
+  - title: MCP specification 2026-07-28 - Client Registration
+    url: https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/client-registration
+    type: official
+  - title: MCP specification 2026-07-28 - Authorization Security Considerations
+    url: https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations
+    type: official
+last_verified: 2026-11-18
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** MCP authorization is the set of rules for how an AI app gets permission to use a remote MCP server for you. It is built on OAuth, a standard way to grant an app limited access without sharing your password.
+- **Why it matters:** An agent that can read your files or send email must prove it is allowed to, and only for the things you approved.
+- **Example:** A writing assistant connects to a company's file server. You log in through your browser, approve "read files", and the assistant gets a pass that works only for that server and only for reading.
+
+## Think of it like…
+
+<Analogy>
+Think of a hotel key card. You show ID at the front desk. The desk gives you a card that opens your room and the gym, but not other rooms. The card stops working when your stay ends.
+
+In MCP, the front desk is the **authorization server**, the card is an **access token**, and the doors are the **MCP server's** tools.
+
+**Where the comparison breaks:** You carry a hotel card yourself. An app holds the token and uses it while you aren't watching, so its limits are your main protection.
+</Analogy>
+
+## Real-world example
+
+A marketing team uses an AI assistant on their laptops. Their company runs a remote MCP server that offers the campaign calendar as tools. Some tools only read the calendar; one tool can change it.
+
+The first time the assistant calls the server, the server says "you need a pass" and points to the company's login service. The assistant opens a browser. The marketer logs in with their work account and sees a consent screen naming the assistant. They approve "read calendar".
+
+Later the marketer asks the assistant to move a launch date. That tool needs "write calendar", which the pass doesn't include. The server says so, the assistant asks the marketer to approve the extra permission, and only then makes the change.
+
+## How it works
+
+First, the three roles. The **MCP client** is the AI app that wants access. The **MCP server** holds the tools and data. The **authorization server** logs the user in and hands out tokens. It can be part of the MCP server or a separate login service.
+
+Authorization is optional in MCP. It applies to servers reached over HTTP, the protocol web browsers use. A server that talks to the app directly on your machine, through the stdio transport, should skip this flow and read its keys from environment variables instead.
+
+Web servers answer every request with a numbered **status code**. Here, 401 means "no token, or a bad or expired one". 403 means "good token, but it lacks permission".
+
+1. **Knock without a pass.** The client calls the server with no token and gets a 401. The reply links to the server's **protected resource metadata**: a small JSON file, a common text format of names and values, that names the server's login service.
+2. **Find the login service.** The client reads that file, then fetches the login service's own metadata. This lists its web addresses and what it supports.
+3. **Introduce the app.** The client needs a **client ID**, the app's name tag at the login service. If the two were set up together in advance, that ID comes first. Otherwise the spec prefers a **Client ID Metadata Document**. Here the client ID is itself an HTTPS web address. That address hosts a JSON file with the app's name and its **redirect addresses**, the pages the login service may send the user back to.
+4. **Ask the user.** The client opens a browser to the login page. The request names the exact MCP server the token is for, called the **resource**. It also names the **scopes**, the specific permissions wanted, such as `files:read`. These usually come from the server's 401 reply. The user logs in and approves.
+5. **Swap the code for a token.** The login service sends an **authorization code**, a one-use ticket, back through the browser. The client then trades the code for an access token, naming the resource again. Because the code passes through the browser, it could leak. So the spec requires **PKCE** (Proof Key for Code Exchange). At the start, the app makes a random secret and sends only a scrambled version. At the swap, it shows the original secret, which a thief wouldn't have.
+6. **Use the token.** The client sends the token in the `Authorization` **header**, a labeled line sent with each web request, on every call. The token is a "bearer" token: whoever holds it can use it. So the server must check that the token was issued for it, not for some other server.
+
+```text
+AI app (client)            MCP server              Login service
+   │── call, no token ───────▶│
+   │◀── 401 + "see my metadata"│
+   │── read metadata ─────────▶│  "my login service is X"
+   │── read X's metadata ────────────────────────────▶│
+   │   browser: user logs in, approves files:read     │
+   │◀──────────── code (via browser redirect) ────────│
+   │── code + PKCE secret ───────────────────────────▶│
+   │◀──────────────── access token ───────────────────│
+   │── call + token ─────────▶│ checks: is this token for me?
+   │◀── result ───────────────│
+```
+
+The app learns where to log in from the server itself, so the user mostly just needs the server's address.
+
+**Asking for more later.** If a token lacks a needed scope, the server should reply 403 and list the scopes this action needs. The client adds them to the scopes it already has and asks the user again. This is called **step-up authorization**. An app can start with small permissions and grow only when needed.
+
+**An older method.** In the current spec (2026-07-28), Dynamic Client Registration is **deprecated**: still allowed, but being phased out. With it, each app signed itself up at every login service it met. It remains only for older login services that don't support Client ID Metadata Documents.
+
+## Common mistakes
+
+- **Passing the user's token through to another service** — if an MCP server forwards its token to some other API, a token meant for one place now works in two. The spec forbids this. The server must use a separate token, issued by that other service's login service.
+- **Accepting any valid-looking token** — a token made for a different server could be replayed, meaning sent again by someone who copied it. Check the token's audience, the server it was issued for, and reject the rest.
+- **Asking for every scope up front** — one leaked broad token can do a lot of damage. Request the small set the server suggests and use step-up for the rest.
+- **Skipping PKCE because the site uses HTTPS** — encryption on the wire doesn't stop a leaked code from being traded for a token. The spec says to refuse to continue if the login service doesn't support PKCE.
+- **Building new apps on Dynamic Client Registration** — it is deprecated. Use Client ID Metadata Documents, and keep the old path only as a fallback.
+
+## Remember this
+
+<Remember>
+- MCP authorization uses OAuth: the user approves in a browser, and the app gets a limited token instead of the password.
+- Every token is locked to one MCP server and a set of scopes; the server must reject tokens meant for anyone else.
+- Start with small scopes and ask for more through step-up when a tool needs them.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "An AI app calls a remote MCP server for the first time with no token. How does it learn where to log in?",
+      options: [
+        "The user types the login address into a config file",
+        "The server replies 401 and points to metadata that names its authorization server",
+        "The app guesses the address from the server's domain name",
+        "MCP servers never need a login"
+      ],
+      answer: 1,
+      why: "The 401 answer links to protected resource metadata, which names the authorization server. That is what lets apps connect without manual setup. Remote servers can require login, so the last option is wrong."
+    },
+    {
+      q: "An MCP server receives a token that a login service issued for a different MCP server. What should it do?",
+      options: [
+        "Accept it, since it looks genuine",
+        "Reject it, because the token was not issued for this server",
+        "Forward it to the other server to check",
+        "Accept it only for read-only tools"
+      ],
+      answer: 1,
+      why: "Tokens are bound to one audience. A server must only accept tokens issued for itself. Forwarding tokens to other services is token passthrough, which the spec forbids."
+    },
+    {
+      q: "The user approved 'read calendar'. Now the agent needs to change an event. What happens?",
+      options: [
+        "The server quietly allows it",
+        "The agent uses the read token with a different header",
+        "The server replies 403 with the scopes the action needs, and the app asks the user to approve them",
+        "The user must uninstall and reinstall the app"
+      ],
+      answer: 2,
+      why: "This is step-up authorization. The server should name the scopes the action needs, and the app re-asks the user, keeping the scopes it already had."
+    },
+    {
+      q: "An app and a login service have no setup between them. Which way of identifying the app does the current MCP spec prefer?",
+      options: [
+        "Dynamic Client Registration",
+        "Sharing the user's password with the app",
+        "A Client ID Metadata Document hosted at a web address",
+        "No client ID at all"
+      ],
+      answer: 2,
+      why: "The 2026-07-28 spec prefers Client ID Metadata Documents for strangers. Dynamic Client Registration still exists but is deprecated, kept only for older login services."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Model Context Protocol (MCP) in plain words](/docs/ai-agents/tools/mcp-basics).
+- Read first: [Putting agents to work safely in a company](/docs/ai-architect/building-blocks/agents-in-the-enterprise).
+- Related: [A2A: how agents talk to other agents](/docs/ai-agents/tools/a2a-protocol).
+- Related: [Guardrails, permissions, and hooks](/docs/harness-engineering/building-blocks/guardrails-and-hooks).
+- Sources are listed below with the date they were last checked.
