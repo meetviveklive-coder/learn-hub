@@ -604,7 +604,7 @@ items:
     title: "Agentic commerce: how AI agents shop and pay (UCP, ACP, AP2)"
     why: "AI in MarTech the site lacks. Shopping agents need standard ways to browse catalogs, check out and pay for a person; several competing protocols now exist."
     priority: 2
-    status: in_review
+    status: published
     notes: "New topic folder martech/commerce. Primary sources: ucp.dev specification (UCP), the ACP and AP2 official specs/repos. Link a2a-protocol and mcp-basics. No adoption numbers unless sourced."
 
   - id: ai-search-visibility
@@ -613,5 +613,5 @@ items:
     title: "AI search: how brands show up in AI answers"
     why: "GEO hype vs official guidance. Marketers need to know what actually affects appearing in AI answers and how to measure the traffic."
     priority: 2
-    status: queued
+    status: in_review
     notes: "Primary source: Google Search Central 'AI features and your website' (developers.google.com/search/docs/appearance/ai-features). Label vendor GEO claims as opinions. Link event-tracking-basics."
