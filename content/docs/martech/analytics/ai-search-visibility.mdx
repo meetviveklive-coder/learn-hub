@@ -1,0 +1,162 @@
+---
+title: "AI search: how brands show up in AI answers"
+description: What actually gets your pages into AI answers like Google AI Overviews and ChatGPT search, which controls you have, and how to measure the traffic.
+domain: martech
+level: intermediate
+order: 3
+prerequisites: [event-tracking-basics]
+tags: [martech, analytics, seo, ai-search, ai-overviews, chatgpt-search, geo, robots-txt, search-console]
+sources:
+  - title: AI features and your website (Google Search Central)
+    url: https://developers.google.com/search/docs/appearance/ai-features
+    type: official
+  - title: New opportunities, control and insights for website owners (Google blog)
+    url: https://blog.google/products-and-platforms/products/search/new-opportunities-control-and-insights-for-website-owners/
+    type: official
+  - title: Overview of OpenAI crawlers (OpenAI docs)
+    url: https://developers.openai.com/api/docs/bots
+    type: official
+  - title: Publishers and developers FAQ (OpenAI Help Center)
+    url: https://help.openai.com/en/articles/12627856-publishers-and-developers-faq
+    type: official
+  - title: "GEO: Generative Engine Optimization (Aggarwal et al., KDD 2024)"
+    url: https://arxiv.org/abs/2311.09735
+    type: paper
+  - title: Google Search Console AI reports rolled out worldwide (Search Engine Journal)
+    url: https://www.searchenginejournal.com/google-search-console-ai-reports-rolled-out-worldwide/
+    type: article
+last_verified: 2026-11-19
+status: published
+author: agent
+reading_minutes: 8
+---
+
+## In 3 lines
+
+- **What it is:** AI search means a search tool writes an answer for you and links to the web pages it used. Examples are Google's AI Overviews (a short AI summary above normal results), AI Mode (a chat-style search page) and ChatGPT search.
+- **Why it matters:** Brands want to be one of the linked pages. Marketers need to know what really helps, because many vendors sell "AI search" tricks.
+- **Example:** Someone asks "best trail shoes for wet rocks." The AI answer cites a shoe store's buying guide, and some readers click through to that page.
+
+## Think of it like…
+
+<Analogy>
+Think of a librarian who reads several books for you and gives a short summary, with sticky notes on the pages she used. To get a sticky note, your book must be on the shelf, easy to find, and actually useful. No secret label on the cover makes her pick it.
+
+**Where the comparison breaks:** A librarian answers the same way each time, but AI features may not answer at all, and different features can cite different pages.
+</Analogy>
+
+## Real-world example
+
+An online shoe store hears about "GEO." Generative Engine Optimization (GEO) is a name for tactics meant to make a page appear more often in AI answers. Some vendors sell special GEO files and markup, which is extra code added to a page.
+
+The team first reads the official guidance. Google says pages need no special files or markup to appear in its AI features. So they check the basics instead. Their `robots.txt` file, which tells crawlers what they may visit, did not block search crawlers.
+
+Then they set up measurement. They count ChatGPT visits by a tag in the link, explained below. They also open Google Search Console, Google's free dashboard for site owners, to see how often their pages show up in AI answers.
+
+## How it works
+
+1. **Crawl.** A crawler is a program that visits and reads web pages. Google uses Googlebot for Search, including its AI features. ChatGPT search uses OAI-SearchBot.
+2. **Index.** The search system stores pages it may show later. For Google, a page must be indexed and allowed to show a snippet, the short text preview under a link. Google says there are "no additional technical requirements" for AI features.
+3. **Fan out.** For one question, Google's AI features may run many related searches, called "query fan-out." So a page can be cited for a side question, not just the exact words typed.
+4. **Write and cite.** The model writes an answer and links to supporting pages. Google says AI Overviews appear only when they add value, so many searches have none. AI Overviews and AI Mode can use different models, so their links can differ.
+5. **Click and measure.** A reader may click a link. You see that visit in your analytics tool and in each platform's own reports.
+
+### The crawlers and controls
+
+Some crawlers feed search, and others collect pages to train AI models. Google-Extended is a `robots.txt` name that controls whether Google uses your pages for AI training and grounding in some other Google systems. It does not control AI Overviews. GPTBot is OpenAI's training crawler.
+
+Pages can also carry small instructions in their code. `noindex` says "keep this page out of results." `nosnippet` and `data-nosnippet` hide text from previews, and `max-snippet` limits how long a preview can be.
+
+| Goal | Google | ChatGPT search |
+|---|---|---|
+| **Be eligible.** | Allow Googlebot, get indexed and allow snippets. | Do not block OAI-SearchBot in `robots.txt`. |
+| **Show less text.** | Use `nosnippet`, `data-nosnippet` or `max-snippet`. | No separate option is listed. |
+| **Stay out of AI answers.** | Opt out with the generative AI setting in Search Console. | Block OAI-SearchBot, or use `noindex`. A plain link may still appear. |
+| **Stop model training.** | Use `Google-Extended` in `robots.txt`. | Block GPTBot. This does not change search visibility. |
+
+Note one trap: a crawler must visit a page to read its `noindex` tag. If `robots.txt` blocks the crawler, the tag goes unread. OpenAI says such a blocked page can still show up as a link and title.
+
+### Measuring the traffic
+
+For Google, Search Console counts clicks from AI features inside its normal Performance report. Since August 2026, it also shows AI impressions, the number of times a page appeared in an AI answer. These show by page, country and date. Google says some sites may not have the report yet.
+
+For ChatGPT, links carry `utm_source=chatgpt.com`. A UTM tag is a label added to a link so your analytics tool knows where a visit came from.
+
+### What actually helps
+
+Google's guidance is plain search basics. Let crawlers in, link your pages to each other, and keep key content as text. Structured data, code labels that describe a page, must match what readers see. Google also stresses unique content that says something others do not.
+
+A 2023 research paper that named GEO reported up to 40% more visibility in AI answers on its own test set. That is a research result, not a promise for your site. Treat vendor GEO promises as opinions until official sources confirm them.
+
+## Common mistakes
+
+- **Buying "AI files" before fixing basics** — Google says you need no special AI text files or structured data for its AI features. Check crawling, indexing and snippets first.
+- **Blocking every AI crawler at once** — blocking OAI-SearchBot removes you from ChatGPT search answers, not just from training. Decide per crawler, because search bots and training bots do different jobs.
+- **Treating `noindex` and `robots.txt` as the same** — if `robots.txt` blocks a crawler, it cannot read your `noindex` tag. Pick the control that matches your goal.
+- **Judging AI search by one test** — AI Overviews do not show for every search, and features cite different pages. Track impressions and tagged visits across many questions and weeks.
+
+## Remember this
+
+<Remember>
+- AI search answers still come from crawled, indexed pages; official guidance says no special AI files or markup are needed.
+- Crawlers have separate jobs: search bots decide visibility, training bots decide model training, so block them one by one.
+- Measure with Search Console (AI clicks and impressions) and visits tagged utm_source=chatgpt.com, not with one-off screenshots.
+</Remember>
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      q: "A vendor says you must add a special AI file to appear in Google AI Overviews. What does Google's guidance say?",
+      options: [
+        "The file is required for AI Mode only",
+        "No special files or markup are needed; the page must be indexed and allowed to show a snippet",
+        "You must pay for a Search Console add-on",
+        "Only pages with structured data can appear"
+      ],
+      answer: 1,
+      why: "Google says there are no extra technical requirements for its AI features. Normal Search eligibility is what counts."
+    },
+    {
+      q: "You want your guides in ChatGPT search answers, but you do not want OpenAI to train models on them. What do you do?",
+      options: [
+        "Block both OAI-SearchBot and GPTBot",
+        "Allow OAI-SearchBot and block GPTBot",
+        "Block OAI-SearchBot and allow GPTBot",
+        "Add a noindex tag to every guide"
+      ],
+      answer: 1,
+      why: "OAI-SearchBot controls search visibility and GPTBot controls training, and the two settings are independent. Noindex would remove the pages from search."
+    },
+    {
+      q: "You block OAI-SearchBot in robots.txt and also add a noindex tag to a page. Why might ChatGPT still show a plain link to it?",
+      options: [
+        "Noindex only works for Google",
+        "The crawler cannot visit the page, so it never reads the noindex tag",
+        "Robots.txt rules expire after 24 hours",
+        "OpenAI ignores every robots.txt file"
+      ],
+      answer: 1,
+      why: "A crawler must reach a page to read its noindex tag. If robots.txt blocks it, the tag goes unread, and OpenAI says a link and title may still appear."
+    },
+    {
+      q: "Your boss shares one screenshot where your brand is missing from an AI answer. What is the best next step?",
+      options: [
+        "Rewrite the whole site at once",
+        "Track AI impressions and tagged visits across many questions over several weeks",
+        "Block all AI crawlers",
+        "Ignore AI search completely"
+      ],
+      answer: 1,
+      why: "AI features do not show for every search and can cite different pages, so one screenshot tells you little. Trends across many questions show what is really happening."
+    }
+  ]}
+/>
+
+## Go deeper
+
+- Read first: [Event tracking basics (events, parameters, conversions)](/docs/martech/analytics/event-tracking-basics).
+- Related: [Tag management basics](/docs/martech/analytics/tag-management-basics).
+- Related: [Agentic commerce: how AI agents shop and pay](/docs/martech/commerce/agentic-commerce-protocols).
+- Sources are listed below with the date they were last checked.

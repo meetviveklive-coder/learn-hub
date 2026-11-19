@@ -61,6 +61,7 @@ export const PATH_STAGES: PathStage[] = [
       'martech/data/what-is-a-cdp',
       'martech/analytics/event-tracking-basics',
       'martech/analytics/tag-management-basics',
+      'martech/analytics/ai-search-visibility',
       'martech/privacy/consent-and-privacy-basics',
     ],
   },
